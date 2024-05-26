@@ -23,19 +23,11 @@ Lesson.init(
             field: "start_time",
             allowNull: false,
         },
-        endTime: {
-            type: DataTypes.TIME,
-            field: "end_time",
-            allowNull: false,
-        },
         duration: {
             type: DataTypes.INTEGER,
             allowNull: false,
         },
-        topic: {
-            type: DataTypes.STRING,
-            allowNull: false,
-        },
+
         teachingSubjectId: {
             type: DataTypes.UUID,
             field: "teaching_subject_id",

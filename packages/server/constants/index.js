@@ -22,6 +22,7 @@ const NAME_FORMAT = /^[\p{L} .]{4,30}$/u;
 
 const EMAIL_FORMAT = /^[^\s@]+@[^\s@]+\.[^\s@]{2,30}$/;
 const PHONE_FORMAT = /^(0[1-9][0-9]{8}|\+84[1-9][0-9]{8})$/;
+
 export function CredentialsValidation(type, value) {
     switch (type) {
         case "name": {
@@ -47,6 +48,28 @@ export function CredentialsValidation(type, value) {
         }
         case "otp": {
             return OTP_FORMAT.test(value);
+        }
+        case "count": {
+            const count = parseInt(value, 10);
+            return count > 0 && Number.isInteger(count);
+        }
+        case "gradelLevel": {
+            return value > 0 && value < 13;
+        }
+        case "date": {
+            const date = new Date(value);
+            const now = new Date();
+            now.setDate(now.getDate() + 3);
+
+            return (
+                date instanceof Date &&
+                !isNaN(date) &&
+                date.setHours(0, 0, 0, 0) > now.setHours(0, 0, 0, 0)
+            );
+        }
+        case "price": {
+            const amount = parseFloat(value);
+            return amount > 0 && !isNaN(amount);
         }
     }
 }

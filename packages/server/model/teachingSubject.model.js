@@ -38,11 +38,6 @@ TeachingSubject.init(
             allowNull: false,
             field: "start_date",
         },
-        endDate: {
-            type: DataTypes.DATEONLY,
-            allowNull: false,
-            field: "end_date",
-        },
         numberOfSessions: {
             type: DataTypes.INTEGER,
             allowNull: false,

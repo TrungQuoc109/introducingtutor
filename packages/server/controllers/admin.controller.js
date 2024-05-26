@@ -1,6 +1,4 @@
-import { adminServiceInstance } from "../services/admin.service.js";
-import { userServiceInstance } from "../services/index.js";
-import { responseMessageInstance } from "../utils/index.js";
+import { adminServiceInstance } from "../services/index.js";
 
 //------------------------------------------------
 export class AdminController {

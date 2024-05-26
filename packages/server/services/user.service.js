@@ -9,9 +9,17 @@ import {
     OTP_LENGTH,
     ROLE,
 } from "../constants/index.js";
-import { Otp, Student, Tutor, User } from "../model/index.js";
+import {
+    Otp,
+    Student,
+    Subject,
+    TeachingSubject,
+    Tutor,
+    User,
+} from "../model/index.js";
+import { sequelize } from "../datasourse/db.connection.js";
 import { findInvalidOrEmptyAttributes } from "../utils/validate.js";
-import { Op } from "sequelize";
+import { Op, QueryTypes } from "sequelize";
 import nodemailer from "nodemailer";
 
 dotenv.config();
@@ -165,14 +173,14 @@ export class UserService {
                 Introducing Tutor<br/>
                 ${process.env.EMAIL_ADDRESS}`,
             };
-            // transporter.sendMail(mailOptions, (error) => {
-            //     if (error) {
-            //         responseMessageInstance.throwError(
-            //             `There was an error while sending the email. ${error}`,
-            //             500
-            //         );
-            //     }
-            // });
+            transporter.sendMail(mailOptions, (error) => {
+                if (error) {
+                    responseMessageInstance.throwError(
+                        `There was an error while sending the email. ${error}`,
+                        500
+                    );
+                }
+            });
 
             await Otp.create({
                 code: otp,
@@ -208,15 +216,15 @@ export class UserService {
             ) {
                 responseMessageInstance.throwError("Invalid Verify info", 400);
             }
-            // const checkOTP = await Otp.findOne({
-            //     where: { code: verify.otpCode, email: verify.email },
-            // });
-            // if (!checkOTP) {
-            //     responseMessageInstance.throwError(
-            //         "Incorrect verification code.",
-            //         400
-            //     );
-            // }
+            const checkOTP = await Otp.findOne({
+                where: { code: verify.otpCode, email: verify.email },
+            });
+            if (!checkOTP) {
+                responseMessageInstance.throwError(
+                    "Incorrect verification code.",
+                    400
+                );
+            }
             if (!registeredUserInfo) {
                 responseMessageInstance.throwError("Invalid User Info", 400);
             }
@@ -274,7 +282,6 @@ export class UserService {
                     educationLevel.gradeLevel < MIN_GRADEL_LEVEL ||
                     educationLevel.gradeLevel > MAX_GRADEL_LEVEL
                 ) {
-                    console.log(educationLevel);
                     responseMessageInstance.throwError(
                         "Invalid educationLevel",
                         400
@@ -577,29 +584,69 @@ export class UserService {
             );
         }
     }
-    async DumpData(req, res) {
+    async GetSubject(req, res) {
         try {
-            for (let i = 1; i <= 1000; i++) {
-                const password = await bcrypt.hash("password" + i, 10);
-                let phoneNumber = "0";
-                for (let i = 0; i < 9; i++) {
-                    const digit = Math.floor(Math.random() * 10);
-                    phoneNumber += digit;
-                }
-                const userData = {
-                    name: `User${i}`,
-                    email: `user${i}@example.com`,
-                    phone_number: phoneNumber,
-                    age: Math.floor(Math.random() * 60) + 5,
-                    username: `user${i}`,
-                    password: password,
-                    role: Math.floor(Math.random() * 2) + 1,
-                    status: role == 2 ? 1 : 2,
-                };
-
-                await User.create(userData);
+            const subjects = await Subject.findAll();
+            if (!subjects) {
+                responseMessageInstance.throwError("Subject not found!", 404);
             }
-            return responseMessageInstance.getSuccess(res, 200, "Succesful");
+            return responseMessageInstance.getSuccess(res, 200, "Succesful", {
+                data: subjects,
+            });
+        } catch (error) {
+            console.log(error);
+            return responseMessageInstance.getError(
+                res,
+                error.code ?? 500,
+                error.message
+            );
+        }
+    }
+    async GetTeachingSubjects(req, res) {
+        try {
+            const { page = 0 } = req.params || {};
+            const limit = 10;
+            const { count, rows: teachingSubjects } =
+                await TeachingSubject.findAndCountAll({
+                    attributes: [
+                        "id",
+                        "name",
+                        "gradeLevel",
+                        "startDate",
+                        "numberOfSessions",
+                        "location",
+                        "price",
+                        "studentCount",
+                        "status",
+                    ],
+                    include: [
+                        {
+                            model: Tutor,
+
+                            attributes: ["id"],
+                            include: [
+                                {
+                                    model: User,
+                                    attributes: ["name"],
+                                },
+                            ],
+                        },
+                        {
+                            model: Subject,
+
+                            attributes: ["id", "name"],
+                        },
+                    ],
+                    limit: limit,
+                    offset: page * limit,
+                });
+
+            if (!teachingSubjects) {
+                responseMessageInstance.throwError("Subject not found!", 404);
+            }
+            return responseMessageInstance.getSuccess(res, 200, "Succesful", {
+                data: { teachingSubjects, page: Math.ceil(count / 10) },
+            });
         } catch (error) {
             console.log(error);
             return responseMessageInstance.getError(

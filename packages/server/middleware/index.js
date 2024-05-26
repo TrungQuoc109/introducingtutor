@@ -11,7 +11,7 @@ export class Middleware {
             return this.instance;
         }
     }
-    Authen(req, res, next) {
+    AdminAuthen(req, res, next) {
         try {
             const accessKey = req.headers["authorization"] ?? "";
             if (!accessKey) {
@@ -33,11 +33,65 @@ export class Middleware {
             next();
         } catch (error) {
             console.log(error);
-            return responseMessageInstance.getError(
-                res,
-                error.code ?? 500,
-                error.message
+            console.log(error);
+            if (error instanceof jwt.JsonWebTokenError) {
+                return responseMessageInstance.getError(
+                    res,
+                    401,
+                    "Invalid access token"
+                );
+            } else if (error instanceof jwt.TokenExpiredError) {
+                return responseMessageInstance.getError(
+                    res,
+                    401,
+                    "Access token has expired"
+                );
+            } else {
+                return responseMessageInstance.getError(
+                    res,
+                    error.code ?? 500,
+                    error.message
+                );
+            }
+        }
+    }
+    Authen(req, res, next) {
+        try {
+            const accessKey = req.headers["authorization"] ?? "";
+            if (!accessKey) {
+                return responseMessageInstance.throwError(
+                    "Invalid accessKey",
+                    400
+                );
+            }
+
+            const decodedToken = jwt.verify(
+                accessKey.split(" ")[1],
+                process.env.SECRET_KEY
             );
+
+            next();
+        } catch (error) {
+            console.log(error);
+            if (error instanceof jwt.JsonWebTokenError) {
+                return responseMessageInstance.getError(
+                    res,
+                    401,
+                    "Invalid access token"
+                );
+            } else if (error instanceof jwt.TokenExpiredError) {
+                return responseMessageInstance.getError(
+                    res,
+                    401,
+                    "Access token has expired"
+                );
+            } else {
+                return responseMessageInstance.getError(
+                    res,
+                    error.code ?? 500,
+                    error.message
+                );
+            }
         }
     }
 }
