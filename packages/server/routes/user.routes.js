@@ -20,9 +20,14 @@ userRouter.get(
 userRouter.post("/send-otp", userInstance.SendOTP);
 userRouter.post("/forgot-password", userInstance.ForgotPassword);
 userRouter.get("/get-subject", userInstance.GetSubject);
-userRouter.get(
-    "/get-teaching-subject-list/:page",
-    userInstance.GetTeachingSubjects
+userRouter.get("/get-courses/:page", userInstance.GetTeachingSubjects);
+userRouter.get("/get-tutors/:page", userInstance.GetTutors);
+userRouter.get("/get-lessions/:courseId/:page?", userInstance.GetLession);
+userRouter.post(
+    "/change-profile",
+    middlewareInstance.Authen,
+    userInstance.ChangeProfile
 );
+
 // -----------------------------------------------
 export { userRouter };

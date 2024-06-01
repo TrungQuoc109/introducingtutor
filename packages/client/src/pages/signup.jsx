@@ -276,7 +276,7 @@ export default function SignUp() {
                                     onChange={handleChange}
                                 />
                             </Grid>
-
+                            {/* <MultiSelectComponent /> */}
                             <Grid item xs={12}>
                                 <FormControl component="fieldset" fullWidth>
                                     <FormLabel component="legend">
@@ -319,7 +319,6 @@ export default function SignUp() {
                                     </RadioGroup>
                                 </FormControl>
                             </Grid>
-
                             {value == 1 ? (
                                 <Grid container spacing={2}>
                                     <Grid item xs={12}>

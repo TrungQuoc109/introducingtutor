@@ -41,7 +41,7 @@ export function CredentialsValidation(type, value) {
             return PHONE_FORMAT.test(value);
         }
         case "age": {
-            return !isNaN(value) && parseInt(Number(value)) === value;
+            return !isNaN(value) && parseInt(Number(value)) == value;
         }
         case "role": {
             return value == ROLE.tutor || value == ROLE.student;
@@ -51,7 +51,7 @@ export function CredentialsValidation(type, value) {
         }
         case "count": {
             const count = parseInt(value, 10);
-            return count > 0 && Number.isInteger(count);
+            return count > 0 && count < 31 && Number.isInteger(count);
         }
         case "gradelLevel": {
             return value > 0 && value < 13;
@@ -59,12 +59,15 @@ export function CredentialsValidation(type, value) {
         case "date": {
             const date = new Date(value);
             const now = new Date();
+            const after30Day = new Date();
             now.setDate(now.getDate() + 3);
-
+            after30Day.setMonth(now.getMonth() + 1);
+            //   console.log(after30Day, now);
             return (
                 date instanceof Date &&
                 !isNaN(date) &&
-                date.setHours(0, 0, 0, 0) > now.setHours(0, 0, 0, 0)
+                date.setHours(0, 0, 0, 0) > now.setHours(0, 0, 0, 0) &&
+                date.setHours(0, 0, 0, 0) <= after30Day.setHours(0, 0, 0, 0)
             );
         }
         case "price": {

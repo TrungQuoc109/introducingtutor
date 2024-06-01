@@ -1,8 +1,9 @@
 import dotenv from "dotenv";
-import { Subject, TeachingSubject, Tutor, User } from "../model/index.js";
+import { Lesson, Subject, TeachingSubject, Tutor } from "../model/index.js";
 import { responseMessageInstance } from "../utils/index.js";
-import { CredentialsValidation } from "../constants/index.js";
+import { CredentialsValidation, ROLE } from "../constants/index.js";
 import jwt from "jsonwebtoken";
+import { Op } from "sequelize";
 dotenv.config();
 export class TutorService {
     static instance;
@@ -29,7 +30,14 @@ export class TutorService {
                 process.env.SECRET_KEY
             );
             const userId = decodedToken.userId;
-            if (!data) {
+            const role = decodedToken.role;
+            if (!role || role != ROLE.tutor) {
+                responseMessageInstance.throwError("Unauthorized", 401);
+            }
+            if (
+                !data ||
+                (typeof data === "object" && Object.keys(data).length === 0)
+            ) {
                 responseMessageInstance.throwError("Inlavid data.", 400);
             }
             data.startDate = new Date(data.startDate);
@@ -83,15 +91,140 @@ export class TutorService {
             if (!subject) {
                 responseMessageInstance.throwError("Subject not found!", 404);
             }
+
             data.instructorId = tutor.id;
 
-            await TeachingSubject.create(data);
+            const course = await TeachingSubject.create(data);
 
             return responseMessageInstance.getSuccess(
                 res,
                 200,
-                "Create teaching successful"
+                "Create teaching subject successful",
+                { courseId: course.id }
             );
+        } catch (error) {
+            console.log(error);
+            return responseMessageInstance.getError(
+                res,
+                error.code ?? 500,
+                error.message
+            );
+        }
+    }
+    async CreateLession(req, res) {
+        try {
+            const accessKey = req.headers["authorization"] ?? "";
+            const data = req.body.data ?? {};
+            const lessonTimes = [90, 120, 150, 180];
+            if (!accessKey) {
+                return responseMessageInstance.throwError(
+                    "Invalid accessKey",
+                    400
+                );
+            }
+
+            const decodedToken = jwt.verify(
+                accessKey.split(" ")[1],
+                process.env.SECRET_KEY
+            );
+            const userId = decodedToken.userId;
+            const role = decodedToken.role;
+            if (!role || role != ROLE.tutor) {
+                responseMessageInstance.throwError("Unauthorized", 401);
+            }
+            if (
+                !data ||
+                (typeof data === "object" && Object.keys(data).length === 0)
+            ) {
+                responseMessageInstance.throwError("Inlavid data.", 400);
+            }
+            if (!data.title || data.title.length == 0) {
+                responseMessageInstance.throwError("Invalid title", 400);
+            }
+            const date = new Date(data.date);
+            const [hour, minutes, second] = data.startTime
+                .split(":")
+                .map(Number);
+            const startLimit = new Date(date);
+            startLimit.setHours(7, 0, 0, 0);
+
+            const endLimit = new Date(date);
+            endLimit.setHours(19, 0, 0, 0);
+
+            date.setHours(hour, minutes, second, 0);
+            if (
+                !CredentialsValidation("date", date) ||
+                date < startLimit ||
+                date > endLimit
+            ) {
+                responseMessageInstance.throwError("Invalid Start Date", 400);
+            }
+
+            if (!lessonTimes.some((item) => item == data.duration)) {
+                responseMessageInstance.throwError("Invalid Duration", 400);
+            }
+            const teachingDate = new Date(
+                date.getTime() + data.duration * 60 * 1000
+            );
+            const teachingTime = `${teachingDate.getHours()}:${teachingDate.getMinutes()}:${teachingDate.getSeconds()}`;
+            const tutor = await Tutor.findOne({
+                attributes: ["id"],
+                where: { userId: userId },
+            });
+            if (!tutor) {
+                responseMessageInstance.throwError("Tutor not found!", 404);
+            }
+            const course = await TeachingSubject.findOne({
+                attributes: ["name", "numberOfSessions"],
+                where: {
+                    instructorId: tutor.id,
+                    id: data.teachingSubjectId,
+                },
+            });
+
+            const lessions = await Lesson.findOne({
+                where: {
+                    teachingSubjectId: data.teachingSubjectId,
+                    startTime: {
+                        [Op.between]: [data.startTime, teachingTime],
+                    },
+                },
+            });
+            if (lessions) {
+                responseMessageInstance.throwError(
+                    `A lesson is already scheduled at the specified ${lessions.startTime}. `,
+                    400
+                );
+            }
+            if (!course) {
+                responseMessageInstance.throwError("Course not found!", 404);
+            }
+
+            await Lesson.create({
+                title: data.title,
+                date: date,
+                startTime: data.startTime,
+                duration: data.duration,
+                teachingSubjectId: data.teachingSubjectId,
+            });
+            //mail thong bao co lession moi
+            ///////////////////////////////////////////////////////////////////////
+            return responseMessageInstance.getSuccess(
+                res,
+                200,
+                "Create lession successful"
+            );
+        } catch (error) {
+            console.log(error);
+            return responseMessageInstance.getError(
+                res,
+                error.code ?? 500,
+                error.message
+            );
+        }
+    }
+    async ChangStatusCourse(req, res) {
+        try {
         } catch (error) {
             console.log(error);
             return responseMessageInstance.getError(

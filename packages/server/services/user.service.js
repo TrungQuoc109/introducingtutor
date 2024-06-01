@@ -10,6 +10,7 @@ import {
     ROLE,
 } from "../constants/index.js";
 import {
+    Lesson,
     Otp,
     Student,
     Subject,
@@ -17,9 +18,8 @@ import {
     Tutor,
     User,
 } from "../model/index.js";
-import { sequelize } from "../datasourse/db.connection.js";
 import { findInvalidOrEmptyAttributes } from "../utils/validate.js";
-import { Op, QueryTypes } from "sequelize";
+import { Op } from "sequelize";
 import nodemailer from "nodemailer";
 
 dotenv.config();
@@ -115,7 +115,6 @@ export class UserService {
     }
     async SendOTP(req, res) {
         try {
-            console.log(req.body);
             const email = req.body.email ?? "";
             const username = req.body.username ?? "";
             const action = req.body.action ?? "";
@@ -225,7 +224,11 @@ export class UserService {
                     400
                 );
             }
-            if (!registeredUserInfo) {
+            if (
+                !registeredUserInfo ||
+                (typeof registeredUserInfo === "object" &&
+                    Object.keys(registeredUserInfo).length === 0)
+            ) {
                 responseMessageInstance.throwError("Invalid User Info", 400);
             }
             const invalidAttributes = findInvalidOrEmptyAttributes(
@@ -368,7 +371,12 @@ export class UserService {
                 process.env.SECRET_KEY
             );
             const userId = decodedToken.userId;
-
+            if (!oldPassword || !password || !retypePassword) {
+                responseMessageInstance.throwError(
+                    "Please provide old password, new password, and retype password",
+                    400
+                );
+            }
             if (
                 !verify ||
                 !CredentialsValidation("otp", verify.otpCode) ||
@@ -385,12 +393,7 @@ export class UserService {
                     400
                 );
             }
-            if (!oldPassword || !password || !retypePassword) {
-                responseMessageInstance.throwError(
-                    "Please provide old password, new password, and retype password",
-                    400
-                );
-            }
+
             if (
                 !CredentialsValidation("password", oldPassword) ||
                 !CredentialsValidation("password", password) ||
@@ -545,38 +548,254 @@ export class UserService {
             );
             const userId = decodedToken.userId;
             const user = await User.findByPk(userId, {
+                attributes: [
+                    "id",
+                    "name",
+                    "email",
+                    "phoneNumber",
+                    "age",
+                    "role",
+                ],
+                include: [
+                    {
+                        model: Tutor,
+                        attributes: ["education", "experience"],
+                        required: false,
+                    },
+                    {
+                        model: Student,
+                        attributes: ["gradeLevel"],
+                        required: false,
+                    },
+                ],
                 raw: true,
+                nest: true,
             });
             if (!user) {
                 responseMessageInstance.throwError("User not found!", 404);
             }
             if (user.role == ROLE.tutor) {
-                user.educationLevel = await Tutor.findOne({
-                    attributes: ["education", "experience"],
-                    where: { userId: user.id },
-                });
+                delete user.Student;
             } else {
-                user.educationLevel = await Student.findOne({
-                    attributes: ["gradeLevel"],
-                    where: { userId: user.id },
-                });
+                delete user.Tutor;
             }
+            console.log(user);
             return responseMessageInstance.getSuccess(
                 res,
                 200,
                 "Get profile successfull",
                 {
-                    profile: {
-                        name: user.name,
-                        email: user.email,
-                        phoneNumber: user.phoneNumber,
-                        age: user.age,
-                        educationLevel: user.educationLevel,
-                    },
+                    // profile: {
+                    //     name: user.name,
+                    //     email: user.email,
+                    //     phoneNumber: user.phoneNumber,
+                    //     age: user.age,
+                    //     educationLevel: user.educationLevel,
+                    // },
+                    data: user,
                 }
             );
         } catch (error) {
             console.log(error);
+            return responseMessageInstance.getError(
+                res,
+                error.code ?? 500,
+                error.message
+            );
+        }
+    }
+    async ChangeProfile(req, res) {
+        try {
+            const userInfo = req.body.data ?? {};
+            const accessKey = req.headers["authorization"] ?? "";
+            const verify = req.body.verify ?? "";
+
+            if (
+                !verify ||
+                !CredentialsValidation("otp", verify.otpCode) ||
+                !CredentialsValidation("email", verify.email)
+            ) {
+                responseMessageInstance.throwError("Invalid Verify info", 400);
+            }
+            const checkOTP = await Otp.findOne({
+                where: { code: verify.otpCode, email: verify.email },
+            });
+            if (!checkOTP) {
+                responseMessageInstance.throwError(
+                    "Incorrect verification code.",
+                    400
+                );
+            }
+
+            if (!accessKey) {
+                return responseMessageInstance.throwError(
+                    "Invalid accessKey",
+                    400
+                );
+            }
+
+            const decodedToken = jwt.verify(
+                accessKey.split(" ")[1],
+                process.env.SECRET_KEY
+            );
+            const userId = decodedToken.userId;
+            if (
+                !userInfo ||
+                (typeof userInfo === "object" &&
+                    Object.keys(userInfo).length === 0)
+            ) {
+                responseMessageInstance.throwError("Invalid User Info", 400);
+            }
+            const invalidAttributes = findInvalidOrEmptyAttributes(
+                userInfo,
+                User
+            );
+            if (invalidAttributes.length != 0) {
+                responseMessageInstance.throwError(
+                    `Invalid Attribute: ${invalidAttributes}`,
+                    400
+                );
+            }
+
+            const invalidFields = [
+                "name",
+                "email",
+                "phoneNumber",
+                "age",
+            ].filter(
+                (field) =>
+                    userInfo[field] != null &&
+                    !CredentialsValidation(field, userInfo[field])
+            );
+
+            if (invalidFields.length > 0) {
+                responseMessageInstance.throwError(
+                    `Invalid User info: ${invalidFields}`,
+                    400
+                );
+            }
+
+            const educationLevel = userInfo.educationLevel;
+            if (userInfo.role == ROLE.tutor) {
+                if (
+                    educationLevel &&
+                    (!educationLevel.education || !educationLevel.experience)
+                ) {
+                    responseMessageInstance.throwError(
+                        "Invalid educationLevel",
+                        400
+                    );
+                }
+            } else {
+                if (
+                    educationLevel &&
+                    (!educationLevel.gradeLevel ||
+                        educationLevel.gradeLevel < MIN_GRADEL_LEVEL ||
+                        educationLevel.gradeLevel > MAX_GRADEL_LEVEL)
+                ) {
+                    responseMessageInstance.throwError(
+                        "Invalid educationLevel",
+                        400
+                    );
+                }
+            }
+            const user = await User.findByPk(userId, {
+                include: [
+                    {
+                        model: Student,
+                    },
+                    {
+                        model: Tutor,
+                    },
+                ],
+            });
+
+            if (!user) {
+                responseMessageInstance.throwError("User not found! ", 404);
+            }
+            const existingUser = await User.findOne({
+                where: {
+                    [Op.or]: [
+                        { email: userInfo.email ?? "" },
+                        { phoneNumber: userInfo.phoneNumber ?? "" },
+                    ],
+                },
+            });
+
+            if (existingUser) {
+                if (existingUser.email == userInfo.email) {
+                    responseMessageInstance.throwError(
+                        "Email already exists",
+                        400
+                    );
+                }
+                if (existingUser.phoneNumber == userInfo.phoneNumber) {
+                    responseMessageInstance.throwError(
+                        "Phone Number already exists",
+                        400
+                    );
+                }
+            }
+
+            let hasChanges = false;
+            for (const key in userInfo) {
+                if (
+                    key !== "Student" &&
+                    key !== "Tutor" &&
+                    user[key] !== userInfo[key]
+                ) {
+                    user[key] = userInfo[key];
+                    hasChanges = true;
+                }
+            }
+            if (educationLevel) {
+                if (user.role === ROLE.student && user.Student) {
+                    if (
+                        user.Student.gradeLevel !==
+                        userInfo.educationLevel.gradeLevel
+                    ) {
+                        user.Student.gradeLevel =
+                            userInfo.educationLevel.gradeLevel;
+                        hasChanges = true;
+                    }
+                }
+
+                if (user.role === ROLE.tutor && user.Tutor) {
+                    if (
+                        user.Tutor.education !==
+                            userInfo.educationLevel.education ||
+                        user.Tutor.experience !==
+                            userInfo.educationLevel.experience
+                    ) {
+                        user.Tutor.education =
+                            userInfo.educationLevel.education;
+                        user.Tutor.experience =
+                            userInfo.educationLevel.experience;
+                        hasChanges = true;
+                    }
+                }
+            }
+            if (hasChanges) {
+                await user.save();
+                if (user.Student) {
+                    await user.Student.save();
+                }
+                if (user.Tutor) {
+                    await user.Tutor.save();
+                }
+                return responseMessageInstance.getSuccess(
+                    res,
+                    200,
+                    "Profile updated successfully"
+                );
+            } else {
+                responseMessageInstance.throwError(
+                    "No changes detected, update skipped",
+                    304
+                );
+            }
+        } catch (error) {
+            console.log(error.message);
             return responseMessageInstance.getError(
                 res,
                 error.code ?? 500,
@@ -633,7 +852,6 @@ export class UserService {
                         },
                         {
                             model: Subject,
-
                             attributes: ["id", "name"],
                         },
                     ],
@@ -645,7 +863,68 @@ export class UserService {
                 responseMessageInstance.throwError("Subject not found!", 404);
             }
             return responseMessageInstance.getSuccess(res, 200, "Succesful", {
-                data: { teachingSubjects, page: Math.ceil(count / 10) },
+                data: { teachingSubjects, page: Math.ceil(count / limit) },
+            });
+        } catch (error) {
+            console.log(error);
+            return responseMessageInstance.getError(
+                res,
+                error.code ?? 500,
+                error.message
+            );
+        }
+    }
+    async GetTutors(req, res) {
+        try {
+            const { page = 0 } = req.params || {};
+            const limit = 10;
+
+            const { count, rows: tutors } = await Tutor.findAndCountAll({
+                attributes: ["id", "education", "experience"],
+                include: [
+                    {
+                        model: User,
+                        attributes: ["name", "email", "phoneNumber"],
+                    },
+                ],
+                limit: limit,
+                offset: page * limit,
+            });
+
+            if (!tutors) {
+                responseMessageInstance.throwError("Tutors not found!", 404);
+            }
+            return responseMessageInstance.getSuccess(res, 200, "Succesful", {
+                data: { tutors, page: Math.ceil(count / limit) },
+            });
+        } catch (error) {
+            console.log(error);
+            return responseMessageInstance.getError(
+                res,
+                error.code ?? 500,
+                error.message
+            );
+        }
+    }
+    async GetLession(req, res) {
+        try {
+            const { courseId, page = 0 } = req.params ?? {};
+            const limit = 10;
+
+            const { count, rows: lessions } = await Lesson.findAndCountAll({
+                attributes: ["id", "title", "date", "startTime", "duration"],
+                where: {
+                    teachingSubjectId: courseId,
+                },
+                limit: limit,
+                offset: page * limit,
+            });
+
+            if (!lessions) {
+                responseMessageInstance.throwError("Lession not found!", 404);
+            }
+            return responseMessageInstance.getSuccess(res, 200, "Succesful", {
+                data: { lessions, page: Math.ceil(count / limit) },
             });
         } catch (error) {
             console.log(error);

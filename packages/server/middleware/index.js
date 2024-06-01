@@ -33,7 +33,7 @@ export class Middleware {
             next();
         } catch (error) {
             console.log(error);
-            console.log(error);
+
             if (error instanceof jwt.JsonWebTokenError) {
                 return responseMessageInstance.getError(
                     res,

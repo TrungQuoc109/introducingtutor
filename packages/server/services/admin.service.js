@@ -1,7 +1,7 @@
 import dotenv from "dotenv";
 import { responseMessageInstance } from "../utils/index.js";
 import { User } from "../model/index.js";
-import { ROLE, STATUS } from "../constants/index.js";
+import { STATUS } from "../constants/index.js";
 import { Op } from "sequelize";
 dotenv.config();
 export class AdminService {
@@ -14,7 +14,9 @@ export class AdminService {
     }
     async GetListUsers(req, res) {
         try {
-            const users = await User.findAll({
+            const { page = 0 } = req.params || {};
+            const limit = 10;
+            const { count, rows: users } = await User.findAndCountAll({
                 attributes: [
                     "id",
                     "name",
@@ -25,6 +27,8 @@ export class AdminService {
                     "role",
                 ],
                 where: { role: { [Op.ne]: 0 }, status: { [Op.ne]: 0 } },
+                limit: limit,
+                offset: page * limit,
             });
             if (!users) {
                 responseMessageInstance.throwError("User not found!", 404);
@@ -35,7 +39,7 @@ export class AdminService {
                 200,
                 "Get profile successfull",
                 {
-                    data: users,
+                    data: { users, page: Math.ceil(count / limit) },
                 }
             );
         } catch (error) {

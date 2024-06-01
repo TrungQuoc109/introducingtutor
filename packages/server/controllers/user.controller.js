@@ -47,6 +47,15 @@ export class UserController {
     async GetTeachingSubjects(req, res) {
         return await userServiceInstance.GetTeachingSubjects(req, res);
     }
+    async GetTutors(req, res) {
+        return await userServiceInstance.GetTutors(req, res);
+    }
+    async GetLession(req, res) {
+        return await userServiceInstance.GetLession(req, res);
+    }
+    async ChangeProfile(req, res) {
+        return await userServiceInstance.ChangeProfile(req, res);
+    }
 }
 
 //------------------------------------------------
