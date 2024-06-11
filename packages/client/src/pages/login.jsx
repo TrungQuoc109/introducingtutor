@@ -84,8 +84,9 @@ export default function SignInSide() {
                 if (response.ok) {
                     const data = await response.json();
                     setToken(data.data.token);
-                    localStorage.setItem("token", token);
+                    localStorage.setItem("token", data.data.token);
                     localStorage.setItem("name", data.data.name);
+                    localStorage.setItem("role", data.data.role);
                     handleNavigate("");
                     console.log(data);
                 } else {

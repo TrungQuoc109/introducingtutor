@@ -5,6 +5,8 @@ import SignInSide from "./pages/login";
 import SignUp from "./pages/signup";
 import HomePage from "./pages/home";
 import VerifyPage from "./pages/verifyOTP";
+import TutorPage from "./pages/tutor";
+import Profile from "./pages/profile";
 
 function App() {
     return (
@@ -14,6 +16,8 @@ function App() {
                 <Route path="/login" element={<SignInSide />} />
                 <Route path="/sign-up" element={<SignUp />} />
                 <Route path="/verify" element={<VerifyPage />} />
+                <Route path="/tutor" element={<TutorPage />} />
+                <Route path="/profile" element={<Profile />} />
             </Routes>
         </BrowserRouter>
     );

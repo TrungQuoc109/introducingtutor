@@ -35,6 +35,7 @@ export class StudentService {
             ) {
                 responseMessageInstance.throwError("Inlavid data.", 400);
             }
+            
         } catch (error) {
             console.log(error);
             return responseMessageInstance.getError(

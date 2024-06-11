@@ -14,18 +14,66 @@ import Header from "../components/header";
 import Footer from "../components/footer";
 import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
 import { ThemeProvider } from "@emotion/react";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
+import { baseURL, firebaseConfig } from "../config/config";
+import { initializeApp } from "firebase/app";
+import { getStorage, ref, uploadBytes } from "firebase/storage";
 const defaultTheme = createTheme();
 function VerifyPage() {
+    const navigate = useNavigate();
     const [otpCode, setOtpcode] = useState(null);
     const [errorMessage, setErrorMessage] = useState(null);
     const location = useLocation();
+    const { action, data, img, file } = location.state ?? {};
+    const app = initializeApp(firebaseConfig);
+    const storage = getStorage(app);
+
+    const uploadImage = async (imageFile, id) => {
+        if (!imageFile) {
+            throw new Error("No image file specified.");
+        }
+
+        const storage = getStorage(app);
+
+        const fileRef = ref(storage, `avatar/${id}`);
+        try {
+            const snapshot = await uploadBytes(fileRef, file);
+
+            console.log("Uploaded a blob or file!", snapshot);
+        } catch (error) {
+            console.error("Error during file upload:", error);
+        }
+    };
+
     const handleSubmit = async (event) => {
         event.preventDefault();
 
         try {
-            const { action, data } = location.state ?? {};
-            console.log(action, data);
+            const response = await fetch(`${baseURL}/user/${action}`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    data: data,
+                    verify: {
+                        email: data.email,
+                        otpCode: otpCode,
+                    },
+                }),
+            });
+            if (response.ok) {
+                const data = await response.json();
+
+                uploadImage(img, data.data.userId);
+                navigate("/login");
+            } else {
+                const errorData = await response.json();
+                navigate(`/${action}`, {
+                    state: {
+                        data: data,
+                    },
+                });
+                setErrorMessage(errorData.error);
+            }
         } catch (error) {
             console.error("Error during login", error.message);
             setErrorMessage("Internal Server Error");

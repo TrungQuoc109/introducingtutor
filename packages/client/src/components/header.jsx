@@ -1,10 +1,20 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useContext, useEffect, useRef, useState } from "react";
 import AppBar from "@mui/material/AppBar";
 import Toolbar from "@mui/material/Toolbar";
 import Typography from "@mui/material/Typography";
 import Button from "@mui/material/Button";
-import { Box, Container, Grid, MenuItem, Popover } from "@mui/material";
+import { RxAvatar } from "react-icons/rx";
+import {
+    Box,
+    Container,
+    Grid,
+    List,
+    ListItem,
+    MenuItem,
+    Popover,
+} from "@mui/material";
 import { useNavigate } from "react-router-dom";
+import logo from "../../public/image/Logo_STU.png";
 function Header() {
     const logoStyle = {
         width: "60px",
@@ -13,40 +23,32 @@ function Header() {
         borderRadius: "50%",
     };
     const [name, setName] = useState(null);
-    const subjects = ["Toan", "Ly", "Hoa", "Sinh"];
+    const [role, setrole] = useState("");
     const [isLoggedIn, setIsLoggedIn] = useState(null);
-    const [anchorElCourse, setAnchorElCourse] = useState(null);
     const [anchorElProfile, setAnchorElProfile] = useState(null);
     const navigate = useNavigate();
-    const popoverHoverCourseRef = useRef(false);
     const popoverHoverProfileRef = useRef(false);
+
     useEffect(() => {
         const token = localStorage.getItem("token");
         if (token) {
             setIsLoggedIn(true);
-            setName(localStorage.getItem("name"));
+            const fullname = localStorage.getItem("name");
+            const temp = fullname.split("").at(-1);
+
+            setName(temp);
+            setrole(localStorage.getItem("role"));
         }
     }, [isLoggedIn]);
     const handLogout = () => {
         localStorage.removeItem("token");
         localStorage.removeItem("name");
+        localStorage.removeItem("role");
         setIsLoggedIn(null);
         handleNavigate("");
     };
     const handleNavigate = (page) => {
         navigate(`/${page}`);
-    };
-    const handlePopoverCourseOpen = (event) => {
-        clearTimeout(popoverHoverCourseRef.current);
-        setAnchorElCourse(event.currentTarget);
-    };
-    const handlePopoverCourseHover = () => {
-        clearTimeout(popoverHoverCourseRef.current);
-    };
-    const handlePopoverCourseClose = () => {
-        popoverHoverCourseRef.current = setTimeout(() => {
-            setAnchorElCourse(null);
-        }, 100);
     };
 
     const handlePopoverProfileOpen = (event) => {
@@ -63,7 +65,6 @@ function Header() {
     const handlePopoverProfileHover = () => {
         clearTimeout(popoverHoverProfileRef.current);
     };
-    const openCourse = Boolean(anchorElCourse);
     const openProfile = Boolean(anchorElProfile);
     return (
         <AppBar
@@ -109,9 +110,7 @@ function Header() {
                         onClick={() => handleNavigate("")}
                     >
                         <img
-                            src={
-                                "https://scontent.fsgn19-1.fna.fbcdn.net/v/t39.30808-6/347820247_1280945992539999_1915767725978544383_n.jpg?_nc_cat=103&ccb=1-7&_nc_sid=5f2048&_nc_eui2=AeG9WnlvddTwVIZQBJvTZZKSv8KNred9PqO_wo2t530-o-UCb7rs6BcphFIw9tR17U3sDPQrrEtmJfejr6NwQy_N&_nc_ohc=GGI0csNRligQ7kNvgHFsClZ&_nc_ht=scontent.fsgn19-1.fna&oh=00_AYDGf7mU1fpLTqVF-gqbwAL--Lavwq9Mo6NPiCb0St1ONQ&oe=664FF7F2"
-                            }
+                            src={logo}
                             style={logoStyle}
                             alt="logo of sitemark"
                         />
@@ -140,69 +139,15 @@ function Header() {
                     <Button color="primary" onClick={() => handleNavigate("")}>
                         Trang chủ{" "}
                     </Button>
-                    <Button color="primary">Gia sư </Button>
                     <Button
                         color="primary"
-                        size="large"
-                        aria-controls={openCourse ? "courses-menu" : undefined}
-                        aria-haspopup="true"
-                        onMouseEnter={handlePopoverCourseOpen}
-                        onMouseLeave={handlePopoverCourseClose}
+                        onClick={() => handleNavigate("tutor")}
                     >
+                        Gia sư{" "}
+                    </Button>
+                    <Button color="primary" size="large">
                         Khóa học
                     </Button>
-                    <Popover
-                        id="courses-menu"
-                        open={openCourse}
-                        anchorEl={anchorElCourse}
-                        anchorOrigin={{
-                            vertical: "bottom",
-                            horizontal: "left",
-                        }}
-                        transformOrigin={{
-                            vertical: "top",
-                            horizontal: "left",
-                        }}
-                        sx={{
-                            mt: 1,
-                            zIndex: 1000,
-                            alignItems: "center",
-                            justifyContent: "center",
-                            borderColor: "divider",
-                        }}
-                        onClose={handlePopoverCourseClose}
-                        disableRestoreFocus
-                    >
-                        <Grid
-                            container
-                            spacing={1}
-                            sx={{
-                                minWidth: 240,
-                                minHeight: 60,
-                                borderColor: "divider",
-                            }}
-                            alignItems="center"
-                        >
-                            {subjects.map((item, index) => (
-                                <Grid item xs={4} key={index}>
-                                    <MenuItem
-                                        color="primary"
-                                        sx={{
-                                            display: "flex",
-                                            justifyContent: "center",
-                                            mr: 2,
-                                            minWidth: 60,
-                                            minHeight: 60,
-                                        }}
-                                        onMouseEnter={handlePopoverCourseHover}
-                                        onMouseLeave={handlePopoverCourseClose}
-                                    >
-                                        {item}
-                                    </MenuItem>
-                                </Grid>
-                            ))}
-                        </Grid>
-                    </Popover>
 
                     {isLoggedIn ? (
                         <Button
@@ -216,6 +161,11 @@ function Header() {
                             onMouseEnter={handlePopoverProfileOpen}
                             onMouseLeave={handlePopoverProfileClose}
                         >
+                            <RxAvatar
+                                fontSize={40}
+                                style={{ marginRight: 8 }}
+                            />
+
                             {name}
                         </Button>
                     ) : (
@@ -241,7 +191,7 @@ function Header() {
                         anchorEl={anchorElProfile}
                         anchorOrigin={{
                             vertical: "bottom",
-                            horizontal: "left",
+                            horizontal: "center",
                         }}
                         transformOrigin={{
                             vertical: "top",
@@ -262,45 +212,63 @@ function Header() {
                             container
                             spacing={1}
                             sx={{
-                                minWidth: 240,
-                                minHeight: 60,
                                 borderColor: "divider",
                             }}
                             alignItems="center"
                         >
-                            <Grid item xs={6}>
-                                <MenuItem
+                            <List disablePadding>
+                                <ListItem
+                                    component="button"
                                     color="primary"
-                                    sx={{
-                                        display: "flex",
-                                        justifyContent: "center",
-                                        mr: 2,
-                                        minWidth: 60,
-                                        minHeight: 60,
-                                    }}
                                     onMouseEnter={handlePopoverProfileHover}
                                     onMouseLeave={handlePopoverProfileClose}
+                                    onClick={() => {
+                                        handleNavigate("profile");
+                                    }}
+                                    sx={{
+                                        justifyContent: "center",
+                                        mt: 1,
+                                        minWidth: 60,
+                                        minHeight: 40,
+                                    }}
                                 >
                                     Tài khoản
-                                </MenuItem>
-                            </Grid>
-                            <Grid item xs={6}>
-                                <MenuItem
+                                </ListItem>
+
+                                <ListItem
+                                    component="button"
                                     color="primary"
+                                    onMouseEnter={handlePopoverProfileHover}
+                                    onMouseLeave={handlePopoverProfileClose}
+                                    // onClick={handleScheduleClick}
                                     sx={{
-                                        display: "flex",
                                         justifyContent: "center",
-                                        mr: 2,
                                         minWidth: 60,
-                                        minHeight: 60,
+                                        minHeight: 40,
                                     }}
+                                >
+                                    {role && role == 1
+                                        ? "Khóa học của tôi"
+                                        : role == 2
+                                        ? "Khóa học đăng ký"
+                                        : "Dashboard"}
+                                </ListItem>
+
+                                <ListItem
+                                    component="button"
+                                    color="primary"
                                     onMouseEnter={handlePopoverProfileHover}
                                     onMouseLeave={handlePopoverProfileClose}
                                     onClick={handLogout}
+                                    sx={{
+                                        justifyContent: "center",
+                                        minWidth: 60,
+                                        minHeight: 40,
+                                    }}
                                 >
                                     Đăng xuất
-                                </MenuItem>
-                            </Grid>
+                                </ListItem>
+                            </List>
                         </Grid>
                     </Popover>
                 </Toolbar>

@@ -185,6 +185,7 @@ export class TutorService {
             const lessions = await Lesson.findOne({
                 where: {
                     teachingSubjectId: data.teachingSubjectId,
+                    date: date,
                     startTime: {
                         [Op.between]: [data.startTime, teachingTime],
                     },

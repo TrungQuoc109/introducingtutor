@@ -4,7 +4,7 @@ import { IoLocation } from "react-icons/io5";
 import Container from "@mui/material/Container";
 import { FaPhone } from "react-icons/fa";
 import Link from "@mui/material/Link";
-
+import logo from "../../public/image/Logo_STU.png";
 import Typography from "@mui/material/Typography";
 import { Grid } from "@mui/material";
 
@@ -53,9 +53,9 @@ export default function Footer() {
                             <Grid item>
                                 <Box sx={{ ml: "15px" }}>
                                     <img
-                                        src="https://scontent.fsgn19-1.fna.fbcdn.net/v/t39.30808-6/347820247_1280945992539999_1915767725978544383_n.jpg?_nc_cat=103&ccb=1-7&_nc_sid=5f2048&_nc_eui2=AeG9WnlvddTwVIZQBJvTZZKSv8KNred9PqO_wo2t530-o-UCb7rs6BcphFIw9tR17U3sDPQrrEtmJfejr6NwQy_N&_nc_ohc=GGI0csNRligQ7kNvgHFsClZ&_nc_ht=scontent.fsgn19-1.fna&oh=00_AYDGf7mU1fpLTqVF-gqbwAL--Lavwq9Mo6NPiCb0St1ONQ&oe=664FF7F2"
+                                        src={logo}
                                         style={logoStyle}
-                                        alt="logo of sitemark"
+                                        alt="logo of stu"
                                     />
                                 </Box>
                             </Grid>

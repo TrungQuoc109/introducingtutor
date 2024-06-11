@@ -13,14 +13,17 @@ import {
     Lesson,
     Otp,
     Student,
+    StudentTeachingSubjectMap,
     Subject,
     TeachingSubject,
     Tutor,
+    TutorSubjectMap,
     User,
 } from "../model/index.js";
 import { findInvalidOrEmptyAttributes } from "../utils/validate.js";
 import { Op } from "sequelize";
 import nodemailer from "nodemailer";
+import { sequelize } from "../datasourse/db.connection.js";
 
 dotenv.config();
 
@@ -115,36 +118,57 @@ export class UserService {
     }
     async SendOTP(req, res) {
         try {
-            const email = req.body.email ?? "";
-            const username = req.body.username ?? "";
-            const action = req.body.action ?? "";
+            const { action, username, phoneNumber, email } = req.body ?? {};
 
             const isValidEmail = CredentialsValidation("email", email);
             if (!isValidEmail) {
                 responseMessageInstance.throwError("Invalid email.");
             }
 
-            const existingEmail = await User.findOne({
+            const existingInfo = await User.findAll({
+                attributes: ["phoneNumber", "email", "username"],
                 where: {
-                    [Op.or]: [{ username: username }, { email: email }],
+                    [Op.or]: [
+                        { username: username },
+                        { email: email },
+                        { phoneNumber: phoneNumber },
+                    ],
                 },
+                raw: true,
             });
 
-            if (existingEmail) {
+            var existingInfoAttributes = {};
+            if (existingInfo) {
+                console.log(existingInfo["phoneNumber"], action);
                 if (action == "sign-up") {
-                    responseMessageInstance.throwError(
-                        `${
-                            existingEmail.email == email ? email : username
-                        } đã tồn tại`,
-                        400
-                    );
+                    existingInfo.map((item) => {
+                        Object.keys(item).forEach((element) => {
+                            console.log(element);
+                            if (
+                                item[element] == email ||
+                                item[element] == phoneNumber ||
+                                item[element] == username
+                            ) {
+                                if (!existingInfoAttributes[element])
+                                    existingInfoAttributes[element] =
+                                        item[element];
+                            }
+                        });
+                    });
+                    if (Object.keys(existingInfoAttributes).length != 0) {
+                        responseMessageInstance.throwError(
+                            `${Object.keys(existingInfoAttributes).join(
+                                ", "
+                            )} đã tồn tại`,
+                            400
+                        );
+                    }
                 }
             } else {
                 if (action != "sign-up") {
                     responseMessageInstance.throwError("Email not found!", 404);
                 }
             }
-            console.log(existingEmail);
             const otp = Array.from({ length: OTP_LENGTH }, () =>
                 Math.floor(Math.random() * 10)
             ).join("");
@@ -328,11 +352,17 @@ export class UserService {
             const newUser = await User.create(registeredUserInfo);
 
             if (registeredUserInfo.role == ROLE.tutor) {
-                await Tutor.create({
+                const tutor = await Tutor.create({
                     userId: newUser.id,
                     education: educationLevel.education,
                     experience: educationLevel.experience,
                 });
+                for (const item of registeredUserInfo.subjects) {
+                    await TutorSubjectMap.create({
+                        tutorId: tutor.id,
+                        subjectId: item.id,
+                    });
+                }
             } else {
                 await Student.create({
                     userId: newUser.id,
@@ -343,7 +373,8 @@ export class UserService {
             return responseMessageInstance.getSuccess(
                 res,
                 200,
-                "Register Succesful!"
+                "Register Succesful!",
+                { data: { userId: newUser.id } }
             );
         } catch (error) {
             console.log(error.message);
@@ -559,7 +590,8 @@ export class UserService {
                 include: [
                     {
                         model: Tutor,
-                        attributes: ["education", "experience"],
+                        attributes: ["education", "experience", "id"],
+
                         required: false,
                     },
                     {
@@ -576,10 +608,23 @@ export class UserService {
             }
             if (user.role == ROLE.tutor) {
                 delete user.Student;
+            } else if (user.role == ROLE.student) {
+                delete user.Tutor;
             } else {
+                delete user.Student;
                 delete user.Tutor;
             }
-            console.log(user);
+            const subjects =
+                user.role == ROLE.tutor
+                    ? await Subject.findAll({
+                          attributes: ["id", "name"],
+                          include: {
+                              model: TutorSubjectMap,
+                              attributes: [],
+                              where: { tutorId: user.Tutor.id },
+                          },
+                      })
+                    : null;
             return responseMessageInstance.getSuccess(
                 res,
                 200,
@@ -592,7 +637,7 @@ export class UserService {
                     //     age: user.age,
                     //     educationLevel: user.educationLevel,
                     // },
-                    data: user,
+                    data: { user, subjects },
                 }
             );
         } catch (error) {
@@ -855,6 +900,7 @@ export class UserService {
                             attributes: ["id", "name"],
                         },
                     ],
+                    where: { status: { [Op.ne]: 0 } },
                     limit: limit,
                     offset: page * limit,
                 });
@@ -877,23 +923,30 @@ export class UserService {
     async GetTutors(req, res) {
         try {
             const { page = 0 } = req.params || {};
-            const limit = 10;
+            const limit = 8;
 
-            const { count, rows: tutors } = await Tutor.findAndCountAll({
+            const tutors = await Tutor.findAll({
                 attributes: ["id", "education", "experience"],
                 include: [
                     {
                         model: User,
-                        attributes: ["name", "email", "phoneNumber"],
+                        attributes: ["name", "email", "phoneNumber", "id"],
+                    },
+                    {
+                        model: TutorSubjectMap,
+
+                        attributes: ["id"],
+                        include: [{ model: Subject }],
                     },
                 ],
                 limit: limit,
                 offset: page * limit,
             });
-
+            const count = await Tutor.count();
             if (!tutors) {
                 responseMessageInstance.throwError("Tutors not found!", 404);
             }
+
             return responseMessageInstance.getSuccess(res, 200, "Succesful", {
                 data: { tutors, page: Math.ceil(count / limit) },
             });
@@ -910,11 +963,25 @@ export class UserService {
         try {
             const { courseId, page = 0 } = req.params ?? {};
             const limit = 10;
+            const current = new Date();
 
             const { count, rows: lessions } = await Lesson.findAndCountAll({
                 attributes: ["id", "title", "date", "startTime", "duration"],
                 where: {
                     teachingSubjectId: courseId,
+                    [Op.or]: [
+                        {
+                            date: {
+                                [Op.gt]: current,
+                            },
+                        },
+                        {
+                            date: current,
+                            startTime: {
+                                [Op.gte]: `${current.getHours()}:${current.getMinutes()}:${current.getSeconds()}`,
+                            },
+                        },
+                    ],
                 },
                 limit: limit,
                 offset: page * limit,
