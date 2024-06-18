@@ -1,5 +1,5 @@
 import { Document } from "./document.model.js";
-import { Lesson } from "./lession.model.js";
+import { Lesson } from "./lesson.model.js";
 import { Salary } from "./salary.model.js";
 import { Student } from "./student.model.js";
 import { StudentTeachingSubjectMap } from "./studentSubjectMap.model.js";
@@ -8,6 +8,7 @@ import { TeachingSubject } from "./teachingSubject.model.js";
 import { Tutor } from "./tutor.model.js";
 import { TutorSubjectMap } from "./tutorSubjectMap.model.js";
 import { User } from "./user.model.js";
+import { Location } from "./location.model.js";
 
 Lesson.hasMany(Document, { foreignKey: "lesson_id" });
 Lesson.belongsTo(TeachingSubject, { foreignKey: "teaching_subject_id" });
@@ -38,14 +39,18 @@ TeachingSubject.hasMany(StudentTeachingSubjectMap, {
 TeachingSubject.belongsTo(Tutor, { foreignKey: "instructor_id" });
 
 Tutor.belongsTo(User, { foreignKey: "user_id" });
+Tutor.hasMany(TeachingSubject, { foreignKey: "instructor_id" });
 Tutor.hasMany(TutorSubjectMap, { foreignKey: "tutor_id" });
-
+Tutor.hasMany(Location, { foreignKey: "tutor_id" });
 TutorSubjectMap.belongsTo(Tutor, { foreignKey: "tutor_id" });
 TutorSubjectMap.belongsTo(Subject, { foreignKey: "subject_id" });
 
 User.hasOne(Tutor, { foreignKey: "user_id" });
 User.hasOne(Student, { foreignKey: "user_id" });
-export * from "./lession.model.js";
+
+Location.belongsTo(Tutor, { foreignKey: "tutor_id" });
+
+export * from "./lesson.model.js";
 export * from "./document.model.js";
 export * from "./otp.model.js";
 export * from "./subject.model.js";
@@ -56,3 +61,4 @@ export * from "./studentSubjectMap.model.js";
 export * from "./salary.model.js";
 export * from "./tutorSubjectMap.model.js";
 export * from "./student.model.js";
+export * from "./location.model.js";

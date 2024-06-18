@@ -22,12 +22,20 @@ userRouter.post("/forgot-password", userInstance.ForgotPassword);
 userRouter.get("/get-subject", userInstance.GetSubject);
 userRouter.get("/get-courses/:page?", userInstance.GetTeachingSubjects);
 userRouter.get("/get-tutors/:page?", userInstance.GetTutors);
-userRouter.get("/get-lessions/:courseId/:page?", userInstance.GetLession);
+userRouter.get("/get-lessons/:courseId/:page?", userInstance.GetLesson);
 userRouter.post(
     "/change-profile",
     middlewareInstance.Authen,
     userInstance.ChangeProfile
 );
+userRouter.get(
+    "/get-my-courses/:page?",
+    middlewareInstance.Authen,
+    userInstance.GetMyCourses
+);
+userRouter.get("/search-tutor", userInstance.SearchTutor);
+userRouter.get("/get-tutor-detail/:tutorId", userInstance.GetTutorDetail);
+userRouter.get("/get-course-detail/:courseId", userInstance.GetCourseDetail);
 
 // -----------------------------------------------
 export { userRouter };

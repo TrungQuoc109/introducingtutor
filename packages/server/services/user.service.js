@@ -8,9 +8,11 @@ import {
     MIN_GRADEL_LEVEL,
     OTP_LENGTH,
     ROLE,
+    districts,
 } from "../constants/index.js";
 import {
     Lesson,
+    Location,
     Otp,
     Student,
     StudentTeachingSubjectMap,
@@ -125,21 +127,26 @@ export class UserService {
                 responseMessageInstance.throwError("Invalid email.");
             }
 
+            let whereCondition = {
+                [Op.or]: [],
+            };
+
+            if (username) {
+                whereCondition[Op.or].push({ username: username });
+            }
+
+            if (phoneNumber) {
+                whereCondition[Op.or].push({ phoneNumber: phoneNumber });
+            }
+
+            // Thực hiện truy vấn với điều kiện đã tạo
             const existingInfo = await User.findAll({
                 attributes: ["phoneNumber", "email", "username"],
-                where: {
-                    [Op.or]: [
-                        { username: username },
-                        { email: email },
-                        { phoneNumber: phoneNumber },
-                    ],
-                },
+                where: whereCondition,
                 raw: true,
             });
-
             var existingInfoAttributes = {};
             if (existingInfo) {
-                console.log(existingInfo["phoneNumber"], action);
                 if (action == "sign-up") {
                     existingInfo.map((item) => {
                         Object.keys(item).forEach((element) => {
@@ -315,7 +322,17 @@ export class UserService {
                     );
                 }
             }
-
+            registeredUserInfo.address.forEach((district) => {
+                const isValid = districts.some(
+                    (item) =>
+                        item.id === district.id && item.name === district.name
+                );
+                if (!isValid) {
+                    responseMessageInstance.throwError(
+                        `District not found: ${district.name}`
+                    );
+                }
+            });
             const existingUser = await User.findOne({
                 where: {
                     [Op.or]: [
@@ -361,6 +378,13 @@ export class UserService {
                     await TutorSubjectMap.create({
                         tutorId: tutor.id,
                         subjectId: item.id,
+                    });
+                }
+                for (const item of registeredUserInfo.address) {
+                    await Location.create({
+                        tutorId: tutor.id,
+                        districtsId: item.id,
+                        name: item.name,
                     });
                 }
             } else {
@@ -446,10 +470,9 @@ export class UserService {
                 responseMessageInstance.throwError("User not found!", 404);
             }
 
-            const storedPassword = user.password;
             const checkpassword = await bcrypt.compare(
                 oldPassword,
-                storedPassword
+                user.password
             );
             if (!checkpassword) {
                 responseMessageInstance.throwError(
@@ -614,30 +637,29 @@ export class UserService {
                 delete user.Student;
                 delete user.Tutor;
             }
-            const subjects =
-                user.role == ROLE.tutor
-                    ? await Subject.findAll({
-                          attributes: ["id", "name"],
-                          include: {
-                              model: TutorSubjectMap,
-                              attributes: [],
-                              where: { tutorId: user.Tutor.id },
-                          },
-                      })
-                    : null;
+            let subjects, address;
+            if (user.role == ROLE.tutor) {
+                subjects = await Subject.findAll({
+                    attributes: ["id", "name"],
+                    include: {
+                        model: TutorSubjectMap,
+                        attributes: [],
+                        where: { tutorId: user.Tutor.id },
+                    },
+                });
+
+                address = await Location.findAll({
+                    attributes: ["districtsId", "name"],
+                    order: [["districtsId", "asc"]],
+                });
+            }
+
             return responseMessageInstance.getSuccess(
                 res,
                 200,
                 "Get profile successfull",
                 {
-                    // profile: {
-                    //     name: user.name,
-                    //     email: user.email,
-                    //     phoneNumber: user.phoneNumber,
-                    //     age: user.age,
-                    //     educationLevel: user.educationLevel,
-                    // },
-                    data: { user, subjects },
+                    data: { user, subjects, address },
                 }
             );
         } catch (error) {
@@ -654,7 +676,7 @@ export class UserService {
             const userInfo = req.body.data ?? {};
             const accessKey = req.headers["authorization"] ?? "";
             const verify = req.body.verify ?? "";
-
+            console.log(userInfo, verify);
             if (
                 !verify ||
                 !CredentialsValidation("otp", verify.otpCode) ||
@@ -690,16 +712,6 @@ export class UserService {
                     Object.keys(userInfo).length === 0)
             ) {
                 responseMessageInstance.throwError("Invalid User Info", 400);
-            }
-            const invalidAttributes = findInvalidOrEmptyAttributes(
-                userInfo,
-                User
-            );
-            if (invalidAttributes.length != 0) {
-                responseMessageInstance.throwError(
-                    `Invalid Attribute: ${invalidAttributes}`,
-                    400
-                );
             }
 
             const invalidFields = [
@@ -764,6 +776,9 @@ export class UserService {
                         { email: userInfo.email ?? "" },
                         { phoneNumber: userInfo.phoneNumber ?? "" },
                     ],
+                    id: {
+                        [Op.ne]: userId,
+                    },
                 },
             });
 
@@ -875,6 +890,7 @@ export class UserService {
                     attributes: [
                         "id",
                         "name",
+                        "description",
                         "gradeLevel",
                         "startDate",
                         "numberOfSessions",
@@ -886,7 +902,6 @@ export class UserService {
                     include: [
                         {
                             model: Tutor,
-
                             attributes: ["id"],
                             include: [
                                 {
@@ -959,13 +974,13 @@ export class UserService {
             );
         }
     }
-    async GetLession(req, res) {
+    async GetLesson(req, res) {
         try {
             const { courseId, page = 0 } = req.params ?? {};
             const limit = 10;
             const current = new Date();
 
-            const { count, rows: lessions } = await Lesson.findAndCountAll({
+            const { count, rows: lessons } = await Lesson.findAndCountAll({
                 attributes: ["id", "title", "date", "startTime", "duration"],
                 where: {
                     teachingSubjectId: courseId,
@@ -987,11 +1002,290 @@ export class UserService {
                 offset: page * limit,
             });
 
-            if (!lessions) {
-                responseMessageInstance.throwError("Lession not found!", 404);
+            if (!lessons) {
+                responseMessageInstance.throwError("Lesson not found!", 404);
             }
             return responseMessageInstance.getSuccess(res, 200, "Succesful", {
-                data: { lessions, page: Math.ceil(count / limit) },
+                data: { lessons, page: Math.ceil(count / limit) },
+            });
+        } catch (error) {
+            console.log(error);
+            return responseMessageInstance.getError(
+                res,
+                error.code ?? 500,
+                error.message
+            );
+        }
+    }
+    async GetMyCourses(req, res) {
+        try {
+            const { page = 0 } = req.params || {};
+            const limit = 10;
+            const accessKey = req.headers["authorization"] ?? "";
+            if (!accessKey) {
+                return responseMessageInstance.throwError(
+                    "Invalid accessKey",
+                    400
+                );
+            }
+
+            const decodedToken = jwt.verify(
+                accessKey.split(" ")[1],
+                process.env.SECRET_KEY
+            );
+            const userId = decodedToken.userId;
+            const userRole = decodedToken.role;
+            let queryOptions = {
+                attributes: [
+                    "id",
+                    "name",
+                    "gradeLevel",
+                    "startDate",
+                    "numberOfSessions",
+                    "location",
+                    "price",
+                    "description",
+                ],
+                include: [
+                    {
+                        model: Tutor,
+                        attributes: ["id", "userId"],
+                        include: [{ model: User, attributes: ["name"] }],
+                    },
+                    { model: Subject, attributes: ["name"] },
+                ],
+                where: { status: { [Op.ne]: 0 } },
+                limit: limit,
+                offset: page * limit,
+            };
+
+            if (userRole == 2) {
+                queryOptions.include.push({
+                    model: StudentTeachingSubjectMap,
+                    include: [{ model: Student, where: { userId: userId } }],
+                });
+            } else if (userRole == 1) {
+                queryOptions.attributes.push("studentCount", "status");
+
+                const tutorInclude = queryOptions.include.find(
+                    (inc) => inc.model === Tutor
+                );
+
+                if (tutorInclude) {
+                    if (!tutorInclude.where) tutorInclude.where = {};
+
+                    tutorInclude.where.userId = userId;
+                }
+            }
+
+            const { count, rows: courses } =
+                await TeachingSubject.findAndCountAll(queryOptions);
+
+            if (courses.length == 0) {
+                responseMessageInstance.throwError("Course not found!", 404);
+            }
+            return responseMessageInstance.getSuccess(res, 200, "Succesful", {
+                data: { courses, page: Math.ceil(count / limit) },
+            });
+        } catch (error) {
+            console.log(error);
+            return responseMessageInstance.getError(
+                res,
+                error.code ?? 500,
+                error.message
+            );
+        }
+    }
+    async SearchTutor(req, res) {
+        try {
+            const limit = 8;
+            const { page = 0, subjectId, location, searchTerm } = req.query;
+            let countOptions = {
+                where: {},
+            };
+
+            if (subjectId) {
+                countOptions.include = [
+                    {
+                        model: TutorSubjectMap,
+                        where: { subjectId: subjectId },
+                    },
+                ];
+            }
+
+            if (location) {
+                countOptions.include = [
+                    {
+                        model: Location,
+                        where: { districtsId: location },
+                    },
+                ];
+            }
+
+            if (searchTerm) {
+                countOptions.include = [
+                    {
+                        model: User,
+                        where: {
+                            name: {
+                                [Op.iLike]: `%${searchTerm}%`,
+                            },
+                        },
+                    },
+                ];
+            }
+
+            const count = await Tutor.count(countOptions);
+
+            let option = {
+                attributes: ["id", "education", "experience"],
+                include: [
+                    {
+                        model: User,
+                        attributes: ["name", "email", "phoneNumber", "id"],
+                    },
+                    {
+                        model: TutorSubjectMap,
+                        attributes: ["id"],
+                        include: [{ model: Subject }],
+                    },
+                    { model: Location, attributes: ["name", "districtsId"] },
+                ],
+                limit: limit,
+                offset: page * limit,
+            };
+
+            if (subjectId) {
+                option.include.push({
+                    model: TutorSubjectMap,
+                    where: { subjectId: subjectId },
+                    include: [{ model: Subject }],
+                });
+            }
+
+            if (location) {
+                option.include[2].where = {};
+                option.include[2].where.districtsId = location;
+            }
+
+            if (searchTerm) {
+                option.include[0].where = {
+                    name: {
+                        [Op.iLike]: `%${searchTerm}%`,
+                    },
+                };
+            }
+
+            const tutors = await Tutor.findAll(option);
+            console.log(count);
+            return responseMessageInstance.getSuccess(res, 200, "Succesful", {
+                data: { tutors, page: Math.ceil(count / limit) },
+            });
+        } catch (error) {
+            console.log(error);
+            return responseMessageInstance.getError(
+                res,
+                error.code ?? 500,
+                error.message
+            );
+        }
+    }
+    async GetTutorDetail(req, res) {
+        try {
+            const tutorId = req.params.tutorId ?? "";
+
+            const tutor = await Tutor.findByPk(tutorId, {
+                attributes: ["education", "experience", "id"],
+                include: [
+                    {
+                        model: TutorSubjectMap,
+                        attributes: ["id"],
+                        include: [
+                            { model: Subject, attributes: ["id", "name"] },
+                        ],
+                    },
+                    {
+                        model: Location,
+                        attributes: ["districtsId", "name"],
+                        order: [["districtsId", "asc"]],
+                    },
+                    { model: User, attributes: ["id", "name", "age"] },
+                    {
+                        model: TeachingSubject,
+                        attributes: [
+                            "id",
+                            "name",
+                            "description",
+                            "gradeLevel",
+                            "startDate",
+                            "numberOfSessions",
+                            "location",
+                            "price",
+                            "studentCount",
+                        ],
+                        include: [
+                            { model: Subject, attributes: ["id", "name"] },
+                        ],
+                    },
+                ],
+            });
+
+            if (tutor.length == 0) {
+                responseMessageInstance.throwError("Tutor not found!", 404);
+            }
+
+            return responseMessageInstance.getSuccess(res, 200, "Succesful", {
+                data: { tutor },
+            });
+        } catch (error) {
+            console.log(error);
+            return responseMessageInstance.getError(
+                res,
+                error.code ?? 500,
+                error.message
+            );
+        }
+    }
+    async GetCourseDetail(req, res) {
+        try {
+            const courseId = req.params.courseId ?? "";
+            const course = await TeachingSubject.findByPk(courseId, {
+                attributes: [
+                    "description",
+                    "gradeLevel",
+                    "name",
+                    "numberOfSessions",
+                    "studentCount",
+                    "price",
+                    "startDate",
+                    "location",
+                    "status",
+                ],
+                include: [
+                    { model: Subject, attributes: ["id", "name"] },
+                    {
+                        model: Tutor,
+                        attributes: ["userId"],
+                        include: [{ model: User, attributes: ["name"] }],
+                    },
+                    {
+                        model: Lesson,
+                        attributes: [
+                            "id",
+                            "title",
+                            "date",
+                            "startTime",
+                            "duration",
+                        ],
+                    },
+                ],
+            });
+            if (course.length == 0) {
+                responseMessageInstance.throwError("Course not found!", 404);
+            }
+
+            return responseMessageInstance.getSuccess(res, 200, "Succesful", {
+                data: { course },
             });
         } catch (error) {
             console.log(error);

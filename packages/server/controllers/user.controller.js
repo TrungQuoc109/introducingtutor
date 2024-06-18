@@ -50,11 +50,23 @@ export class UserController {
     async GetTutors(req, res) {
         return await userServiceInstance.GetTutors(req, res);
     }
-    async GetLession(req, res) {
-        return await userServiceInstance.GetLession(req, res);
+    async GetLesson(req, res) {
+        return await userServiceInstance.GetLesson(req, res);
     }
     async ChangeProfile(req, res) {
         return await userServiceInstance.ChangeProfile(req, res);
+    }
+    async GetMyCourses(req, res) {
+        return await userServiceInstance.GetMyCourses(req, res);
+    }
+    async SearchTutor(req, res) {
+        return await userServiceInstance.SearchTutor(req, res);
+    }
+    async GetTutorDetail(req, res) {
+        return await userServiceInstance.GetTutorDetail(req, res);
+    }
+    async GetCourseDetail(req, res) {
+        return await userServiceInstance.GetCourseDetail(req, res);
     }
 }
 

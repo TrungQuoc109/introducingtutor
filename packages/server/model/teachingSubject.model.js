@@ -46,6 +46,7 @@ TeachingSubject.init(
         location: {
             type: DataTypes.STRING,
             allowNull: false,
+            field: "location_id",
         },
         price: {
             type: DataTypes.INTEGER,

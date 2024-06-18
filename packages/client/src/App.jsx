@@ -7,6 +7,10 @@ import HomePage from "./pages/home";
 import VerifyPage from "./pages/verifyOTP";
 import TutorPage from "./pages/tutor";
 import Profile from "./pages/profile";
+import MyCourse from "./pages/myCourse";
+import CoursePage from "./pages/coures";
+import TutorDetail from "./pages/tutorDetail";
+import CourseDetail from "./pages/courseDetail";
 
 function App() {
     return (
@@ -18,6 +22,13 @@ function App() {
                 <Route path="/verify" element={<VerifyPage />} />
                 <Route path="/tutor" element={<TutorPage />} />
                 <Route path="/profile" element={<Profile />} />
+                <Route path="/my-course" element={<MyCourse />} />
+                <Route path="/course" element={<CoursePage />} />
+                <Route path="/tutor-detail" element={<TutorDetail />} />
+                <Route
+                    path="/course-detail/:courseId"
+                    element={<CourseDetail />}
+                />
             </Routes>
         </BrowserRouter>
     );

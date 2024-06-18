@@ -3,7 +3,7 @@ export function findInvalidOrEmptyAttributes(object, model) {
     const invalidOrEmptyAttributes = [];
 
     for (const [key, value] of Object.entries(object)) {
-        if (key == "educationLevel" || key == "subjects") {
+        if (key == "educationLevel" || key == "subjects" || key == "address") {
             continue;
         }
         if (!userAttributes.includes(key) || !value) {

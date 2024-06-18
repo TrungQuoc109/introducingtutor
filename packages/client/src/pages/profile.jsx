@@ -7,27 +7,32 @@ import {
     Typography,
     TextField,
     Button,
-    FormControl,
-    InputLabel,
-    Select,
-    MenuItem,
+    DialogActions,
+    DialogContent,
+    DialogTitle,
+    Dialog,
 } from "@mui/material";
 import Footer from "../components/footer";
 import Header from "../components/header";
-import { baseURL, firebaseConfig } from "../config/config";
+import { baseURL, districts, firebaseConfig } from "../config/config";
 // Firebase imports
 import { getDownloadURL, getStorage, ref } from "firebase/storage";
 import { initializeApp } from "firebase/app";
 import { DataContext } from "../dataprovider/subject";
-
+import logo from "../../public/image/Logo_STU.png";
+import { useNavigate } from "react-router-dom";
 export default function Profile() {
     const subjects = useContext(DataContext);
     const app = initializeApp(firebaseConfig);
     const storage = getStorage(app);
     const [imgURL, setImageUrl] = useState("");
     const [errors, setErrors] = useState({});
-
+    const [errorMessage, setErrorMessage] = useState(null);
+    const [selectedAddresses, setSelectedAddresses] = useState([]);
     const [selectedSubjectIds, setSelectedSubjectIds] = useState([]);
+    const [openPasswordDialog, setOpenPasswordDialog] = useState(false);
+    const [oldEmail, setOldEmail] = useState("");
+    const navigate = useNavigate();
     const [profileData, setProfileData] = useState({
         name: "",
         email: "",
@@ -40,7 +45,9 @@ export default function Profile() {
     const emailRegex = /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/;
     const phoneRegex = /^(0[1-9][0-9]{8}|\+84[1-9][0-9]{8})$/;
     const nameRegex = /^[\p{L} .]{4,30}$/u;
-
+    const passwordRegex =
+        /^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[-`~!@#$%^&*()_+={}[\\]|\:\;\"\'\<\>\,\.?\/]).{8,30}$/;
+    const usernameRegex = /^[a-zA-Z0-9_]{4,30}$/;
     const validateField = (name, value) => {
         let errorMsg = "";
         switch (name) {
@@ -68,7 +75,13 @@ export default function Profile() {
                 errorMsg = value ? "" : "Kinh nghiệm không được để trống";
                 break;
             case "gradeLevel":
-                errorMsg = value ? "" : "Lớp không được để trống";
+                errorMsg =
+                    !isNaN(value) &&
+                    parseInt(Number(value)) == value &&
+                    value > 0 &&
+                    value <= 12
+                        ? ""
+                        : "Lớp không được để trống";
                 break;
             case "age":
                 errorMsg =
@@ -83,9 +96,48 @@ export default function Profile() {
         }
         setErrors((prevErrors) => ({ ...prevErrors, [name]: errorMsg }));
     };
+    const validateForm = () => {
+        const newErrors = {};
+
+        // Kiểm tra các trường cơ bản
+        if (!profileData.name) newErrors.name = "Họ và Tên không được để trống";
+
+        if (!profileData.email || !emailRegex.test(profileData.email)) {
+            newErrors.email = "Email không đúng định dạng";
+        }
+        if (
+            !profileData.phoneNumber ||
+            !phoneRegex.test(profileData.phoneNumber)
+        ) {
+            newErrors.phoneNumber = "Số điện thoại không đúng định dạng";
+        }
+        if (
+            isNaN(profileData.age) ||
+            parseInt(Number(profileData.age)) != profileData.age ||
+            profileData.age < 3 ||
+            profileData.age > 65
+        ) {
+            newErrors.age = "Tuổi không hợp lệ (Học sinh: 3-18, Gia sư: 18-65)";
+        }
+        if (profileData.role == 1) {
+            // Kiểm tra các trường trong educationLevel hoặc gradeLevel
+            if (!profileData.Tutor.education)
+                newErrors.education = "Trình độ không được để trống";
+            if (!profileData.Tutor.experience)
+                newErrors.experience = "Kinh nghiệm không được để trống";
+        } else if (profileData.role == 2) {
+            if (!profileData.Student.gradeLevel)
+                newErrors.gradeLevel = "Lớp không được để trống";
+        }
+
+        setErrors(newErrors);
+
+        return Object.keys(newErrors).length === 0;
+    };
     useEffect(() => {
         const fetchData = async () => {
             const token = localStorage.getItem("token");
+            const role = localStorage.getItem("role");
             try {
                 const response = await fetch(`${baseURL}/user/get-profile`, {
                     method: "GET",
@@ -97,12 +149,17 @@ export default function Profile() {
                 if (response.ok) {
                     const data = await response.json();
                     setProfileData(data.data.user);
-
-                    const subjectId = data.data.subjects.map(
-                        (subject) => subject.id
-                    );
-                    setSelectedSubjectIds(subjectId);
-
+                    setOldEmail(data.data.user.email);
+                    if (role == 1) {
+                        const subjectId = data.data.subjects.map(
+                            (subject) => subject.id
+                        );
+                        const addressIds = data.data.address.map(
+                            (add) => add.districtsId
+                        );
+                        setSelectedSubjectIds(subjectId);
+                        setSelectedAddresses(addressIds);
+                    }
                     const imageUrl = await fetchImageUrl(data.data.user.id);
                     setImageUrl(imageUrl);
                 } else {
@@ -132,16 +189,14 @@ export default function Profile() {
             ...profileData,
             [name]: value,
         });
-    };
-    const handleSubjectChange = (event) => {
-        setSelectedSubjectIds(event.target.value);
+        validateField(name, value);
     };
 
-    const renderSubjectNames = (selectedIds) => {
+    const renderNames = (selectedIds, array) => {
+        let itemsArray = Array.isArray(array) ? array : array.data;
         return selectedIds
-            .map(
-                (id) => subjects.data.find((subject) => subject.id === id).name
-            )
+            .map((id) => itemsArray.find((item) => item.id === id)?.name)
+            .filter((name) => name) // Lọc ra các giá trị undefined hoặc null
             .join(", ");
     };
     const handleExtraInfoChange = (event) => {
@@ -159,32 +214,99 @@ export default function Profile() {
                 Student: { ...profileData.Student, [name]: value },
             });
         }
+        validateField(name, value);
     };
 
     const handleSave = async () => {
         const token = localStorage.getItem("token");
-        try {
-            console.log(profileData);
-            const response = await fetch(`${baseURL}/user/update-profile`, {
-                method: "PUT",
-                headers: {
-                    "Content-Type": "application/json",
-                    authorization: `Bearer ${token}`,
-                },
-                body: JSON.stringify(profileData),
-            });
-            if (response.ok) {
-                // Handle success update
-                console.log("Profile Updated Successfully");
-            } else {
-                // Handle failure
-                console.error("Failed to update profile");
+        event.preventDefault();
+        const hasErrors = Object.values(errors).some((errorMsg) => errorMsg);
+        //  console.log(profileData);
+        if (validateForm() && !hasErrors) {
+            try {
+                const response = await fetch(`${baseURL}/user/send-otp`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        email: oldEmail,
+
+                        action: "change-profile",
+                    }),
+                });
+                if (response.ok) {
+                    navigate("/verify", {
+                        state: {
+                            data: profileData,
+
+                            action: "change-profile",
+                        },
+                    });
+                } else {
+                    const errorData = await response.json();
+                    setErrorMessage(errorData.error);
+                }
+            } catch (error) {
+                console.error("Error during sign up", error.message);
             }
-        } catch (error) {
-            console.error("Error updating profile:", error);
+        } else {
+            setErrorMessage("Vui lòng kiểm tra lại các trường nhập");
         }
     };
+    const handleOpenChangePasswordDialog = () => {
+        setOpenPasswordDialog(true);
+    };
 
+    const handleCloseChangePasswordDialog = () => {
+        setOpenPasswordDialog(false);
+    };
+    const handleChangePassword = async () => {
+        // Lấy giá trị mật khẩu mới và mật khẩu xác nhận từ input
+        const oldPassword = document.getElementById("old-password").value;
+        const newPassword = document.getElementById("new-password").value;
+        const confirmNewPassword = document.getElementById(
+            "confirm-new-password"
+        ).value;
+
+        if (
+            !passwordRegex.test(newPassword) ||
+            !passwordRegex.test(oldPassword)
+        ) {
+            alert(
+                "Mật khẩu dài từ 8 đến 30 ký tự gồm ít nhất: 1 ký tự đặc biệt, 1 chữ in hoa,1 chữ in thường, 1 số"
+            );
+            return;
+        }
+        if (newPassword !== confirmNewPassword) {
+            alert("Mật khẩu mới và mã xác nhận mật khẩu không khớp.");
+            return;
+        }
+        const response = await fetch(`${baseURL}/user/send-otp`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                email: oldEmail,
+                action: "change-password",
+            }),
+        });
+        if (response.ok) {
+            navigate("/verify", {
+                state: {
+                    data: {
+                        oldPassword: oldPassword,
+                        password: newPassword,
+                        retypePassword: confirmNewPassword,
+                        email: oldEmail,
+                    },
+
+                    action: "change-password",
+                },
+            });
+        } else {
+            const errorData = await response.json();
+            setErrorMessage(errorData.error);
+        }
+        handleCloseChangePasswordDialog();
+    };
     return (
         <React.Fragment>
             <CssBaseline />
@@ -209,7 +331,7 @@ export default function Profile() {
                                 <Grid item xs={12} md={6}>
                                     <Box
                                         component="img"
-                                        src={imgURL}
+                                        src={imgURL ?? logo}
                                         alt="Profile"
                                         sx={{
                                             width: 300,
@@ -222,12 +344,20 @@ export default function Profile() {
                                 <Grid item xs={12} md={6}>
                                     <TextField
                                         fullWidth
-                                        label="Name"
+                                        label="Họ và tên"
                                         name="name"
                                         variant="outlined"
                                         value={profileData.name}
                                         onChange={handleChange}
                                         margin="normal"
+                                        error={!!errors.name}
+                                        helperText={errors.name}
+                                        FormHelperTextProps={{
+                                            className: "helper-text",
+                                        }}
+                                        sx={{
+                                            position: "relative",
+                                        }}
                                     />
                                     <TextField
                                         fullWidth
@@ -237,6 +367,14 @@ export default function Profile() {
                                         value={profileData.email}
                                         onChange={handleChange}
                                         margin="normal"
+                                        error={!!errors.email}
+                                        helperText={errors.email}
+                                        FormHelperTextProps={{
+                                            className: "helper-text",
+                                        }}
+                                        sx={{
+                                            position: "relative",
+                                        }}
                                     />
                                     <TextField
                                         fullWidth
@@ -246,6 +384,14 @@ export default function Profile() {
                                         value={profileData.phoneNumber}
                                         onChange={handleChange}
                                         margin="normal"
+                                        error={!!errors.phoneNumber}
+                                        helperText={errors.phoneNumber}
+                                        FormHelperTextProps={{
+                                            className: "helper-text",
+                                        }}
+                                        sx={{
+                                            position: "relative",
+                                        }}
                                     />
                                     <TextField
                                         fullWidth
@@ -255,6 +401,14 @@ export default function Profile() {
                                         value={profileData.age}
                                         onChange={handleChange}
                                         margin="normal"
+                                        error={!!errors.age}
+                                        helperText={errors.age}
+                                        FormHelperTextProps={{
+                                            className: "helper-text",
+                                        }}
+                                        sx={{
+                                            position: "relative",
+                                        }}
                                     />
 
                                     {profileData.role == 1 && (
@@ -269,6 +423,14 @@ export default function Profile() {
                                                 }
                                                 onChange={handleExtraInfoChange}
                                                 margin="normal"
+                                                error={!!errors.education}
+                                                helperText={errors.education}
+                                                FormHelperTextProps={{
+                                                    className: "helper-text",
+                                                }}
+                                                sx={{
+                                                    position: "relative",
+                                                }}
                                             />
                                             <TextField
                                                 fullWidth
@@ -280,40 +442,39 @@ export default function Profile() {
                                                 }
                                                 onChange={handleExtraInfoChange}
                                                 margin="normal"
+                                                error={!!errors.experience}
+                                                helperText={errors.experience}
+                                                FormHelperTextProps={{
+                                                    className: "helper-text",
+                                                }}
+                                                sx={{
+                                                    position: "relative",
+                                                }}
                                             />
-                                            <FormControl
-                                                fullWidth
-                                                margin="normal"
-                                            >
-                                                <InputLabel id="subject-multiple-select-label">
-                                                    Môn Học
-                                                </InputLabel>
-                                                <Select
-                                                    labelId="subject-multiple-select-label"
-                                                    id="subject-multiple-select"
-                                                    multiple
-                                                    value={selectedSubjectIds}
-                                                    onChange={
-                                                        handleSubjectChange
-                                                    }
-                                                    renderValue={
-                                                        renderSubjectNames
-                                                    }
+                                            {subjects && (
+                                                <Typography
+                                                    variant="body1"
+                                                    marginY={2}
                                                 >
-                                                    {subjects.data.map(
-                                                        (subject) => (
-                                                            <MenuItem
-                                                                key={subject.id}
-                                                                value={
-                                                                    subject.id
-                                                                }
-                                                            >
-                                                                {subject.name}
-                                                            </MenuItem>
-                                                        )
+                                                    Môn học đã chọn:{" "}
+                                                    {renderNames(
+                                                        selectedSubjectIds,
+                                                        subjects
                                                     )}
-                                                </Select>
-                                            </FormControl>
+                                                </Typography>
+                                            )}
+                                            {selectedAddresses && (
+                                                <Typography
+                                                    variant="body1"
+                                                    marginY={2}
+                                                >
+                                                    Địa chỉ đã chọn:{" "}
+                                                    {renderNames(
+                                                        selectedAddresses,
+                                                        districts
+                                                    )}
+                                                </Typography>
+                                            )}
                                         </>
                                     )}
                                     {profileData.role == 2 && (
@@ -327,6 +488,14 @@ export default function Profile() {
                                             }
                                             onChange={handleExtraInfoChange}
                                             margin="normal"
+                                            error={!!errors.gradeLevel}
+                                            helperText={errors.gradeLevel}
+                                            FormHelperTextProps={{
+                                                className: "helper-text",
+                                            }}
+                                            sx={{
+                                                position: "relative",
+                                            }}
                                         />
                                     )}
                                     <Button
@@ -336,12 +505,66 @@ export default function Profile() {
                                         variant="contained"
                                         color="primary"
                                         onClick={handleSave}
+                                        sx={{ mt: 4, ml: 4 }}
                                     >
                                         Save
+                                    </Button>
+                                    <Button
+                                        variant="contained"
+                                        color="secondary"
+                                        onClick={handleOpenChangePasswordDialog}
+                                        sx={{ mt: 4, ml: 16 }}
+                                    >
+                                        Đổi mật khẩu
                                     </Button>
                                 </Grid>
                             </Grid>
                         </Box>
+                        <Dialog
+                            open={openPasswordDialog}
+                            onClose={handleCloseChangePasswordDialog}
+                        >
+                            <DialogTitle>Đổi Mật Khẩu</DialogTitle>
+
+                            <DialogContent>
+                                <TextField
+                                    autoFocus
+                                    margin="dense"
+                                    id="old-password"
+                                    label="Mật khẩu cũ"
+                                    type="password"
+                                    fullWidth
+                                    variant="outlined"
+                                />
+                                <TextField
+                                    autoFocus
+                                    margin="dense"
+                                    id="new-password"
+                                    label="Mật khẩu mới"
+                                    type="password"
+                                    fullWidth
+                                    variant="outlined"
+                                />
+                                <TextField
+                                    margin="dense"
+                                    id="confirm-new-password"
+                                    label="Nhập lại mật khẩu mới"
+                                    type="password"
+                                    fullWidth
+                                    variant="outlined"
+                                />
+                            </DialogContent>
+                            <DialogActions>
+                                <Button
+                                    onClick={handleCloseChangePasswordDialog}
+                                >
+                                    Hủy
+                                </Button>
+                                <Button onClick={handleChangePassword}>
+                                    Xác nhận
+                                </Button>
+                            </DialogActions>
+                        </Dialog>
                     </Container>
                 </Box>
                 <Footer />

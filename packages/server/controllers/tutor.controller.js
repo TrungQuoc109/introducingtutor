@@ -11,11 +11,14 @@ export class TutorController {
         }
         return this.instance;
     }
+    async GetTutorLocation(req, res) {
+        return await tutorServiceInstance.GetTutorLocation(req, res);
+    }
     async CreateTeachingSubject(req, res) {
         return await tutorServiceInstance.CreateTeachingSubject(req, res);
     }
-    async CreateLession(req, res) {
-        return await tutorServiceInstance.CreateLession(req, res);
+    async CreateLesson(req, res) {
+        return await tutorServiceInstance.CreateLesson(req, res);
     }
 }
 //------------------------------------------------

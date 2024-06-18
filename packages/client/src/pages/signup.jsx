@@ -26,9 +26,9 @@ import { RxAvatar } from "react-icons/rx";
 import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
 import Header from "../components/header";
 import Footer from "../components/footer";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { DataContext } from "../dataprovider/subject.jsx";
-import { baseURL } from "../config/config.js";
+import { baseURL, districts } from "../config/config.js";
 
 const defaultTheme = createTheme();
 
@@ -49,6 +49,7 @@ export default function SignUp() {
             experience: "",
         },
         subjects: [],
+        address: [],
     });
     const [errors, setErrors] = useState({});
     const options = useContext(DataContext);
@@ -57,9 +58,9 @@ export default function SignUp() {
     const emailRegex = /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/;
     const passwordRegex =
         /^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[-`~!@#$%^&*()_+={}[\\]|\:\;\"\'\<\>\,\.?\/]).{8,30}$/;
+    const usernameRegex = /^[a-zA-Z0-9_]{4,30}$/;
     const phoneRegex = /^(0[1-9][0-9]{8}|\+84[1-9][0-9]{8})$/;
     const nameRegex = /^[\p{L} .]{4,30}$/u;
-    const usernameRegex = /^[a-zA-Z0-9_]{4,30}$/;
     const validateField = (name, value) => {
         let errorMsg = "";
         switch (name) {
@@ -116,11 +117,7 @@ export default function SignUp() {
 
         // Kiểm tra các trường cơ bản
         if (!formData.name) newErrors.name = "Họ và Tên không được để trống";
-        if (
-            !formData.username ||
-            formData.username.length < 8 ||
-            formData.username.length > 30
-        ) {
+        if (!formData.username || !usernameRegex.test(formData.username)) {
             newErrors.username = "Tài khoản dài từ 8 đến 30 ký tự";
         }
         if (!formData.password || !passwordRegex.test(formData.password)) {
@@ -149,6 +146,9 @@ export default function SignUp() {
                 newErrors.experience = "Kinh nghiệm không được để trống";
             if (!formData.subjects.length) {
                 newErrors.subjects = "Bạn phải chọn ít nhất một môn học";
+            }
+            if (!formData.address.length) {
+                newErrors.address = "Bạn phải chọn ít nhất một địa chỉ";
             }
         } else if (formData.role == 2) {
             if (!formData.educationLevel.gradeLevel)
@@ -207,7 +207,22 @@ export default function SignUp() {
             setErrors(errors);
         }
     };
+    const handleChangeDistrict = (event) => {
+        const selectedValues = event.target.value;
+        const selectedDistricts = selectedValues.map((name) => {
+            return districts.find((district) => district.name === name);
+        });
 
+        setFormData((prevData) => ({
+            ...prevData,
+            address: selectedDistricts,
+        }));
+
+        if (formData.address.length != 0) {
+            errors.address = "";
+            setErrors(errors);
+        }
+    };
     const handleImageChange = (event) => {
         if (event.target.files && event.target.files[0]) {
             const imgURL = URL.createObjectURL(event.target.files[0]);
@@ -220,7 +235,7 @@ export default function SignUp() {
     const handleSubmit = async (event) => {
         event.preventDefault();
         const hasErrors = Object.values(errors).some((errorMsg) => errorMsg);
-
+        console.log(formData);
         if (validateForm() && !hasErrors) {
             try {
                 const response = await fetch(`${baseURL}/user/send-otp`, {
@@ -506,6 +521,7 @@ export default function SignUp() {
                                                 }
                                                 error={!!errors.subjects}
                                                 helperText={errors.subjects}
+                                                label="Môn học"
                                             >
                                                 {options &&
                                                     options.data.map(
@@ -515,6 +531,11 @@ export default function SignUp() {
                                                                 value={
                                                                     option.name
                                                                 }
+                                                                sx={{
+                                                                    height: "32px",
+                                                                    fontSize:
+                                                                        "16px",
+                                                                }}
                                                             >
                                                                 <Checkbox
                                                                     checked={
@@ -540,11 +561,96 @@ export default function SignUp() {
                                                         )
                                                     )}
                                             </Select>{" "}
-                                            {errors.subjects && (
+                                            {errors.subjects ? (
+                                                <FormHelperText
+                                                    sx={{
+                                                        color: "red ",
+                                                        minHeight: 30,
+                                                    }}
+                                                >
+                                                    {errors.subjects}
+                                                </FormHelperText>
+                                            ) : (
+                                                // Khi không có lỗi, vẫn giữ một khoảng không tương tự để tránh thay đổi layout
+                                                <FormHelperText
+                                                    sx={{
+                                                        visibility: "hidden",
+                                                        minHeight: 30,
+                                                    }}
+                                                >
+                                                    Placeholder
+                                                </FormHelperText>
+                                            )}
+                                        </FormControl>
+                                        <FormControl
+                                            sx={{
+                                                width: "100%",
+                                                // mt: 1,
+                                            }}
+                                        >
+                                            <InputLabel id="district">
+                                                Khu vực dạy
+                                            </InputLabel>
+                                            <Select
+                                                labelId="district"
+                                                id="district-select"
+                                                multiple
+                                                onChange={handleChangeDistrict}
+                                                value={formData.address.map(
+                                                    (add) => add.name
+                                                )}
+                                                renderValue={(selected) =>
+                                                    selected.join(", ")
+                                                }
+                                                error={!!errors.address}
+                                                helperText={errors.address}
+                                                label="Khu vực dạy"
+                                                MenuProps={{
+                                                    PaperProps: {
+                                                        style: {
+                                                            maxHeight: 200,
+                                                        },
+                                                    },
+                                                }}
+                                            >
+                                                {districts &&
+                                                    districts.map((option) => (
+                                                        <MenuItem
+                                                            key={option.id}
+                                                            value={option.name}
+                                                            sx={{
+                                                                height: "32px",
+                                                                fontSize:
+                                                                    "16px",
+                                                            }}
+                                                        >
+                                                            <Checkbox
+                                                                checked={
+                                                                    formData.address
+                                                                        .map(
+                                                                            (
+                                                                                add
+                                                                            ) =>
+                                                                                add.name
+                                                                        )
+                                                                        .indexOf(
+                                                                            option.name
+                                                                        ) > -1
+                                                                }
+                                                            />
+                                                            <ListItemText
+                                                                primary={
+                                                                    option.name
+                                                                }
+                                                            />
+                                                        </MenuItem>
+                                                    ))}
+                                            </Select>
+                                            {errors.address && (
                                                 <FormHelperText
                                                     sx={{ color: "red " }}
                                                 >
-                                                    {errors.subjects}
+                                                    {errors.address}
                                                 </FormHelperText>
                                             )}
                                         </FormControl>

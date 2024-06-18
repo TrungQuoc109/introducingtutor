@@ -1,5 +1,11 @@
 import dotenv from "dotenv";
-import { Lesson, Subject, TeachingSubject, Tutor } from "../model/index.js";
+import {
+    Lesson,
+    Location,
+    Subject,
+    TeachingSubject,
+    Tutor,
+} from "../model/index.js";
 import { responseMessageInstance } from "../utils/index.js";
 import { CredentialsValidation, ROLE } from "../constants/index.js";
 import jwt from "jsonwebtoken";
@@ -12,6 +18,48 @@ export class TutorService {
             this.instance = new TutorService();
         }
         return this.instance;
+    }
+    async GetTutorLocation(req, res) {
+        try {
+            const accessKey = req.headers["authorization"] ?? "";
+
+            if (!accessKey) {
+                return responseMessageInstance.throwError(
+                    "Invalid accessKey",
+                    400
+                );
+            }
+
+            const decodedToken = jwt.verify(
+                accessKey.split(" ")[1],
+                process.env.SECRET_KEY
+            );
+            const userId = decodedToken.userId;
+            const role = decodedToken.role;
+            if (!role || role != ROLE.tutor) {
+                responseMessageInstance.throwError("Unauthorized", 401);
+            }
+            const location = await Location.findAll({
+                attributes: ["districtsId", "name"],
+                include: [
+                    { model: Tutor, attributes: [], where: { userId: userId } },
+                ],
+                order: [["districtsId", "ASC"]],
+            });
+            if (location.length == 0) {
+                responseMessageInstance.throwError("Location not found!", 404);
+            }
+            return responseMessageInstance.getSuccess(res, 200, "successful", {
+                data: location,
+            });
+        } catch (error) {
+            console.log(error);
+            return responseMessageInstance.getError(
+                res,
+                error.code ?? 500,
+                error.message
+            );
+        }
     }
     async CreateTeachingSubject(req, res) {
         try {
@@ -70,7 +118,15 @@ export class TutorService {
                     errorMessage: "Invalid price",
                 },
             ];
-
+            if (data.name.length == 0) {
+                responseMessageInstance.throwError("invalid course name", 400);
+            }
+            if (data.description.length == 0) {
+                responseMessageInstance.throwError(
+                    "invalid course description",
+                    400
+                );
+            }
             validationRules.forEach((rule) => {
                 if (
                     !data[rule.field] ||
@@ -85,11 +141,18 @@ export class TutorService {
             const subject = await Subject.findOne({
                 where: { id: data.subjectId },
             });
+
             if (!tutor) {
                 responseMessageInstance.throwError("Tutor not found!", 404);
             }
+            const location = await Location.findOne({
+                where: { districtsId: data.location, tutorId: tutor.id },
+            });
             if (!subject) {
                 responseMessageInstance.throwError("Subject not found!", 404);
+            }
+            if (!location) {
+                responseMessageInstance.throwError("");
             }
 
             data.instructorId = tutor.id;
@@ -111,7 +174,7 @@ export class TutorService {
             );
         }
     }
-    async CreateLession(req, res) {
+    async CreateLesson(req, res) {
         try {
             const accessKey = req.headers["authorization"] ?? "";
             const data = req.body.data ?? {};
@@ -182,7 +245,7 @@ export class TutorService {
                 },
             });
 
-            const lessions = await Lesson.findOne({
+            const lessons = await Lesson.findOne({
                 where: {
                     teachingSubjectId: data.teachingSubjectId,
                     date: date,
@@ -191,9 +254,9 @@ export class TutorService {
                     },
                 },
             });
-            if (lessions) {
+            if (lessons) {
                 responseMessageInstance.throwError(
-                    `A lesson is already scheduled at the specified ${lessions.startTime}. `,
+                    `A lesson is already scheduled at the specified ${lessons.startTime}. `,
                     400
                 );
             }
@@ -208,12 +271,12 @@ export class TutorService {
                 duration: data.duration,
                 teachingSubjectId: data.teachingSubjectId,
             });
-            //mail thong bao co lession moi
+            //mail thong bao co lesson moi
             ///////////////////////////////////////////////////////////////////////
             return responseMessageInstance.getSuccess(
                 res,
                 200,
-                "Create lession successful"
+                "Create lesson successful"
             );
         } catch (error) {
             console.log(error);

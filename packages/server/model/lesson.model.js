@@ -36,8 +36,8 @@ Lesson.init(
     },
     {
         sequelize,
-        modelName: "Lession",
-        tableName: "lession",
+        modelName: "Lesson",
+        tableName: "lesson",
         timestamps: false,
     }
 );

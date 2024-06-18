@@ -47,11 +47,14 @@ function VerifyPage() {
 
     const handleSubmit = async (event) => {
         event.preventDefault();
-
+        const token = localStorage.getItem("token");
         try {
             const response = await fetch(`${baseURL}/user/${action}`, {
                 method: "POST",
-                headers: { "Content-Type": "application/json" },
+                headers: {
+                    "Content-Type": "application/json",
+                    authorization: `Bearer ${token}`,
+                },
                 body: JSON.stringify({
                     data: data,
                     verify: {
@@ -60,18 +63,31 @@ function VerifyPage() {
                     },
                 }),
             });
-            if (response.ok) {
-                const data = await response.json();
 
-                uploadImage(img, data.data.userId);
-                navigate("/login");
+            if (response.ok || response.status < 400) {
+                if (action == "sign-up") {
+                    const data = await response.json();
+
+                    uploadImage(img, data.data.userId);
+                }
+                navigate("/");
             } else {
                 const errorData = await response.json();
-                navigate(`/${action}`, {
-                    state: {
-                        data: data,
-                    },
-                });
+
+                if (action === "change-profile") {
+                    navigate("/profile");
+                } else if (action === "change-password") {
+                    alert("Mật khẩu cũ không đúng");
+
+                    navigate("/profile");
+                } else {
+                    navigate(`/${action}`, {
+                        state: {
+                            data: data,
+                        },
+                    });
+                }
+
                 setErrorMessage(errorData.error);
             }
         } catch (error) {

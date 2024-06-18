@@ -14,6 +14,7 @@ import { createTheme, ThemeProvider } from "@mui/material/styles";
 import Header from "../components/header";
 import Footer from "../components/footer";
 import { useNavigate } from "react-router-dom";
+import logo from "../../public/image/Logo_STU.png";
 
 // TODO remove, this demo shouldn't need to reset the theme.
 
@@ -96,11 +97,11 @@ export default function SignInSide() {
                             "Vui lòng kiểm tra lại tài khoản mật khẩu"
                         );
                     } else {
-                        if (errorData.error == "Invalid User Credential") {
-                            setErrorMessage(" Sai tên đăng nhập hoặc mật khẩu");
-                        } else {
-                            setErrorMessage(errorData.error);
-                        }
+                        // if (errorData.error == "Invalid User Credential") {
+                        setErrorMessage(" Sai tên đăng nhập hoặc mật khẩu");
+                        // } else {
+                        //     setErrorMessage(errorData.error);
+                        // }
                     }
                 }
             } catch (error) {
@@ -124,14 +125,13 @@ export default function SignInSide() {
                     sm={4}
                     md={7}
                     sx={{
-                        backgroundImage:
-                            "url(https://source.unsplash.com/random?wallpapers)",
+                        backgroundImage: `url(${logo})`,
                         backgroundRepeat: "no-repeat",
                         backgroundColor: (t) =>
                             t.palette.mode === "light"
                                 ? t.palette.grey[50]
                                 : t.palette.grey[900],
-                        backgroundSize: "cover",
+                        backgroundSize: "container",
                         backgroundPosition: "center",
                     }}
                 />

@@ -26,11 +26,14 @@ import { baseURL, firebaseConfig } from "../config/config";
 import { initializeApp } from "firebase/app";
 import { getStorage, ref, getDownloadURL } from "firebase/storage";
 import { DataContext } from "../dataprovider/subject";
+import logo from "../../public/image/Logo_STU.png";
+import SearchBar from "../components/searchBar";
+import { useNavigate } from "react-router-dom";
 
 function TutorPage() {
     const [searchTerm, setSearchTerm] = useState("");
     const [subject, setSubject] = useState("");
-    const [education, seteducation] = useState("");
+    const [location, setLocation] = useState("");
     const [error, setError] = useState("");
     const [tutors, setTutors] = useState([]);
     const [page, setPage] = useState(0);
@@ -38,36 +41,43 @@ function TutorPage() {
     const storage = getStorage(app);
     const subjects = useContext(DataContext);
     const [totalPages, setTotalPages] = useState(0);
-    const educations = [
-        { id: "1", name: "Sinh viên" },
-        { id: "2", name: "Giáo viên" },
-        { id: "3", name: "Giáo viên tiểu học" },
-        { id: "4", name: "Giáo viên THCS" },
-        { id: "5", name: "Giáo viên THPT" },
-        { id: "6", name: "Giảng viên Đại học" },
-    ];
+    const [searching, setSearching] = useState(false);
+    const navigate = useNavigate();
+    const performSearch = (event) => {
+        if (event) event.preventDefault();
 
-    const handleSearchTermChange = (event) => {
-        setSearchTerm(event.target.value);
-    };
+        // Khởi tạo URL cơ bản cho API
+        const baseApiUrl = `${baseURL}/user/search-tutor`;
 
-    const handleSubjectChange = (event) => {
-        setSubject(event.target.value);
-    };
-    const handleEduChange = (event) => {
-        seteducation(event.target.value);
-    };
+        // Sử dụng URLSearchParams để xây dựng các tham số truy vấn
+        const searchParams = new URLSearchParams();
+        searchParams.append("page", page);
+        if (searchTerm) searchParams.append("searchTerm", searchTerm);
+        if (subject) searchParams.append("subjectId", subject);
+        if (location) searchParams.append("location", location);
 
-    const performSearch = () => {
-        event.preventDefault();
-        console.log(
-            "Searching for:",
-            searchTerm,
-            "Subject:",
-            subject,
-            " education:",
-            education
-        );
+        const apiUrl = `${baseApiUrl}?${searchParams.toString()}`;
+        setSearching(true);
+        console.log(apiUrl);
+        fetch(apiUrl)
+            .then((response) => {
+                if (!response.ok) {
+                    throw new Error("Network response was not ok");
+                }
+                return response.json();
+            })
+            .then((data) => {
+                console.log(data);
+                setTotalPages(data.data.page);
+                setTutors(data.data.tutors);
+                !searching ? setPage(0) : null;
+            })
+            .catch((error) => {
+                console.error(
+                    "There was an issue fetching the tutor data:",
+                    error
+                );
+            });
     };
 
     const handleKeyPress = (event) => {
@@ -95,7 +105,7 @@ function TutorPage() {
                 setError(error.message);
             }
         };
-        fetchTutors();
+        searching ? performSearch() : fetchTutors();
     }, [page]);
     const [tutorCards, setTutorCards] = useState([]); // This state will hold your tutors along with their image URLs
 
@@ -126,7 +136,9 @@ function TutorPage() {
             return null;
         }
     };
-
+    const handleCardClick = (tutorId) => {
+        navigate(`/tutor-detail`, { state: { tutorId: tutorId } });
+    };
     const handleChange = (event, newValue) => {
         setPage(newValue);
     };
@@ -145,90 +157,33 @@ function TutorPage() {
                     <Header />
 
                     <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
-                        <Grid spacing={2} alignItems="center">
-                            <Grid item xs={12} md={6}>
-                                <Paper
-                                    component="form"
-                                    sx={{
-                                        display: "flex",
-                                        alignItems: "center",
-                                        width: "100%",
-                                    }}
-                                >
-                                    <InputBase
-                                        sx={{ ml: 1, flex: 1 }}
-                                        placeholder="Tìm kiếm..."
-                                        inputProps={{ "aria-label": "search" }}
-                                        value={searchTerm}
-                                        onChange={handleSearchTermChange}
-                                        onKeyDown={handleKeyPress}
-                                    />
-                                    <FormControl sx={{ width: 160 }}>
-                                        {" "}
-                                        <InputLabel id="education-select-label">
-                                            Trình độ
-                                        </InputLabel>
-                                        <Select
-                                            labelId="education-select-label"
-                                            id="education-select"
-                                            value={education}
-                                            onChange={handleEduChange}
-                                            label="Môn học"
-                                        >
-                                            {educations.map((subj) => (
-                                                <MenuItem
-                                                    key={subj.id}
-                                                    value={subj.id}
-                                                >
-                                                    {subj.name}
-                                                </MenuItem>
-                                            ))}
-                                        </Select>
-                                    </FormControl>
-                                    <FormControl sx={{ mx: 1, width: 140 }}>
-                                        <InputLabel id="subject-select-label">
-                                            Môn học
-                                        </InputLabel>
-                                        <Select
-                                            labelId="subject-select-label"
-                                            id="subject-select"
-                                            value={subject}
-                                            onChange={handleSubjectChange}
-                                            label="Môn học"
-                                        >
-                                            {subjects &&
-                                                subjects.data.map((subj) => (
-                                                    <MenuItem
-                                                        key={subj.id}
-                                                        value={subj.id}
-                                                    >
-                                                        {subj.name}
-                                                    </MenuItem>
-                                                ))}
-                                        </Select>
-                                    </FormControl>
-
-                                    <IconButton
-                                        type="submit"
-                                        sx={{ p: "10px" }}
-                                        aria-label="search"
-                                        onClick={performSearch}
-                                    >
-                                        <SearchIcon />
-                                    </IconButton>
-                                </Paper>
-                            </Grid>
-                        </Grid>
-
+                        <SearchBar
+                            searchTerm={searchTerm}
+                            setSearchTerm={setSearchTerm}
+                            subject={subject}
+                            setSubject={setSubject}
+                            location={location}
+                            setLocation={setLocation}
+                            subjects={subjects}
+                            performSearch={performSearch}
+                            handleKeyPress={handleKeyPress}
+                        />
                         <Grid container spacing={2} mt={4}>
                             {tutorCards &&
                                 tutorCards.map((card) => (
                                     <Grid item xs={12} md={3} key={card.id}>
-                                        <Card sx={{ maxHeight: 500 }}>
+                                        <Card
+                                            sx={{ maxHeight: 500 }}
+                                            onClick={() =>
+                                                handleCardClick(card.id)
+                                            }
+                                        >
                                             <CardActionArea>
                                                 <CardMedia
                                                     component="img"
-                                                    image={card.imageUrl}
+                                                    image={
+                                                        card.imageUrl ?? logo
+                                                    }
                                                     alt="Image title"
                                                     sx={{
                                                         // height: "100%",
@@ -273,9 +228,9 @@ function TutorPage() {
                                                         sx={{
                                                             overflow: "hidden",
                                                             textOverflow:
-                                                                "ellipsis", // Thêm nếu bạn muốn hiển thị dấu "..."
+                                                                "ellipsis",
                                                             whiteSpace:
-                                                                "nowrap", // Đảm bảo nội dung không bị gãy dòng
+                                                                "nowrap",
                                                         }}
                                                     >
                                                         {card.TutorSubjectMaps.map(

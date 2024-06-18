@@ -15,12 +15,11 @@ import graduate from "../../public/image/graduate.png";
 import book from "../../public/image/book.png";
 import online from "../../public/image/online.png";
 import PlayArrowIcon from "@mui/icons-material/PlayArrow";
-import { initializeApp } from "firebase/app";
-import { firebaseConfig } from "../config/config.js";
+import { useNavigate } from "react-router-dom";
+
 function HomePage() {
     const WebsiteName = "Introducing Tutor";
-
-    const app = initializeApp(firebaseConfig);
+    const navigate = useNavigate();
 
     const divider = [
         {
@@ -177,6 +176,9 @@ function HomePage() {
                                         variant="contained"
                                         color="primary"
                                         startIcon={<PlayArrowIcon />}
+                                        onClick={() => {
+                                            navigate(`/tutor`);
+                                        }}
                                         sx={{ mt: 2 }}
                                     >
                                         Tìm kiếm gia sư

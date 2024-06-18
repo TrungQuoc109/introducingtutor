@@ -34,7 +34,7 @@ function Header() {
         if (token) {
             setIsLoggedIn(true);
             const fullname = localStorage.getItem("name");
-            const temp = fullname.split("").at(-1);
+            const temp = fullname.split(" ").at(-1);
 
             setName(temp);
             setrole(localStorage.getItem("role"));
@@ -145,7 +145,10 @@ function Header() {
                     >
                         Gia sư{" "}
                     </Button>
-                    <Button color="primary" size="large">
+                    <Button
+                        color="primary"
+                        onClick={() => handleNavigate("course")}
+                    >
                         Khóa học
                     </Button>
 
@@ -240,7 +243,7 @@ function Header() {
                                     color="primary"
                                     onMouseEnter={handlePopoverProfileHover}
                                     onMouseLeave={handlePopoverProfileClose}
-                                    // onClick={handleScheduleClick}
+                                    onClick={() => handleNavigate("my-course")}
                                     sx={{
                                         justifyContent: "center",
                                         minWidth: 60,
