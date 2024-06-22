@@ -23,6 +23,7 @@ import {
 import Header from "../components/header";
 import Footer from "../components/footer";
 import logo from "../../public/image/Logo_STU.png";
+import RegisterButton from "../components/registerButton";
 // Mock data, replace this with your data fetching logic
 
 export default function TutorDetail() {
@@ -34,9 +35,9 @@ export default function TutorDetail() {
     const [selectedAddresses, setSelectedAddresses] = useState([]);
     const [selectedSubjectIds, setSelectedSubjectIds] = useState([]);
     const [clickedCourseId, setClickedCourseId] = useState(null);
-    const navigate = useNavigate();
     const location = useLocation();
     const tutorId = location.state.tutorId;
+    const navigate = useNavigate();
     useEffect(() => {
         const fetchData = async () => {
             try {
@@ -87,16 +88,23 @@ export default function TutorDetail() {
             return null;
         }
     };
-    const handleCourseClick = (courseId) => {
-        // Sử dụng navigate để chuyển trang, thêm courseId vào đường dẫn
-        navigate(`/course-detail/${courseId}`);
-    };
+    // Sắp xếp `selectedIds` hỗ trợ cả chuỗi và số
     const renderNames = (selectedIds, array) => {
         let itemsArray = Array.isArray(array) ? array : array.data;
-        return selectedIds
+        const sortedSelectedIds = selectedIds.sort((a, b) =>
+            a
+                .toString()
+                .localeCompare(b.toString(), undefined, { numeric: true })
+        );
+
+        return sortedSelectedIds
             .map((id) => itemsArray.find((item) => item.id === id)?.name)
-            .filter((name) => name) // Lọc ra các giá trị undefined hoặc null
+            .filter((name) => name)
             .join(", ");
+    };
+    const navigateToCourseDetail = (courseId) => {
+        // Sử dụng navigate từ 'useNavigate' để chuyển sang trang CourseDetail
+        navigate(`/course-detail/${courseId}`);
     };
     return (
         <React.Fragment>
@@ -129,35 +137,86 @@ export default function TutorDetail() {
                                     src={imgURL ?? logo} // Replace with profile.imageUrl if available
                                 />
                             </Grid>
-                            <Grid item xs={12} md={8}>
-                                <Typography variant="h4">
-                                    Gia sư:{" "}
-                                    {profileData && profileData.User.name}
-                                </Typography>
-                                <Typography variant="subtitle1">
-                                    Tuổi: {profileData && profileData.User.age}
-                                </Typography>
-                                <Typography variant="subtitle1">
-                                    Trình độ:{" "}
-                                    {profileData && profileData.education}
-                                </Typography>
-                                <Typography variant="subtitle1">
-                                    Kinh nghiệm:{" "}
-                                    {profileData && profileData.experience} năm
-                                </Typography>
-                                {subjects && (
+                            <Grid item xs={12} md={8} container>
+                                <Grid item xs={12}>
+                                    <Typography variant="h4" gutterBottom>
+                                        Gia sư:{" "}
+                                        {profileData && profileData.User.name}
+                                    </Typography>
+                                </Grid>
+
+                                <Grid item xs={2}>
                                     <Typography variant="subtitle1">
-                                        Môn học:{" "}
+                                        Tuổi
+                                    </Typography>
+                                </Grid>
+                                <Grid item xs={10}>
+                                    <Typography variant="subtitle1">
+                                        : {profileData && profileData.User.age}
+                                    </Typography>
+                                </Grid>
+
+                                {/* Trình độ */}
+                                <Grid item xs={2}>
+                                    <Typography variant="subtitle1">
+                                        Trình độ
+                                    </Typography>
+                                </Grid>
+                                <Grid item xs={10}>
+                                    <Typography variant="subtitle1">
+                                        : {profileData && profileData.education}
+                                    </Typography>
+                                </Grid>
+
+                                {/* Kinh nghiệm */}
+                                <Grid item xs={2}>
+                                    <Typography variant="subtitle1">
+                                        Kinh nghiệm
+                                    </Typography>
+                                </Grid>
+                                <Grid item xs={10}>
+                                    <Typography variant="subtitle1">
+                                        :{" "}
+                                        {profileData && profileData.experience}{" "}
+                                        năm
+                                    </Typography>
+                                </Grid>
+
+                                {/* Môn học */}
+                                {subjects && (
+                                    <>
+                                        <Grid item xs={2}>
+                                            <Typography variant="subtitle1">
+                                                Môn học
+                                            </Typography>
+                                        </Grid>
+                                        <Grid item xs={10}>
+                                            <Typography variant="subtitle1">
+                                                :{" "}
+                                                {renderNames(
+                                                    selectedSubjectIds,
+                                                    subjects
+                                                )}
+                                            </Typography>
+                                        </Grid>
+                                    </>
+                                )}
+
+                                {/* Địa chỉ */}
+                                <Grid item xs={2}>
+                                    <Typography variant="subtitle1">
+                                        Địa chỉ
+                                    </Typography>
+                                </Grid>
+                                <Grid item xs={10}>
+                                    <Typography variant="subtitle1">
+                                        :{" "}
                                         {renderNames(
-                                            selectedSubjectIds,
-                                            subjects
+                                            selectedAddresses,
+                                            districts
                                         )}
                                     </Typography>
-                                )}
-                                <Typography variant="subtitle1">
-                                    Địa chỉ:{" "}
-                                    {renderNames(selectedAddresses, districts)}
-                                </Typography>
+                                </Grid>
                             </Grid>
                             <Grid item xs={12}>
                                 <Typography variant="h5" gutterBottom>
@@ -171,7 +230,13 @@ export default function TutorDetail() {
                                                     <ListItem
                                                         key={course.id}
                                                         divider
+                                                        onClick={() =>
+                                                            navigateToCourseDetail(
+                                                                course.id
+                                                            )
+                                                        }
                                                     >
+                                                        {/* Phần còn lại của mã ListItem */}
                                                         <Grid
                                                             container
                                                             spacing={2}
@@ -330,30 +395,14 @@ export default function TutorDetail() {
                                                                         "flex-end",
                                                                 }}
                                                             >
-                                                                <Button
-                                                                    variant="contained"
-                                                                    onClick={(
-                                                                        event
-                                                                    ) => {
-                                                                        event.stopPropagation(); // Ngăn chặn sự kiện lan tỏa
-                                                                        // cancelRegistration(
-                                                                        //     course.id
-                                                                        // );
-                                                                        console.log(
-                                                                            "dang ky"
-                                                                        );
-                                                                    }}
-                                                                >
-                                                                    Giá:{" "}
-                                                                    {!isNaN(
+                                                                <RegisterButton
+                                                                    courseId={
+                                                                        course.id
+                                                                    }
+                                                                    price={
                                                                         course.price
-                                                                    )
-                                                                        ? course.price.toLocaleString(
-                                                                              "vi-VN"
-                                                                          )
-                                                                        : "N/A"}{" "}
-                                                                    VND
-                                                                </Button>
+                                                                    }
+                                                                />
                                                             </Grid>
                                                         </Grid>
                                                     </ListItem>

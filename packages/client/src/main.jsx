@@ -5,9 +5,7 @@ import "./index.css";
 import { DataProvider } from "./dataprovider/subject.jsx";
 
 ReactDOM.createRoot(document.getElementById("root")).render(
-    <React.StrictMode>
-        <DataProvider>
-            <App />
-        </DataProvider>
-    </React.StrictMode>
+    <DataProvider>
+        <App />
+    </DataProvider>
 );

@@ -9,13 +9,10 @@ Lesson.init(
             defaultValue: DataTypes.UUIDV4,
             primaryKey: true,
         },
-        title: {
-            type: DataTypes.STRING,
-            allowNull: false,
-        },
-        date: {
-            type: DataTypes.DATEONLY,
-            defaultValue: DataTypes.NOW,
+
+        dayOfWeek: {
+            type: DataTypes.INTEGER,
+            field: "day_of_week",
             allowNull: false,
         },
         startTime: {

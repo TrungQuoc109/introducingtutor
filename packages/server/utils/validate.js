@@ -13,3 +13,24 @@ export function findInvalidOrEmptyAttributes(object, model) {
 
     return invalidOrEmptyAttributes;
 }
+export function calculateEndDate(startDateStr, totalSessions, sessionsPerWeek) {
+    // Chuyển đổi chuỗi ngày bắt đầu sang đối tượng Date
+    const startDate = new Date(startDateStr);
+
+    // Tính tổng số tuần cần thiết
+    const totalWeeks = totalSessions / sessionsPerWeek;
+
+    // Tính tổng số ngày cần thiết
+    const totalDays = totalWeeks * 7;
+
+    // Tính ngày kết thúc
+    const endDate = new Date(startDate);
+    endDate.setDate(startDate.getDate() + totalDays);
+
+    // Định dạng ngày kết thúc sang chuỗi 'YYYY-MM-DD'
+    const year = endDate.getFullYear();
+    const month = String(endDate.getMonth() + 1).padStart(2, "0");
+    const day = String(endDate.getDate()).padStart(2, "0");
+
+    return `${year}-${month}-${day}`;
+}

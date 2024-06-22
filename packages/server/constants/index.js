@@ -1,3 +1,6 @@
+import dotenv from "dotenv";
+dotenv.config();
+
 export const DATE_FORMAT = "DD-MM-YYYY";
 export const TIMEZONE = "Asia/Ho_Chi_Minh";
 export const MIN_GRADEL_LEVEL = 1;
@@ -11,6 +14,11 @@ export const ROLE = {
 export const STATUS = {
     deactive: 0,
     active: 1,
+};
+export const COURSE_STATUS = {
+    disabled: 0,
+    open: 1,
+    closed: 2,
 };
 const OTP_FORMAT = /^\d{6}$/;
 
@@ -76,6 +84,18 @@ export function CredentialsValidation(type, value) {
         }
     }
 }
+export const momoConfig = {
+    accessKey: process.env.ACCESSKEY_MOMO,
+    secretKey: process.env.SECRETKEY_MOMO,
+    partnerCode: "MOMO",
+    redirectUrl: "http://localhost:51733/my-course",
+    ipnUrl: "https://callback.url/notify",
+    requestType: "captureWallet",
+    extraData: "",
+    orderGroupId: "",
+    autoCapture: true,
+    lang: "vi",
+};
 export const districts = [
     {
         id: "760",

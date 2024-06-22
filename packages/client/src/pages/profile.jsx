@@ -456,7 +456,7 @@ export default function Profile() {
                                                     variant="body1"
                                                     marginY={2}
                                                 >
-                                                    Môn học đã chọn:{" "}
+                                                    Môn học giảng dạy:{" "}
                                                     {renderNames(
                                                         selectedSubjectIds,
                                                         subjects
@@ -468,7 +468,7 @@ export default function Profile() {
                                                     variant="body1"
                                                     marginY={2}
                                                 >
-                                                    Địa chỉ đã chọn:{" "}
+                                                    Địa chỉ giảng dạy:{" "}
                                                     {renderNames(
                                                         selectedAddresses,
                                                         districts

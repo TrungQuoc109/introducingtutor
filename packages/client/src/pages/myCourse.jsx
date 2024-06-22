@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState } from "react";
+import React, { useCallback, useContext, useEffect, useState } from "react";
 import {
     Box,
     Container,
@@ -23,7 +23,7 @@ import { baseURL, districts, formatDate, statusCourse } from "../config/config";
 // Firebase imports
 // Nếu DataContext không chứa thông tin về khóa học, bạn không cần sử dụng DataContext ở đây.
 import EditCourseDialog from "../components/changeCourse";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import CreateCourseDialog from "../components/createCourseDialog";
 import { DataContext } from "../dataprovider/subject";
 export default function MyCourse() {
@@ -34,11 +34,13 @@ export default function MyCourse() {
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [editingCourse, setEditingCourse] = useState(null);
     const [locations, setLocations] = useState([]);
+    const [subjects, setSubjects] = useState([]);
     const [pendingStatusChange, setPendingStatusChange] = useState({
         courseId: null,
         status: null,
     });
-    const subjects = useContext(DataContext);
+    // const [resultCode, setResultCode] = useState(null);
+
     const navigate = useNavigate();
     const token = localStorage.getItem("token");
     const role = localStorage.getItem("role");
@@ -55,6 +57,15 @@ export default function MyCourse() {
             setPendingStatusChange({ courseId: null, status: null });
         }
     };
+    // Ví dụ sử dụng useCallback (Nếu bạn đang sử dụng setResultCode trong callback)
+    const updateResultCode = useCallback(() => {
+        const searchParams = new URLSearchParams(location.search);
+        const code = searchParams.get("resultCode") ?? null;
+        if (code == 0) {
+            alert("msg");
+        }
+        //  setResultCode(code);
+    }, [location.search]); // Re-run this effect when location.search changes
     const fetchLocation = async () => {
         try {
             const response = await fetch(
@@ -69,8 +80,8 @@ export default function MyCourse() {
             );
             if (response.ok) {
                 const data = await response.json();
-
-                setLocations(data.data);
+                setSubjects(data.data.subjects);
+                setLocations(data.data.location);
             }
         } catch (error) {
             console.log(error);
@@ -104,9 +115,12 @@ export default function MyCourse() {
         }
     };
     useEffect(() => {
-        fetchLocation();
-        fetchData();
-    }, []);
+        const fetchAllData = async () => {
+            updateResultCode();
+            await Promise.all([fetchLocation(), fetchData()]);
+        };
+        fetchAllData();
+    }, [updateResultCode]);
     const handleCardClick = (tutorId) => {
         navigate(`/tutor-detail`, { state: { tutorId: tutorId } });
     };
@@ -116,7 +130,9 @@ export default function MyCourse() {
         setTimeout(() => {
             setClickedCourseId(null);
         }, 200);
-        navigate(`/course-detail/${courseId}`);
+        navigate(`/course-detail/${courseId}`, {
+            state: { fromPage: "mycourse" },
+        });
     };
 
     const openEditDialog = (course) => {
@@ -184,216 +200,245 @@ export default function MyCourse() {
                                         isOpen={isCreateDialogOpen}
                                         onClose={handleCloseCreateDialog}
                                         onSave={handleSaveNewCourse}
-                                        subjects={subjects && subjects.data}
+                                        subjects={subjects}
                                         locations={locations ?? []}
                                     />
                                 </>
                             ) : null}
                         </Grid>
-                        <List>
-                            {courses.map((course) => (
-                                <ListItem key={course.id} divider>
-                                    <Grid
-                                        container
-                                        spacing={2}
-                                        alignItems="center"
-                                        style={{ cursor: "pointer" }}
+                        {courses.length == 0 ? (
+                            <Grid>
+                                Bạn chưa có khóa học nào...
+                                {role == 2 ? (
+                                    <Button
+                                        onClick={() => {
+                                            navigate("/course");
+                                        }}
                                     >
+                                        Đăng ký khóa học
+                                    </Button>
+                                ) : null}
+                            </Grid>
+                        ) : (
+                            <List>
+                                {courses.map((course) => (
+                                    <ListItem key={course.id} divider>
                                         <Grid
-                                            item
-                                            xs={8}
-                                            onClick={() =>
-                                                handleListItemClick(course.id)
-                                            }
-                                            sx={{
-                                                ...(clickedCourseId ===
-                                                    course.id && {
-                                                    bgcolor: "primary.light",
-                                                    color: "white",
-                                                    transition: "all 0.5s ease",
-                                                }),
-                                                cursor: "pointer",
-                                            }}
+                                            container
+                                            spacing={2}
+                                            alignItems="center"
+                                            style={{ cursor: "pointer" }}
                                         >
-                                            <ListItemText
-                                                primary={`${course.name}`}
-                                                secondary={
-                                                    <React.Fragment>
-                                                        <Grid
-                                                            container
-                                                            spacing={2}
-                                                            alignItems="center"
-                                                        >
-                                                            <Grid item xs>
-                                                                <Typography
-                                                                    component="span"
-                                                                    variant="body2"
-                                                                    color="textPrimary"
-                                                                >
-                                                                    Môn:{" "}
-                                                                    {
-                                                                        course
-                                                                            .Subject
-                                                                            .name
-                                                                    }
-                                                                </Typography>
-                                                            </Grid>
-                                                            <Grid item xs>
-                                                                <Typography
-                                                                    component="span"
-                                                                    variant="body2"
-                                                                    color="textPrimary"
-                                                                >
-                                                                    | Lớp:{" "}
-                                                                    {
-                                                                        course.gradeLevel
-                                                                    }
-                                                                </Typography>
-                                                            </Grid>
-                                                            <Grid item xs>
-                                                                <Typography
-                                                                    component="span"
-                                                                    variant="body2"
-                                                                    color="textPrimary"
-                                                                >
-                                                                    | Ngày bắt
-                                                                    đầu:{" "}
-                                                                    {formatDate(
-                                                                        course.startDate
-                                                                    )}
-                                                                </Typography>
-                                                            </Grid>
-                                                            <Grid item xs={12}>
-                                                                <Typography
-                                                                    component="span"
-                                                                    variant="body2"
-                                                                    color="textSecondary"
-                                                                >
-                                                                    Địa chỉ:{" "}
-                                                                    {
-                                                                        districts.find(
-                                                                            (
-                                                                                district
-                                                                            ) =>
-                                                                                district.id ==
-                                                                                course.location
-                                                                        ).name
-                                                                    }
-                                                                    | Giá:{" "}
-                                                                    {
-                                                                        course.price
-                                                                    }
-                                                                </Typography>
-                                                            </Grid>
-                                                        </Grid>
-                                                    </React.Fragment>
-                                                }
-                                            />
-                                        </Grid>
-                                        {role == 1 ? (
-                                            <>
-                                                <Grid item xs={2}>
-                                                    <Select
-                                                        value={
-                                                            selectedStatuses[
-                                                                course.id
-                                                            ]
-                                                        }
-                                                        onChange={(event) => {
-                                                            event.stopPropagation();
-                                                            handleStatusChange(
-                                                                course.id,
-                                                                event
-                                                            );
-                                                        }}
-                                                        size="small"
-                                                        fullWidth
-                                                    >
-                                                        {statusCourse &&
-                                                            statusCourse.map(
-                                                                (
-                                                                    status,
-                                                                    index
-                                                                ) => (
-                                                                    <MenuItem
-                                                                        key={
-                                                                            index
-                                                                        }
-                                                                        value={
-                                                                            index
-                                                                        }
-                                                                    >
-                                                                        {status}
-                                                                    </MenuItem>
-                                                                )
-                                                            )}
-                                                    </Select>
-                                                </Grid>
-                                                <Grid
-                                                    item
-                                                    xs={2}
-                                                    style={{
-                                                        textAlign: "right",
-                                                    }}
-                                                >
-                                                    <Button
-                                                        variant="outlined"
-                                                        color="primary"
-                                                        onClick={(event) => {
-                                                            event.stopPropagation();
-                                                            openEditDialog(
-                                                                course
-                                                            );
-                                                        }}
-                                                    >
-                                                        Chỉnh sửa
-                                                    </Button>
-                                                </Grid>{" "}
-                                            </>
-                                        ) : (
                                             <Grid
                                                 item
-                                                xs={12}
-                                                sm={4}
-                                                style={{
-                                                    display: "flex",
-                                                    flexDirection: "column",
-                                                    alignItems: "flex-end",
+                                                xs={8}
+                                                onClick={() =>
+                                                    handleListItemClick(
+                                                        course.id
+                                                    )
+                                                }
+                                                sx={{
+                                                    ...(clickedCourseId ===
+                                                        course.id && {
+                                                        bgcolor:
+                                                            "primary.light",
+                                                        color: "white",
+                                                        transition:
+                                                            "all 0.5s ease",
+                                                    }),
+                                                    cursor: "pointer",
                                                 }}
                                             >
-                                                <Typography
-                                                    color="textPrimary"
-                                                    style={{
-                                                        fontWeight: "bold",
-                                                        marginBottom: "8px", // Khoảng cách giữa tên và nút
-                                                    }}
-                                                    onClick={() => {
-                                                        handleCardClick(
-                                                            course.Tutor.id
-                                                        );
-                                                    }} // Thêm handler cho sự kiện click
-                                                >
-                                                    Gia sư:{" "}
-                                                    {course.Tutor.User.name}
-                                                </Typography>
-                                                <Button
-                                                    variant="contained"
-                                                    onClick={(event) => {
-                                                        event.stopPropagation(); // Ngăn chặn sự kiện lan tỏa
-                                                        // cancelRegistration(
-                                                        //     course.id
-                                                        // );
-                                                        console.log("huy");
-                                                    }}
-                                                >
-                                                    Hủy đăng ký
-                                                </Button>
+                                                <ListItemText
+                                                    primary={`${course.name}`}
+                                                    secondary={
+                                                        <React.Fragment>
+                                                            <Grid
+                                                                container
+                                                                spacing={2}
+                                                                alignItems="center"
+                                                            >
+                                                                <Grid item xs>
+                                                                    <Typography
+                                                                        component="span"
+                                                                        variant="body2"
+                                                                        color="textPrimary"
+                                                                    >
+                                                                        Môn:{" "}
+                                                                        {
+                                                                            course
+                                                                                .Subject
+                                                                                .name
+                                                                        }
+                                                                    </Typography>
+                                                                </Grid>
+                                                                <Grid item xs>
+                                                                    <Typography
+                                                                        component="span"
+                                                                        variant="body2"
+                                                                        color="textPrimary"
+                                                                    >
+                                                                        | Lớp:{" "}
+                                                                        {
+                                                                            course.gradeLevel
+                                                                        }
+                                                                    </Typography>
+                                                                </Grid>
+                                                                <Grid item xs>
+                                                                    <Typography
+                                                                        component="span"
+                                                                        variant="body2"
+                                                                        color="textPrimary"
+                                                                    >
+                                                                        | Ngày
+                                                                        bắt đầu:{" "}
+                                                                        {formatDate(
+                                                                            course.startDate
+                                                                        )}
+                                                                    </Typography>
+                                                                </Grid>
+                                                                <Grid
+                                                                    item
+                                                                    xs={12}
+                                                                >
+                                                                    <Typography
+                                                                        component="span"
+                                                                        variant="body2"
+                                                                        color="textSecondary"
+                                                                    >
+                                                                        Địa chỉ:{" "}
+                                                                        {
+                                                                            districts.find(
+                                                                                (
+                                                                                    district
+                                                                                ) =>
+                                                                                    district.id ==
+                                                                                    course.location
+                                                                            )
+                                                                                .name
+                                                                        }
+                                                                        | Giá:{" "}
+                                                                        {
+                                                                            course.price
+                                                                        }
+                                                                    </Typography>
+                                                                </Grid>
+                                                            </Grid>
+                                                        </React.Fragment>
+                                                    }
+                                                />
                                             </Grid>
-                                        )}
-                                    </Grid>
-                                </ListItem>
-                            ))}
-                        </List>
+                                            {role == 1 ? (
+                                                <>
+                                                    <Grid item xs={2}>
+                                                        <Select
+                                                            value={
+                                                                selectedStatuses[
+                                                                    course.id
+                                                                ]
+                                                            }
+                                                            onChange={(
+                                                                event
+                                                            ) => {
+                                                                event.stopPropagation();
+                                                                handleStatusChange(
+                                                                    course.id,
+                                                                    event
+                                                                );
+                                                            }}
+                                                            size="small"
+                                                            fullWidth
+                                                        >
+                                                            {statusCourse &&
+                                                                statusCourse.map(
+                                                                    (
+                                                                        status,
+                                                                        index
+                                                                    ) => (
+                                                                        <MenuItem
+                                                                            key={
+                                                                                index
+                                                                            }
+                                                                            value={
+                                                                                index
+                                                                            }
+                                                                        >
+                                                                            {
+                                                                                status
+                                                                            }
+                                                                        </MenuItem>
+                                                                    )
+                                                                )}
+                                                        </Select>
+                                                    </Grid>
+                                                    <Grid
+                                                        item
+                                                        xs={2}
+                                                        style={{
+                                                            textAlign: "right",
+                                                        }}
+                                                    >
+                                                        <Button
+                                                            variant="outlined"
+                                                            color="primary"
+                                                            onClick={(
+                                                                event
+                                                            ) => {
+                                                                event.stopPropagation();
+                                                                openEditDialog(
+                                                                    course
+                                                                );
+                                                            }}
+                                                        >
+                                                            Chỉnh sửa
+                                                        </Button>
+                                                    </Grid>{" "}
+                                                </>
+                                            ) : (
+                                                <Grid
+                                                    item
+                                                    xs={12}
+                                                    sm={4}
+                                                    style={{
+                                                        display: "flex",
+                                                        flexDirection: "column",
+                                                        alignItems: "flex-end",
+                                                    }}
+                                                >
+                                                    <Typography
+                                                        color="textPrimary"
+                                                        style={{
+                                                            fontWeight: "bold",
+                                                            marginBottom: "8px", // Khoảng cách giữa tên và nút
+                                                        }}
+                                                        onClick={() => {
+                                                            handleCardClick(
+                                                                course.Tutor.id
+                                                            );
+                                                        }} // Thêm handler cho sự kiện click
+                                                    >
+                                                        Gia sư:{" "}
+                                                        {course.Tutor.User.name}
+                                                    </Typography>
+                                                    <Button
+                                                        variant="contained"
+                                                        onClick={(event) => {
+                                                            event.stopPropagation(); // Ngăn chặn sự kiện lan tỏa
+                                                            // cancelRegistration(
+                                                            //     course.id
+                                                            // );
+                                                            console.log("huy");
+                                                        }}
+                                                    >
+                                                        Hủy đăng ký
+                                                    </Button>
+                                                </Grid>
+                                            )}
+                                        </Grid>
+                                    </ListItem>
+                                ))}
+                            </List>
+                        )}
                         {editingCourse && (
                             <EditCourseDialog
                                 course={editingCourse}

@@ -22,7 +22,10 @@ import {
     TutorSubjectMap,
     User,
 } from "../model/index.js";
-import { findInvalidOrEmptyAttributes } from "../utils/validate.js";
+import {
+    calculateEndDate,
+    findInvalidOrEmptyAttributes,
+} from "../utils/validate.js";
 import { Op } from "sequelize";
 import nodemailer from "nodemailer";
 import { sequelize } from "../datasourse/db.connection.js";
@@ -325,7 +328,7 @@ export class UserService {
             registeredUserInfo.address.forEach((district) => {
                 const isValid = districts.some(
                     (item) =>
-                        item.id === district.id && item.name === district.name
+                        item.id == district.id && item.name == district.name
                 );
                 if (!isValid) {
                     responseMessageInstance.throwError(
@@ -650,6 +653,7 @@ export class UserService {
 
                 address = await Location.findAll({
                     attributes: ["districtsId", "name"],
+                    where: { tutorId: user.Tutor.id },
                     order: [["districtsId", "asc"]],
                 });
             }
@@ -1251,6 +1255,7 @@ export class UserService {
             const courseId = req.params.courseId ?? "";
             const course = await TeachingSubject.findByPk(courseId, {
                 attributes: [
+                    "id",
                     "description",
                     "gradeLevel",
                     "name",
@@ -1272,20 +1277,35 @@ export class UserService {
                         model: Lesson,
                         attributes: [
                             "id",
-                            "title",
-                            "date",
+                            "dayOfWeek",
                             "startTime",
                             "duration",
                         ],
                     },
                 ],
             });
+
+            const registeredStudents = await StudentTeachingSubjectMap.count({
+                where: { teachingSubjectId: courseId },
+            });
             if (course.length == 0) {
-                responseMessageInstance.throwError("Course not found!", 404);
+                responseMessageInstance.throwError(
+                    "Không tìm thấy khóa học!",
+                    404
+                );
             }
+            //  course.registeredStudents = registeredStudents;
+            const endDate = calculateEndDate(
+                course.startDate,
+                course.numberOfSessions,
+                course.Lessons.length == 0 ? 1 : course.Lessons.length
+            );
+
+            // Gán giá trị cho endDate bằng setDataValue
+            course.setDataValue("endDate", endDate);
 
             return responseMessageInstance.getSuccess(res, 200, "Succesful", {
-                data: { course },
+                data: { course, registeredStudents },
             });
         } catch (error) {
             console.log(error);

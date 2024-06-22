@@ -5,11 +5,18 @@ import {
     Subject,
     TeachingSubject,
     Tutor,
+    TutorSubjectMap,
 } from "../model/index.js";
 import { responseMessageInstance } from "../utils/index.js";
-import { CredentialsValidation, ROLE } from "../constants/index.js";
+import {
+    COURSE_STATUS,
+    CredentialsValidation,
+    ROLE,
+} from "../constants/index.js";
 import jwt from "jsonwebtoken";
 import { Op } from "sequelize";
+import { sequelize } from "../datasourse/db.connection.js";
+import { calculateEndDate } from "../utils/validate.js";
 dotenv.config();
 export class TutorService {
     static instance;
@@ -46,11 +53,23 @@ export class TutorService {
                 ],
                 order: [["districtsId", "ASC"]],
             });
+            const subjectsModel = await TutorSubjectMap.findAll({
+                attributes: ["subjectId"],
+                include: [
+                    {
+                        model: Tutor,
+                        attributes: ["id"],
+                        where: { userId: userId },
+                    },
+                    { model: Subject },
+                ],
+            });
+            const subjects = subjectsModel.map((item) => item.Subject);
             if (location.length == 0) {
                 responseMessageInstance.throwError("Location not found!", 404);
             }
             return responseMessageInstance.getSuccess(res, 200, "successful", {
-                data: location,
+                data: { location, subjects },
             });
         } catch (error) {
             console.log(error);
@@ -95,35 +114,38 @@ export class TutorService {
                 {
                     field: "studentCount",
                     type: "count",
-                    errorMessage: "Invalid student count",
+                    errorMessage: "Số lượng học viên không hợp lệ.",
                 },
                 {
                     field: "numberOfSessions",
                     type: "count",
-                    errorMessage: "Invalid Number of session",
+                    errorMessage: "Số lượng buổi học không hợp lệ.",
                 },
                 {
                     field: "gradeLevel",
                     type: "gradelLevel",
-                    errorMessage: "Invalid grade level",
+                    errorMessage: "Lớp không hợp lệ.",
                 },
                 {
                     field: "startDate",
                     type: "date",
-                    errorMessage: "Invalid start date",
+                    errorMessage: "Ngày bắt đầu không hợp lệ.",
                 },
                 {
                     field: "price",
                     type: "price",
-                    errorMessage: "Invalid price",
+                    errorMessage: "Giá khóa học không hợp lệ.",
                 },
             ];
-            if (data.name.length == 0) {
-                responseMessageInstance.throwError("invalid course name", 400);
+            if (data.name.length == 0 || data.name.length > 255) {
+                responseMessageInstance.throwError(
+                    "Tên khóa học không hợp lệ.",
+                    400
+                );
             }
             if (data.description.length == 0) {
                 responseMessageInstance.throwError(
-                    "invalid course description",
+                    "Mô tả khóa học không hợp lệ.",
                     400
                 );
             }
@@ -138,31 +160,47 @@ export class TutorService {
             const tutor = await Tutor.findOne({
                 where: { userId: userId },
             });
+            if (!tutor) {
+                responseMessageInstance.throwError(
+                    "Không tìm thấy gia sư!",
+                    404
+                );
+            }
+            data.instructorId = tutor.id;
             const subject = await Subject.findOne({
-                where: { id: data.subjectId },
+                include: [
+                    {
+                        model: TutorSubjectMap,
+                        where: {
+                            subjectId: data.subjectId,
+                            tutorId: tutor.id,
+                        },
+                    },
+                ],
             });
 
-            if (!tutor) {
-                responseMessageInstance.throwError("Tutor not found!", 404);
-            }
             const location = await Location.findOne({
                 where: { districtsId: data.location, tutorId: tutor.id },
             });
             if (!subject) {
-                responseMessageInstance.throwError("Subject not found!", 404);
+                responseMessageInstance.throwError(
+                    "Gia sư không đăng ký dạy môn này",
+                    404
+                );
             }
             if (!location) {
-                responseMessageInstance.throwError("");
+                responseMessageInstance.throwError(
+                    "Gia sư không đăng ký dạy ở khu vực này ",
+                    400
+                );
             }
-
-            data.instructorId = tutor.id;
-
+            console.log(data);
             const course = await TeachingSubject.create(data);
 
             return responseMessageInstance.getSuccess(
                 res,
                 200,
-                "Create teaching subject successful",
+                "Tạo khóa học thành công",
                 { courseId: course.id }
             );
         } catch (error) {
@@ -177,7 +215,8 @@ export class TutorService {
     async CreateLesson(req, res) {
         try {
             const accessKey = req.headers["authorization"] ?? "";
-            const data = req.body.data ?? {};
+            console.log(req.body);
+            const data = req.body ?? {};
             const lessonTimes = [90, 120, 150, 180];
             if (!accessKey) {
                 return responseMessageInstance.throwError(
@@ -199,84 +238,162 @@ export class TutorService {
                 !data ||
                 (typeof data === "object" && Object.keys(data).length === 0)
             ) {
-                responseMessageInstance.throwError("Inlavid data.", 400);
+                responseMessageInstance.throwError("Invalid data.", 400);
             }
-            if (!data.title || data.title.length == 0) {
-                responseMessageInstance.throwError("Invalid title", 400);
+
+            if (data.dayOfWeek < 2 || data.dayOfWeek > 8) {
+                responseMessageInstance.throwError("Thứ không hợp lệ", 400);
             }
-            const date = new Date(data.date);
+            const newLessonStart = new Date();
             const [hour, minutes, second] = data.startTime
                 .split(":")
                 .map(Number);
-            const startLimit = new Date(date);
+            const startLimit = new Date(newLessonStart);
             startLimit.setHours(7, 0, 0, 0);
-
-            const endLimit = new Date(date);
+            const endLimit = new Date(newLessonStart);
             endLimit.setHours(19, 0, 0, 0);
-
-            date.setHours(hour, minutes, second, 0);
-            if (
-                !CredentialsValidation("date", date) ||
-                date < startLimit ||
-                date > endLimit
-            ) {
-                responseMessageInstance.throwError("Invalid Start Date", 400);
+            newLessonStart.setHours(hour, minutes, second, 0);
+            if (newLessonStart < startLimit || newLessonStart > endLimit) {
+                responseMessageInstance.throwError(
+                    "Giờ bắt đầu không hợp lệ",
+                    400
+                );
             }
 
             if (!lessonTimes.some((item) => item == data.duration)) {
-                responseMessageInstance.throwError("Invalid Duration", 400);
+                responseMessageInstance.throwError(
+                    "Thời lượng buổi học không hợp lệ",
+                    400
+                );
             }
-            const teachingDate = new Date(
-                date.getTime() + data.duration * 60 * 1000
-            );
-            const teachingTime = `${teachingDate.getHours()}:${teachingDate.getMinutes()}:${teachingDate.getSeconds()}`;
+
             const tutor = await Tutor.findOne({
                 attributes: ["id"],
                 where: { userId: userId },
             });
+
             if (!tutor) {
-                responseMessageInstance.throwError("Tutor not found!", 404);
+                responseMessageInstance.throwError(
+                    "Không tìm thấy gia sư",
+                    404
+                );
             }
             const course = await TeachingSubject.findOne({
-                attributes: ["name", "numberOfSessions"],
+                attributes: ["name", "startDate", "numberOfSessions"],
+                include: [
+                    {
+                        model: Lesson,
+                    },
+                ],
                 where: {
-                    instructorId: tutor.id,
-                    id: data.teachingSubjectId,
-                },
-            });
-
-            const lessons = await Lesson.findOne({
-                where: {
-                    teachingSubjectId: data.teachingSubjectId,
-                    date: date,
-                    startTime: {
-                        [Op.between]: [data.startTime, teachingTime],
+                    id: data.courseId,
+                    status: {
+                        [Op.ne]: COURSE_STATUS.disabled,
                     },
                 },
             });
-            if (lessons) {
+            if (!course) {
                 responseMessageInstance.throwError(
-                    `A lesson is already scheduled at the specified ${lessons.startTime}. `,
+                    "Không tìm thấy khóa học",
+                    404
+                );
+            }
+            const endDate = calculateEndDate(
+                course.startDate,
+                course.numberOfSessions,
+                course.Lessons.length == 0 ? 1 : course.Lessons.length
+            );
+
+            const startTime = data.startTime;
+            const startTimeUTC = new Date(`1970-01-01T${data.startTime}Z`);
+            const endTimeUTC = new Date(
+                startTimeUTC.getTime() + data.duration * 60 * 1000
+            );
+            const isCourseActive = await TeachingSubject.findAll({
+                attributes: ["id", "numberOfSessions", "startDate"],
+                include: [{ model: Lesson, attributes: ["id"] }],
+                where: {
+                    instructorId: tutor.id,
+                    status: { [Op.ne]: COURSE_STATUS.disabled },
+                },
+            });
+            const filteredCourses = isCourseActive.filter((courseActive) => {
+                const startDate = courseActive.startDate;
+                const endDateOfCourseActive = calculateEndDate(
+                    courseActive.startDate,
+                    courseActive.numberOfSessions,
+                    courseActive.Lessons.length == 0
+                        ? 1
+                        : courseActive.Lessons.length
+                );
+
+                return (
+                    (startDate >= course.startDate && startDate <= endDate) ||
+                    (course.startDate >= startDate &&
+                        course.startDate <= endDateOfCourseActive)
+                );
+            });
+
+            const conflictingLessons = await Promise.all(
+                filteredCourses.map(async (courseInRange) => {
+                    try {
+                        const lessons = await Lesson.findOne({
+                            where: {
+                                dayOfWeek: data.dayOfWeek,
+                                teachingSubjectId: courseInRange.id,
+                                [Op.or]: [
+                                    {
+                                        startTime: {
+                                            [Op.between]: [
+                                                startTime,
+                                                endTimeUTC,
+                                            ],
+                                        },
+                                    },
+                                    sequelize.literal(
+                                        `'${startTime}' BETWEEN "Lesson"."start_time" AND ("Lesson"."start_time" + (duration * INTERVAL '1 minute'))`
+                                    ),
+                                ],
+                            },
+                        });
+
+                        return lessons;
+                    } catch (error) {
+                        console.error("Error fetching lessons:", error);
+                        throw error;
+                    }
+                })
+            );
+
+            conflictingLessons.forEach((item) => {
+                if (item != null) {
+                    responseMessageInstance.throwError(
+                        `Đã có buổi học vào  ${item.startTime} thứ ${item.dayOfWeek}. `,
+                        400
+                    );
+                }
+            });
+            const countLesson = await Lesson.count({
+                where: { teachingSubjectId: data.courseId },
+            });
+
+            if (countLesson >= course.numberOfSessions) {
+                responseMessageInstance.throwError(
+                    "Số buổi học không nhiều hơn số buổi của khóa học",
                     400
                 );
             }
-            if (!course) {
-                responseMessageInstance.throwError("Course not found!", 404);
-            }
-
             await Lesson.create({
-                title: data.title,
-                date: date,
+                dayOfWeek: data.dayOfWeek,
                 startTime: data.startTime,
                 duration: data.duration,
-                teachingSubjectId: data.teachingSubjectId,
+                teachingSubjectId: data.courseId,
             });
-            //mail thong bao co lesson moi
-            ///////////////////////////////////////////////////////////////////////
+
             return responseMessageInstance.getSuccess(
                 res,
                 200,
-                "Create lesson successful"
+                "Tạo buổi học thành công"
             );
         } catch (error) {
             console.log(error);

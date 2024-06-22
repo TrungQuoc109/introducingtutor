@@ -58,7 +58,6 @@ function TutorPage() {
 
         const apiUrl = `${baseApiUrl}?${searchParams.toString()}`;
         setSearching(true);
-        console.log(apiUrl);
         fetch(apiUrl)
             .then((response) => {
                 if (!response.ok) {
@@ -67,7 +66,6 @@ function TutorPage() {
                 return response.json();
             })
             .then((data) => {
-                console.log(data);
                 setTotalPages(data.data.page);
                 setTutors(data.data.tutors);
                 !searching ? setPage(0) : null;
@@ -97,7 +95,6 @@ function TutorPage() {
                 }
 
                 const data = await response.json();
-                console.log(data.data.page);
                 setTotalPages(data.data.page);
                 setTutors(data.data.tutors);
             } catch (error) {

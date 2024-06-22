@@ -20,6 +20,18 @@ export function formatDate(dateString) {
 
     return `${day}/${month}/${year}`;
 }
+export const getDayOfWeekLabel = (dayOfWeek) => {
+    const days = {
+        2: "Thứ Hai",
+        3: "Thứ Ba",
+        4: "Thứ Tư",
+        5: "Thứ Năm",
+        6: "Thứ Sáu",
+        7: "Thứ Bảy",
+        8: "Chủ nhật",
+    };
+    return days[dayOfWeek] || `Thứ ${dayOfWeek}`;
+};
 export const districts = [
     {
         id: 760,

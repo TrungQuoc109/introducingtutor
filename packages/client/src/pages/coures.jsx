@@ -17,6 +17,7 @@ import { baseURL, districts, formatDate } from "../config/config";
 import { DataContext } from "../dataprovider/subject";
 import SearchBar from "../components/searchBar";
 import { useNavigate } from "react-router-dom";
+import RegisterButton from "../components/registerButton";
 
 function CoursePage() {
     const [searchTerm, setSearchTerm] = useState("");
@@ -71,6 +72,10 @@ function CoursePage() {
     const navigateToTutorProfile = (tutorId) => {
         navigate(`/tutor-detail`, { state: { tutorId: tutorId } });
     };
+    const navigateToCourseDetail = (courseId) => {
+        // Sử dụng navigate từ 'useNavigate' để chuyển sang trang CourseDetail
+        navigate(`/course-detail/${courseId}`);
+    };
     const handleChange = (event, newValue) => {
         setPage(newValue);
     };
@@ -104,7 +109,14 @@ function CoursePage() {
 
                         <Grid container spacing={3} mt={2}>
                             {courses.map((course) => (
-                                <ListItem key={course.id} divider>
+                                <ListItem
+                                    key={course.id}
+                                    divider
+                                    onClick={() =>
+                                        navigateToCourseDetail(course.id)
+                                    }
+                                >
+                                    {/* Phần còn lại của mã ListItem */}
                                     <Grid
                                         container
                                         spacing={2}
@@ -234,7 +246,8 @@ function CoursePage() {
                                                     fontWeight: "bold",
                                                     marginBottom: "8px", // Khoảng cách giữa tên và nút
                                                 }}
-                                                onClick={() => {
+                                                onClick={(event) => {
+                                                    event.stopPropagation();
                                                     navigateToTutorProfile(
                                                         course.Tutor.id
                                                     );
@@ -242,24 +255,10 @@ function CoursePage() {
                                             >
                                                 Gia sư: {course.Tutor.User.name}
                                             </Typography>
-                                            <Button
-                                                variant="contained"
-                                                onClick={(event) => {
-                                                    event.stopPropagation(); // Ngăn chặn sự kiện lan tỏa
-                                                    // cancelRegistration(
-                                                    //     course.id
-                                                    // );
-                                                    console.log("dang ky");
-                                                }}
-                                            >
-                                                Giá:{" "}
-                                                {!isNaN(course.price)
-                                                    ? course.price.toLocaleString(
-                                                          "vi-VN"
-                                                      )
-                                                    : "N/A"}{" "}
-                                                VND
-                                            </Button>
+                                            <RegisterButton
+                                                courseId={course.id}
+                                                price={course.price}
+                                            />
                                         </Grid>
                                     </Grid>
                                 </ListItem>
