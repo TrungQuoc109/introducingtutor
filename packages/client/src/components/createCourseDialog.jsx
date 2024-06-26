@@ -30,7 +30,6 @@ const formFields = [
     { id: "studentCount", label: "Số lượng học sinh:", type: "number" },
     { id: "price", label: "Giá", type: "number" },
 ];
-
 function CustomTextField({ id, label, value, onChange, ...other }) {
     // Tạo một props object để chứa các props có thể thay đổi
     let textFieldProps = {
@@ -62,11 +61,12 @@ function CustomTextField({ id, label, value, onChange, ...other }) {
 function CreateCourseDialog({
     isOpen,
     onClose,
-    onSave,
+    //onSave,
     courseInfo,
     subjects,
     locations,
 }) {
+    const [isChange, setIsChange] = useState(false);
     const [formData, setFormData] = useState({
         name: "",
         subjectId: "",
@@ -75,13 +75,15 @@ function CreateCourseDialog({
         startDate: "",
         numberOfSessions: "",
         location: "",
+        specificAddress: "",
         price: 0,
         studentCount: 0,
     });
-    // console.log(locations);
+
     useEffect(() => {
         if (courseInfo && isOpen) {
-            setFormData(courseInfo.data);
+            setFormData(courseInfo);
+            setIsChange(true);
         } else {
             setFormData({
                 name: "",
@@ -91,6 +93,7 @@ function CreateCourseDialog({
                 startDate: "",
                 numberOfSessions: "",
                 location: "",
+                specificAddress: "",
                 price: 0,
                 studentCount: 0,
             });
@@ -102,29 +105,36 @@ function CreateCourseDialog({
     };
 
     const handleFormSubmit = async () => {
-        console.log(formData);
-        const token = localStorage.getItem("token");
-        const response = await fetch(`${baseURL}/tutor/teaching-subject`, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                authorization: `Bearer ${token}`,
-            },
-            body: JSON.stringify({ data: formData }),
-        });
-        const data = await response.json();
-        if (response.ok) {
-            alert(data.message);
-            onSave(formData);
-            onClose();
+        if (!isChange) {
+            const token = localStorage.getItem("token");
+            const response = await fetch(`${baseURL}/tutor/teaching-subject`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    authorization: `Bearer ${token}`,
+                },
+                body: JSON.stringify({ data: formData }),
+            });
+            const data = await response.json();
+            if (response.ok) {
+                alert(data.message);
+                onClose();
+                // onSave(formData);
+            } else {
+                alert(data.error);
+            }
         } else {
-            alert(data.error);
+            console.log(formData);
         }
     };
 
     return (
-        <Dialog open={isOpen} onClose={onClose} fullWidth maxWidth="md">
-            <DialogTitle>Tạo Khóa Học Mới</DialogTitle>
+        <Dialog open={isOpen} onClose={onClose} fullWidth maxWidth="sm">
+            <DialogTitle>
+                <DialogTitle>
+                    {courseInfo ? "Chỉnh Sửa Khóa Học" : "Tạo Khóa Học Mới"}
+                </DialogTitle>
+            </DialogTitle>
             <DialogContent>
                 <Grid container spacing={2}>
                     {formFields.map(({ id, label, type, ...other }) => (
@@ -143,7 +153,6 @@ function CreateCourseDialog({
                             />
                         </Grid>
                     ))}
-
                     <Grid item xs={6}>
                         <FormControl
                             fullWidth
@@ -179,6 +188,18 @@ function CreateCourseDialog({
                                     ))}
                             </Select>
                         </FormControl>
+                    </Grid>{" "}
+                    <Grid item xs={6}>
+                        {/* Ô nhập liệu cho Địa chỉ cụ thể */}
+                        <TextField
+                            fullWidth
+                            margin="dense"
+                            variant="outlined"
+                            name="specificAddress"
+                            label="Địa chỉ cụ thể"
+                            value={formData.specificAddress}
+                            onChange={handleChange}
+                        />
                     </Grid>
                     <Grid item xs={6}>
                         <FormControl
@@ -186,9 +207,7 @@ function CreateCourseDialog({
                             margin="dense"
                             variant="outlined"
                         >
-                            <InputLabel id="location-label">
-                                Địa điểm dạy
-                            </InputLabel>
+                            <InputLabel id="location-label">Quận</InputLabel>
                             <Select
                                 labelId="location-label"
                                 id="location"

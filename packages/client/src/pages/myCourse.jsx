@@ -1,4 +1,4 @@
-import React, { useCallback, useContext, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import {
     Box,
     Container,
@@ -22,19 +22,19 @@ import Header from "../components/header";
 import { baseURL, districts, formatDate, statusCourse } from "../config/config";
 // Firebase imports
 // Nếu DataContext không chứa thông tin về khóa học, bạn không cần sử dụng DataContext ở đây.
-import EditCourseDialog from "../components/changeCourse";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import CreateCourseDialog from "../components/createCourseDialog";
-import { DataContext } from "../dataprovider/subject";
 export default function MyCourse() {
     const [clickedCourseId, setClickedCourseId] = useState(null);
     const [courses, setCourses] = useState([]);
     const [selectedStatuses, setSelectedStatuses] = useState([]);
     const [openDialogStatus, setOpenDialogStatus] = useState(false);
     const [isDialogOpen, setIsDialogOpen] = useState(false);
+
     const [editingCourse, setEditingCourse] = useState(null);
     const [locations, setLocations] = useState([]);
     const [subjects, setSubjects] = useState([]);
+    const [dialogMode, setDialogMode] = useState(null); // 'create' hoặc 'edit'
     const [pendingStatusChange, setPendingStatusChange] = useState({
         courseId: null,
         status: null,
@@ -49,20 +49,57 @@ export default function MyCourse() {
         setPendingStatusChange({ courseId, status: newStatus });
         setOpenDialogStatus(true); // Mở dialog
     };
-    const handleCloseDialog = (isConfirmed) => {
+    const handleCloseDialog = async (isConfirmed) => {
         setOpenDialogStatus(false);
         if (isConfirmed) {
             const { courseId, status } = pendingStatusChange;
+
             setSelectedStatuses({ ...selectedStatuses, [courseId]: status });
+            const response = await fetch(
+                `${baseURL}/tutor/change-status-course`,
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        authorization: `Bearer ${token}`,
+                    },
+                    body: JSON.stringify({ courseId, status }),
+                }
+            );
+            if (response.ok) {
+                const data = await response.json();
+                alert(data.message);
+            }
             setPendingStatusChange({ courseId: null, status: null });
         }
     };
     // Ví dụ sử dụng useCallback (Nếu bạn đang sử dụng setResultCode trong callback)
-    const updateResultCode = useCallback(() => {
+    const updateResultCode = useCallback(async () => {
         const searchParams = new URLSearchParams(location.search);
         const code = searchParams.get("resultCode") ?? null;
+        const orderId = searchParams.get("orderId") ?? "";
+
         if (code == 0) {
-            alert("msg");
+            try {
+                const response = await fetch(
+                    `${baseURL}/student/confirm-register-course`,
+                    {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                            authorization: `Bearer ${token}`,
+                        },
+                        body: JSON.stringify({ orderId: orderId }),
+                    }
+                );
+
+                if (response.ok) {
+                    const data = await response.json();
+                    alert(data.message);
+                }
+            } catch (error) {
+                console.log(error);
+            }
         }
         //  setResultCode(code);
     }, [location.search]); // Re-run this effect when location.search changes
@@ -117,7 +154,13 @@ export default function MyCourse() {
     useEffect(() => {
         const fetchAllData = async () => {
             updateResultCode();
-            await Promise.all([fetchLocation(), fetchData()]);
+            const promises = [fetchData()];
+
+            if (role == 1) {
+                promises.push(fetchLocation());
+            }
+
+            await Promise.all(promises);
         };
         fetchAllData();
     }, [updateResultCode]);
@@ -135,33 +178,21 @@ export default function MyCourse() {
         });
     };
 
-    const openEditDialog = (course) => {
-        setEditingCourse(course);
+    const openCreateDialog = () => {
         setIsDialogOpen(true);
+        setDialogMode("create");
+        setEditingCourse(null); // Đảm bảo không có dữ liệu của khóa học nào được tải trước
+    };
+
+    const openEditDialog = (course) => {
+        setIsDialogOpen(true);
+        setDialogMode("edit");
+        setEditingCourse(course); // Nạp dữ liệu khóa học vào form để chỉnh sửa
     };
 
     const handleDialogClose = () => {
         setIsDialogOpen(false);
-    };
-
-    const handleSave = (editedCourse) => {
-        console.log(editedCourse);
-    };
-
-    const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
-
-    const handleCreateCourseClick = () => {
-        setIsCreateDialogOpen(true);
-    };
-
-    const handleCloseCreateDialog = () => {
-        setIsCreateDialogOpen(false);
         fetchData();
-    };
-
-    const handleSaveNewCourse = (courseInfo) => {
-        console.log("Thông tin khóa học mới:", courseInfo);
-        // Gửi thông tin khóa học mới tới server qua API ở đây
     };
     return (
         <React.Fragment>
@@ -192,17 +223,19 @@ export default function MyCourse() {
                                     <Button
                                         variant="contained"
                                         color="primary"
-                                        onClick={handleCreateCourseClick}
+                                        onClick={openCreateDialog}
                                     >
                                         Tạo Khóa Học
                                     </Button>{" "}
-                                    <CreateCourseDialog
-                                        isOpen={isCreateDialogOpen}
-                                        onClose={handleCloseCreateDialog}
-                                        onSave={handleSaveNewCourse}
-                                        subjects={subjects}
-                                        locations={locations ?? []}
-                                    />
+                                    {isDialogOpen && (
+                                        <CreateCourseDialog
+                                            isOpen={isDialogOpen}
+                                            onClose={handleDialogClose}
+                                            courseInfo={editingCourse}
+                                            subjects={subjects}
+                                            locations={locations}
+                                        />
+                                    )}
                                 </>
                             ) : null}
                         </Grid>
@@ -307,6 +340,10 @@ export default function MyCourse() {
                                                                         color="textSecondary"
                                                                     >
                                                                         Địa chỉ:{" "}
+                                                                        {
+                                                                            course.specificAddress
+                                                                        }
+                                                                        {", "}
                                                                         {
                                                                             districts.find(
                                                                                 (
@@ -439,14 +476,7 @@ export default function MyCourse() {
                                 ))}
                             </List>
                         )}
-                        {editingCourse && (
-                            <EditCourseDialog
-                                course={editingCourse}
-                                isOpen={isDialogOpen}
-                                onClose={handleDialogClose}
-                                onSave={handleSave}
-                            />
-                        )}
+
                         <Dialog
                             open={openDialogStatus}
                             onClose={() => handleCloseDialog(false)}

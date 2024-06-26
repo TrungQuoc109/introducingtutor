@@ -119,7 +119,7 @@ export default function CourseDetail() {
             }
 
             alert(data.message);
-            console.log("Thêm buổi học thành công:", data);
+
             fetchData();
             // Xử lý sau khi thêm buổi học thành công, ví dụ: thông báo cho người dùng, cập nhật UI...
 
@@ -194,65 +194,102 @@ export default function CourseDetail() {
                                                     courseDetail.description}
                                             </Typography>
                                         </Grid>
+                                        <Grid item container xs={6}>
+                                            <Grid item xs={4}>
+                                                <Typography variant="subtitle1">
+                                                    Môn học
+                                                </Typography>
+                                            </Grid>
+                                            <Grid item xs={8}>
+                                                <Typography variant="subtitle1">
+                                                    :{" "}
+                                                    {courseDetail &&
+                                                        courseDetail.Subject
+                                                            .name}
+                                                </Typography>
+                                            </Grid>
+                                        </Grid>
+                                        <Grid item container xs={6}>
+                                            <Grid item xs={4}>
+                                                <Typography variant="subtitle1">
+                                                    Lớp
+                                                </Typography>
+                                            </Grid>
+                                            <Grid item xs={8}>
+                                                <Typography variant="subtitle1">
+                                                    :{" "}
+                                                    {courseDetail &&
+                                                        courseDetail.gradeLevel}
+                                                </Typography>
+                                            </Grid>
+                                        </Grid>
+                                        <Grid item container xs={6}>
+                                            <Grid item xs={4}>
+                                                <Typography variant="subtitle1">
+                                                    Số buổi
+                                                </Typography>
+                                            </Grid>
+                                            <Grid item xs={8}>
+                                                <Typography variant="subtitle1">
+                                                    :{" "}
+                                                    {courseDetail &&
+                                                        courseDetail.numberOfSessions}{" "}
+                                                    Buổi
+                                                </Typography>
+                                            </Grid>
+                                        </Grid>
+                                        <Grid item container xs={6}>
+                                            <Grid item xs={4}>
+                                                <Typography variant="subtitle1">
+                                                    Số học viên
+                                                </Typography>
+                                            </Grid>
+                                            <Grid item xs={8}>
+                                                <Typography variant="subtitle1">
+                                                    :{" "}
+                                                    {courseDetail &&
+                                                    typeof registeredStudents !==
+                                                        "undefined" &&
+                                                    typeof courseDetail.studentCount !==
+                                                        "undefined"
+                                                        ? `${registeredStudents}/${courseDetail.studentCount}`
+                                                        : "Thông tin không khả dụng"}
+                                                </Typography>
+                                            </Grid>
+                                        </Grid>
 
-                                        <Grid item xs={2}>
-                                            <Typography variant="subtitle1">
-                                                Môn học
-                                            </Typography>
+                                        <Grid item container xs={6}>
+                                            <Grid item xs={4}>
+                                                <Typography variant="subtitle1">
+                                                    Bắt đầu từ:
+                                                </Typography>
+                                            </Grid>
+                                            <Grid item xs={8}>
+                                                <Typography variant="subtitle1">
+                                                    :{" "}
+                                                    {courseDetail &&
+                                                        formatDate(
+                                                            courseDetail.startDate
+                                                        )}
+                                                </Typography>
+                                            </Grid>
                                         </Grid>
-                                        <Grid item xs={10}>
-                                            <Typography variant="subtitle1">
-                                                :{" "}
-                                                {courseDetail &&
-                                                    courseDetail.Subject.name}
-                                            </Typography>
+                                        <Grid item container xs={6}>
+                                            <Grid item xs={4}>
+                                                <Typography variant="subtitle1">
+                                                    Kết thúc dự kiến
+                                                </Typography>
+                                            </Grid>
+                                            <Grid item xs={8}>
+                                                <Typography variant="subtitle1">
+                                                    :{" "}
+                                                    {courseDetail &&
+                                                        formatDate(
+                                                            courseDetail.endDate
+                                                        )}
+                                                </Typography>
+                                            </Grid>
                                         </Grid>
-
-                                        <Grid item xs={2}>
-                                            <Typography variant="subtitle1">
-                                                Lớp
-                                            </Typography>
-                                        </Grid>
-                                        <Grid item xs={10}>
-                                            <Typography variant="subtitle1">
-                                                :{" "}
-                                                {courseDetail &&
-                                                    courseDetail.gradeLevel}
-                                            </Typography>
-                                        </Grid>
-
-                                        <Grid item xs={2}>
-                                            <Typography variant="subtitle1">
-                                                Số buổi
-                                            </Typography>
-                                        </Grid>
-                                        <Grid item xs={10}>
-                                            <Typography variant="subtitle1">
-                                                :{" "}
-                                                {courseDetail &&
-                                                    courseDetail.numberOfSessions}{" "}
-                                                Buổi
-                                            </Typography>
-                                        </Grid>
-
-                                        <Grid item xs={2}>
-                                            <Typography variant="subtitle1">
-                                                Số học viên
-                                            </Typography>
-                                        </Grid>
-                                        <Grid item xs={10}>
-                                            <Typography variant="subtitle1">
-                                                :{" "}
-                                                {courseDetail &&
-                                                typeof registeredStudents !==
-                                                    "undefined" &&
-                                                typeof courseDetail.studentCount !==
-                                                    "undefined"
-                                                    ? `${registeredStudents}/${courseDetail.studentCount}`
-                                                    : "Thông tin không khả dụng"}
-                                            </Typography>
-                                        </Grid>
-
                                         <Grid item xs={2}>
                                             <Typography variant="subtitle1">
                                                 Giá
@@ -270,36 +307,6 @@ export default function CourseDetail() {
                                                 VND
                                             </Typography>
                                         </Grid>
-
-                                        <Grid item xs={2}>
-                                            <Typography variant="subtitle1">
-                                                Bắt đầu từ:
-                                            </Typography>
-                                        </Grid>
-                                        <Grid item xs={10}>
-                                            <Typography variant="subtitle1">
-                                                :{" "}
-                                                {courseDetail &&
-                                                    formatDate(
-                                                        courseDetail.startDate
-                                                    )}
-                                            </Typography>
-                                        </Grid>
-                                        <Grid item xs={2}>
-                                            <Typography variant="subtitle1">
-                                                Kết thúc dự kiến
-                                            </Typography>
-                                        </Grid>
-                                        <Grid item xs={10}>
-                                            <Typography variant="subtitle1">
-                                                :{" "}
-                                                {courseDetail &&
-                                                    formatDate(
-                                                        courseDetail.endDate
-                                                    )}
-                                            </Typography>
-                                        </Grid>
-
                                         <Grid item xs={2}>
                                             <Typography variant="subtitle1">
                                                 Địa chỉ
@@ -307,7 +314,8 @@ export default function CourseDetail() {
                                         </Grid>
                                         <Grid item xs={10}>
                                             <Typography variant="subtitle1">
-                                                :{" "}
+                                                : {courseDetail.specificAddress}
+                                                {", "}
                                                 {courseDetail &&
                                                     districts.find(
                                                         (district) =>

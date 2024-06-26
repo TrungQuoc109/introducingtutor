@@ -11,11 +11,12 @@ export class StudentController {
         }
         return this.instance;
     }
-    async payment(req, res) {
-        return await studentServiceInstance.payment(req, res);
+
+    async RegisterCourse(req, res) {
+        return await studentServiceInstance.RegisterCourse(req, res);
     }
-    async registerCourse(req, res) {
-        return await studentServiceInstance.registerCourse(req, res);
+    async ConfirmRegisterCourse(req, res) {
+        return await studentServiceInstance.ConfirmRegisterCourse(req, res);
     }
 }
 //------------------------------------------------

@@ -50,9 +50,7 @@ export class UserController {
     async GetTutors(req, res) {
         return await userServiceInstance.GetTutors(req, res);
     }
-    async GetLesson(req, res) {
-        return await userServiceInstance.GetLesson(req, res);
-    }
+
     async ChangeProfile(req, res) {
         return await userServiceInstance.ChangeProfile(req, res);
     }
@@ -61,6 +59,9 @@ export class UserController {
     }
     async SearchTutor(req, res) {
         return await userServiceInstance.SearchTutor(req, res);
+    }
+    async SearchCourse(req, res) {
+        return await userServiceInstance.SearchCourse(req, res);
     }
     async GetTutorDetail(req, res) {
         return await userServiceInstance.GetTutorDetail(req, res);

@@ -3,6 +3,7 @@ import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
 import { responseMessageInstance } from "../utils/index.js";
 import {
+    COURSE_STATUS,
     CredentialsValidation,
     MAX_GRADEL_LEVEL,
     MIN_GRADEL_LEVEL,
@@ -26,7 +27,7 @@ import {
     calculateEndDate,
     findInvalidOrEmptyAttributes,
 } from "../utils/validate.js";
-import { Op } from "sequelize";
+import { Op, where } from "sequelize";
 import nodemailer from "nodemailer";
 import { sequelize } from "../datasourse/db.connection.js";
 
@@ -894,6 +895,7 @@ export class UserService {
                     attributes: [
                         "id",
                         "name",
+
                         "description",
                         "gradeLevel",
                         "startDate",
@@ -902,6 +904,7 @@ export class UserService {
                         "price",
                         "studentCount",
                         "status",
+                        "specificAddress",
                     ],
                     include: [
                         {
@@ -919,7 +922,15 @@ export class UserService {
                             attributes: ["id", "name"],
                         },
                     ],
-                    where: { status: { [Op.ne]: 0 } },
+                    where: {
+                        status: {
+                            [Op.and]: [
+                                { [Op.ne]: COURSE_STATUS.disabledCourse },
+                                { [Op.ne]: COURSE_STATUS.completedCourse },
+                            ],
+                        },
+                        startDate: { [Op.gte]: new Date() },
+                    },
                     limit: limit,
                     offset: page * limit,
                 });
@@ -978,49 +989,6 @@ export class UserService {
             );
         }
     }
-    async GetLesson(req, res) {
-        try {
-            const { courseId, page = 0 } = req.params ?? {};
-            const limit = 10;
-            const current = new Date();
-
-            const { count, rows: lessons } = await Lesson.findAndCountAll({
-                attributes: ["id", "title", "date", "startTime", "duration"],
-                where: {
-                    teachingSubjectId: courseId,
-                    [Op.or]: [
-                        {
-                            date: {
-                                [Op.gt]: current,
-                            },
-                        },
-                        {
-                            date: current,
-                            startTime: {
-                                [Op.gte]: `${current.getHours()}:${current.getMinutes()}:${current.getSeconds()}`,
-                            },
-                        },
-                    ],
-                },
-                limit: limit,
-                offset: page * limit,
-            });
-
-            if (!lessons) {
-                responseMessageInstance.throwError("Lesson not found!", 404);
-            }
-            return responseMessageInstance.getSuccess(res, 200, "Succesful", {
-                data: { lessons, page: Math.ceil(count / limit) },
-            });
-        } catch (error) {
-            console.log(error);
-            return responseMessageInstance.getError(
-                res,
-                error.code ?? 500,
-                error.message
-            );
-        }
-    }
     async GetMyCourses(req, res) {
         try {
             const { page = 0 } = req.params || {};
@@ -1043,12 +1011,14 @@ export class UserService {
                 attributes: [
                     "id",
                     "name",
+                    "subjectId",
                     "gradeLevel",
                     "startDate",
                     "numberOfSessions",
                     "location",
                     "price",
                     "description",
+                    "specificAddress",
                 ],
                 include: [
                     {
@@ -1058,7 +1028,7 @@ export class UserService {
                     },
                     { model: Subject, attributes: ["name"] },
                 ],
-                where: { status: { [Op.ne]: 0 } },
+
                 limit: limit,
                 offset: page * limit,
             };
@@ -1085,9 +1055,6 @@ export class UserService {
             const { count, rows: courses } =
                 await TeachingSubject.findAndCountAll(queryOptions);
 
-            if (courses.length == 0) {
-                responseMessageInstance.throwError("Course not found!", 404);
-            }
             return responseMessageInstance.getSuccess(res, 200, "Succesful", {
                 data: { courses, page: Math.ceil(count / limit) },
             });
@@ -1155,6 +1122,7 @@ export class UserService {
                     },
                     { model: Location, attributes: ["name", "districtsId"] },
                 ],
+
                 limit: limit,
                 offset: page * limit,
             };
@@ -1263,6 +1231,7 @@ export class UserService {
                     "studentCount",
                     "price",
                     "startDate",
+                    "specificAddress",
                     "location",
                     "status",
                 ],
@@ -1315,6 +1284,110 @@ export class UserService {
                 error.message
             );
         }
+    }
+    async SearchCourse(req, res) {
+        const limit = 8;
+        const { page = 0, subjectId, location, searchTerm } = req.query;
+
+        let countOptions = {
+            where: {
+                status: {
+                    [Op.and]: [
+                        { [Op.ne]: COURSE_STATUS.disabledCourse },
+                        { [Op.ne]: COURSE_STATUS.completedCourse },
+                    ],
+                },
+            },
+        };
+
+        if (location) {
+            countOptions.where.location = location;
+        }
+
+        if (searchTerm) {
+            countOptions.where = {
+                [Op.or]: [
+                    { name: { [Op.iLike]: `%${searchTerm}%` } },
+                    { description: { [Op.iLike]: `%${searchTerm}%` } },
+                ],
+            };
+        }
+        if (subjectId) {
+            countOptions.where.subjectId = subjectId;
+        }
+
+        const count = await TeachingSubject.count(countOptions);
+
+        let option = {
+            attributes: [
+                "id",
+                "name",
+                "description",
+                "gradeLevel",
+                "startDate",
+                "numberOfSessions",
+                "specificAddress",
+                "location",
+                "price",
+                "studentCount",
+                "status",
+            ],
+            include: [
+                {
+                    model: Tutor,
+                    attributes: ["id"],
+                    include: [
+                        {
+                            model: User,
+                            attributes: ["name"],
+                        },
+                    ],
+                },
+                { model: Subject },
+            ],
+            where: {
+                status: {
+                    [Op.and]: [
+                        { [Op.ne]: COURSE_STATUS.disabledCourse },
+                        { [Op.ne]: COURSE_STATUS.completedCourse },
+                    ],
+                },
+            },
+            limit: limit,
+            offset: page * limit,
+        };
+
+        if (subjectId) {
+            option.where.subjectId = subjectId;
+        }
+
+        // Thêm điều kiện location nếu có
+        if (location) {
+            option.where.location = location;
+        }
+
+        // Thêm điều kiện tìm kiếm theo tên hoặc mô tả nếu có
+        if (searchTerm) {
+            option.where = {
+                [Op.or]: [
+                    { name: { [Op.iLike]: `%${searchTerm}%` } },
+                    { description: { [Op.iLike]: `%${searchTerm}%` } },
+                ],
+            };
+        }
+        const courses = await TeachingSubject.findAll(option);
+
+        return responseMessageInstance.getSuccess(res, 200, "Succesful", {
+            data: { courses, page: Math.ceil(count / limit) },
+        });
+    }
+    catch(error) {
+        console.log(error);
+        return responseMessageInstance.getError(
+            res,
+            error.code ?? 500,
+            error.message
+        );
     }
 }
 

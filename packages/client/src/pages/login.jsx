@@ -89,7 +89,6 @@ export default function SignInSide() {
                     localStorage.setItem("name", data.data.name);
                     localStorage.setItem("role", data.data.role);
                     handleNavigate("");
-                    console.log(data);
                 } else {
                     const errorData = await response.json();
                     if (errorData.error == "Invalid Username or Password") {

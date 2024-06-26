@@ -31,6 +31,7 @@ export default function Profile() {
     const [selectedAddresses, setSelectedAddresses] = useState([]);
     const [selectedSubjectIds, setSelectedSubjectIds] = useState([]);
     const [openPasswordDialog, setOpenPasswordDialog] = useState(false);
+    const [isChange, setIsChange] = useState(false);
     const [oldEmail, setOldEmail] = useState("");
     const navigate = useNavigate();
     const [profileData, setProfileData] = useState({
@@ -184,7 +185,10 @@ export default function Profile() {
     };
 
     const handleChange = (event) => {
+        setIsChange(true);
+
         const { name, value } = event.target;
+
         setProfileData({
             ...profileData,
             [name]: value,
@@ -201,6 +205,7 @@ export default function Profile() {
     };
     const handleExtraInfoChange = (event) => {
         const { name, value } = event.target;
+        setIsChange(true);
         if (profileData.role === 1) {
             // Tutor
             setProfileData({
@@ -218,6 +223,11 @@ export default function Profile() {
     };
 
     const handleSave = async () => {
+        console.log(isChange);
+        if (!isChange) {
+            alert("Không có gì thay đổi ");
+            return;
+        }
         const token = localStorage.getItem("token");
         event.preventDefault();
         const hasErrors = Object.values(errors).some((errorMsg) => errorMsg);
@@ -537,7 +547,6 @@ export default function Profile() {
                                     variant="outlined"
                                 />
                                 <TextField
-                                    autoFocus
                                     margin="dense"
                                     id="new-password"
                                     label="Mật khẩu mới"

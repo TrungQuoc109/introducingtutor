@@ -145,6 +145,12 @@ export class TutorService {
             }
             if (data.description.length == 0) {
                 responseMessageInstance.throwError(
+                    "Địa chỉ khóa học không hợp lệ.",
+                    400
+                );
+            }
+            if (data.specificAddress.length == 0) {
+                responseMessageInstance.throwError(
                     "Mô tả khóa học không hợp lệ.",
                     400
                 );
@@ -215,7 +221,7 @@ export class TutorService {
     async CreateLesson(req, res) {
         try {
             const accessKey = req.headers["authorization"] ?? "";
-            console.log(req.body);
+
             const data = req.body ?? {};
             const lessonTimes = [90, 120, 150, 180];
             if (!accessKey) {
@@ -288,7 +294,10 @@ export class TutorService {
                 where: {
                     id: data.courseId,
                     status: {
-                        [Op.ne]: COURSE_STATUS.disabled,
+                        [Op.and]: [
+                            { [Op.ne]: COURSE_STATUS.disabledCourse },
+                            { [Op.ne]: COURSE_STATUS.completedCourse },
+                        ],
                     },
                 },
             });
@@ -314,7 +323,12 @@ export class TutorService {
                 include: [{ model: Lesson, attributes: ["id"] }],
                 where: {
                     instructorId: tutor.id,
-                    status: { [Op.ne]: COURSE_STATUS.disabled },
+                    status: {
+                        [Op.and]: [
+                            { [Op.ne]: COURSE_STATUS.disabledCourse },
+                            { [Op.ne]: COURSE_STATUS.completedCourse },
+                        ],
+                    },
                 },
             });
             const filteredCourses = isCourseActive.filter((courseActive) => {
@@ -406,6 +420,60 @@ export class TutorService {
     }
     async ChangStatusCourse(req, res) {
         try {
+            const { courseId, status } = req.body ?? {};
+            const accessKey = req.headers["authorization"] ?? "";
+
+            if (!accessKey) {
+                return responseMessageInstance.throwError(
+                    "Invalid accessKey",
+                    400
+                );
+            }
+
+            const decodedToken = jwt.verify(
+                accessKey.split(" ")[1],
+                process.env.SECRET_KEY
+            );
+            const userId = decodedToken.userId;
+            const role = decodedToken.role;
+            if (!role || role != ROLE.tutor) {
+                responseMessageInstance.throwError("Unauthorized", 401);
+            }
+            const isValidStatus = Object.values(COURSE_STATUS).includes(status);
+            if (!isValidStatus) {
+                responseMessageInstance.throwError(
+                    "Trạng thái khóa học không hợp lệ"
+                );
+            }
+            const tutor = await Tutor.findOne({
+                attributes: ["id"],
+                where: { userId: userId },
+            });
+
+            if (!tutor) {
+                responseMessageInstance.throwError(
+                    "Không tìm thấy gia sư",
+                    404
+                );
+            }
+            const course = await TeachingSubject.findOne({
+                where: {
+                    id: courseId,
+                },
+            });
+            if (!course) {
+                responseMessageInstance.throwError(
+                    "Không tìm thấy khóa học",
+                    404
+                );
+            }
+            course.status = status;
+            await course.save();
+            return responseMessageInstance.getSuccess(
+                res,
+                200,
+                "Cập nhật trạng thái khóa học thành công"
+            );
         } catch (error) {
             console.log(error);
             return responseMessageInstance.getError(

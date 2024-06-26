@@ -19,6 +19,14 @@ StudentTeachingSubjectMap.init(
             field: "teaching_subject_id",
             allowNull: false,
         },
+        orderId: {
+            type: DataTypes.STRING,
+            field: "order_id",
+            allowNull: false,
+        },
+        amount: { type: DataTypes.DECIMAL(10, 2), allowNull: false },
+        transId: { type: DataTypes.STRING, field: "trans_id" },
+        status: { type: DataTypes.INTEGER, defaultValue: 1 },
     },
     {
         sequelize,

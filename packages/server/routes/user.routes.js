@@ -22,7 +22,6 @@ userRouter.post("/forgot-password", userInstance.ForgotPassword);
 userRouter.get("/get-subject", userInstance.GetSubject);
 userRouter.get("/get-courses/:page?", userInstance.GetTeachingSubjects);
 userRouter.get("/get-tutors/:page?", userInstance.GetTutors);
-userRouter.get("/get-lessons/:courseId/:page?", userInstance.GetLesson);
 userRouter.post(
     "/change-profile",
     middlewareInstance.Authen,
@@ -34,6 +33,7 @@ userRouter.get(
     userInstance.GetMyCourses
 );
 userRouter.get("/search-tutor", userInstance.SearchTutor);
+userRouter.get("/search-course", userInstance.SearchCourse);
 userRouter.get("/get-tutor-detail/:tutorId", userInstance.GetTutorDetail);
 userRouter.get("/get-course-detail/:courseId", userInstance.GetCourseDetail);
 

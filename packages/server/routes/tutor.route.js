@@ -5,4 +5,5 @@ const tutorRouter = Router();
 tutorRouter.post("/teaching-subject", tutorInstance.CreateTeachingSubject);
 tutorRouter.post("/create-lesson", tutorInstance.CreateLesson);
 tutorRouter.get("/get-tutor-location", tutorInstance.GetTutorLocation);
+tutorRouter.post("/change-status-course", tutorInstance.ChangStatusCourse);
 export { tutorRouter };

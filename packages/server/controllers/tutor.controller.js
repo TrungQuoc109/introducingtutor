@@ -20,6 +20,9 @@ export class TutorController {
     async CreateLesson(req, res) {
         return await tutorServiceInstance.CreateLesson(req, res);
     }
+    async ChangStatusCourse(req, res) {
+        return await tutorServiceInstance.ChangStatusCourse(req, res);
+    }
 }
 //------------------------------------------------
 export const tutorInstance = TutorController.getInstance();

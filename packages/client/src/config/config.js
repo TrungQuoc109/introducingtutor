@@ -8,7 +8,12 @@ export const firebaseConfig = {
     measurementId: "G-Q8GKPLWELC",
 };
 export const baseURL = "http://localhost:5999/v1/api";
-export const statusCourse = ["Vô hiệu hóa", "Mở đăng ký", "Đóng đăng ký"];
+export const statusCourse = [
+    "Vô hiệu hóa",
+    "Mở đăng ký",
+    "Đóng đăng ký",
+    "Kết thúc",
+];
 export function formatDate(dateString) {
     const date = new Date(dateString);
     const day = date.getDate() < 10 ? `0${date.getDate()}` : date.getDate();
@@ -30,7 +35,7 @@ export const getDayOfWeekLabel = (dayOfWeek) => {
         7: "Thứ Bảy",
         8: "Chủ nhật",
     };
-    return days[dayOfWeek] || `Thứ ${dayOfWeek}`;
+    return days[dayOfWeek];
 };
 export const districts = [
     {

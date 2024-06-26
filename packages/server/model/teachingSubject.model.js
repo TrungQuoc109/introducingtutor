@@ -48,6 +48,11 @@ TeachingSubject.init(
             allowNull: false,
             field: "location_id",
         },
+        specificAddress: {
+            type: DataTypes.STRING,
+            allowNull: false,
+            field: "specific_address",
+        },
         price: {
             type: DataTypes.INTEGER,
             allowNull: false,

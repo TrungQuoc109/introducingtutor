@@ -16,9 +16,10 @@ export const STATUS = {
     active: 1,
 };
 export const COURSE_STATUS = {
-    disabled: 0,
-    open: 1,
-    closed: 2,
+    disabledCourse: 0,
+    openCourse: 1,
+    closedCourse: 2,
+    completedCourse: 3,
 };
 const OTP_FORMAT = /^\d{6}$/;
 
@@ -80,15 +81,20 @@ export function CredentialsValidation(type, value) {
         }
         case "price": {
             const amount = parseFloat(value);
-            return amount > 0 && !isNaN(amount);
+            return amount > 1000 && !isNaN(amount);
         }
     }
 }
+export const PAYMENT_STATUS = {
+    REGISTRATION_SUCCESS: 0,
+    PENDING_PAYMENT: 1,
+    REGISTRATION_CANCELLED: 2,
+};
 export const momoConfig = {
     accessKey: process.env.ACCESSKEY_MOMO,
     secretKey: process.env.SECRETKEY_MOMO,
     partnerCode: "MOMO",
-    redirectUrl: "http://localhost:51733/my-course",
+    redirectUrl: "http://localhost:5173/my-course",
     ipnUrl: "https://callback.url/notify",
     requestType: "captureWallet",
     extraData: "",
