@@ -7,4 +7,5 @@ studentRoute.post(
     "/confirm-register-course",
     studentInstance.ConfirmRegisterCourse
 );
+studentRoute.post("/cancelCourse", studentInstance.CancelCourse);
 export { studentRoute };

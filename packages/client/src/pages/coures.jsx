@@ -22,7 +22,7 @@ import RegisterButton from "../components/registerButton";
 function CoursePage() {
     const [searchTerm, setSearchTerm] = useState("");
     const [subject, setSubject] = useState("");
-    const [location, setlocation] = useState("");
+    const [location, setLocation] = useState("");
     const [error, setError] = useState("");
     const [courses, setCourses] = useState([]);
     const [page, setPage] = useState(0);
@@ -68,7 +68,7 @@ function CoursePage() {
     };
 
     const handleKeyPress = (event) => {
-        if (event.key === "Enter") {
+        if (event.key == "Enter") {
             performSearch();
         }
     };
@@ -108,7 +108,7 @@ function CoursePage() {
     return (
         <React.Fragment>
             <CssBaseline />
-            <Container maxWidth="lg">
+            <Container maxWidth={false}>
                 <Box
                     sx={{
                         bgcolor: "#f1f1f1",
@@ -126,18 +126,18 @@ function CoursePage() {
                             subject={subject}
                             setSubject={setSubject}
                             location={location}
-                            setLocation={setlocation}
+                            setLocation={setLocation}
                             subjects={subjects}
                             performSearch={performSearch}
                             handleKeyPress={handleKeyPress}
                         />
 
                         <Grid container spacing={3} mt={2}>
-                            {courses.length == 0 ? (
+                            {courses.length === 0 ? (
                                 <Typography
                                     color="textSecondary"
                                     align="center"
-                                    style={{ width: "100%", marginTop: 16 }}
+                                    sx={{ width: "100%", mt: 2 }}
                                 >
                                     Không có khóa học nào
                                 </Typography>
@@ -149,17 +149,19 @@ function CoursePage() {
                                         onClick={() =>
                                             navigateToCourseDetail(course.id)
                                         }
+                                        sx={{ cursor: "pointer" }}
                                     >
-                                        {/* Phần còn lại của mã ListItem */}
                                         <Grid
                                             container
                                             spacing={2}
                                             alignItems="center"
-                                            style={{ cursor: "pointer" }}
+                                            sx={{ cursor: "pointer" }}
                                         >
                                             <Grid
                                                 item
-                                                xs={8}
+                                                xs={12}
+                                                sm={8}
+                                                md={8}
                                                 sx={{
                                                     ...(clickedCourseId ===
                                                         course.id && {
@@ -169,11 +171,10 @@ function CoursePage() {
                                                         transition:
                                                             "all 0.5s ease",
                                                     }),
-                                                    cursor: "pointer",
                                                 }}
                                             >
                                                 <ListItemText
-                                                    primary={`${course.name} `}
+                                                    primary={`${course.name}`}
                                                     secondary={
                                                         <React.Fragment>
                                                             <Grid
@@ -197,7 +198,7 @@ function CoursePage() {
                                                                             200
                                                                         }
                                                                     >
-                                                                        Mô tả :
+                                                                        Mô tả:{" "}
                                                                         {
                                                                             course.description
                                                                         }
@@ -269,7 +270,7 @@ function CoursePage() {
                                                                             color="textSecondary"
                                                                         >
                                                                             Địa
-                                                                            chỉ:
+                                                                            chỉ:{" "}
                                                                             {` ${
                                                                                 course.specificAddress
                                                                             }, ${
@@ -277,10 +278,10 @@ function CoursePage() {
                                                                                     (
                                                                                         district
                                                                                     ) =>
-                                                                                        district.id ==
+                                                                                        district.id ===
                                                                                         course.location
                                                                                 )
-                                                                                    .name
+                                                                                    ?.name
                                                                             }`}
                                                                         </Typography>
                                                                     </Grid>
@@ -309,29 +310,32 @@ function CoursePage() {
                                                     }
                                                 />
                                             </Grid>
-                                            {/* Cách render nút Đăng ký dưới đây */}
                                             <Grid
                                                 item
                                                 xs={12}
                                                 sm={4}
-                                                style={{
+                                                md={4}
+                                                sx={{
                                                     display: "flex",
                                                     flexDirection: "column",
-                                                    alignItems: "flex-end",
+                                                    alignItems: {
+                                                        xs: "flex-start",
+                                                        sm: "flex-end",
+                                                    },
                                                 }}
                                             >
                                                 <Typography
                                                     color="textPrimary"
-                                                    style={{
+                                                    sx={{
                                                         fontWeight: "bold",
-                                                        marginBottom: "8px", // Khoảng cách giữa tên và nút
+                                                        mb: 1,
                                                     }}
                                                     onClick={(event) => {
                                                         event.stopPropagation();
                                                         navigateToTutorProfile(
                                                             course.Tutor.id
                                                         );
-                                                    }} // Thêm handler cho sự kiện click
+                                                    }}
                                                 >
                                                     Gia sư:{" "}
                                                     {course.Tutor.User.name}
@@ -339,6 +343,7 @@ function CoursePage() {
                                                 <RegisterButton
                                                     courseId={course.id}
                                                     price={course.price}
+                                                    status={course.status}
                                                 />
                                             </Grid>
                                         </Grid>

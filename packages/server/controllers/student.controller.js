@@ -18,6 +18,9 @@ export class StudentController {
     async ConfirmRegisterCourse(req, res) {
         return await studentServiceInstance.ConfirmRegisterCourse(req, res);
     }
+    async CancelCourse(req, res) {
+        return await studentServiceInstance.CancelCourse(req, res);
+    }
 }
 //------------------------------------------------
 export const studentInstance = StudentController.getInstance();

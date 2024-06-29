@@ -1,9 +1,9 @@
 --
--- PostgreSQL database dump
+-- trungquocQL database dump
 --
 
 -- Dumped from database version 16.2
--- Dumped by pg_dump version 16.3 (Ubuntu 16.3-1.pgdg22.04+1)
+-- Dumped by pg_dump version 16.3
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -16,37 +16,17 @@ SET xmloption = content;
 SET client_min_messages = warning;
 SET row_security = off;
 
-DROP DATABASE IF EXISTS introducingtutor;
+DROP DATABASE IF EXISTS introducingtutor_37cl;
 --
--- Name: introducingtutor; Type: DATABASE; Schema: -; Owner: postgres
---
-
-CREATE DATABASE introducingtutor WITH TEMPLATE = template0 ENCODING = 'UTF8' LOCALE_PROVIDER = libc LOCALE = 'en_US.utf8';
-
-
-ALTER DATABASE introducingtutor OWNER TO postgres;
-
-\connect introducingtutor
-
-SET statement_timeout = 0;
-SET lock_timeout = 0;
-SET idle_in_transaction_session_timeout = 0;
-SET client_encoding = 'UTF8';
-SET standard_conforming_strings = on;
-SELECT pg_catalog.set_config('search_path', '', false);
-SET check_function_bodies = false;
-SET xmloption = content;
-SET client_min_messages = warning;
-SET row_security = off;
-
---
--- Name: introducingtutor; Type: DATABASE PROPERTIES; Schema: -; Owner: postgres
+-- Name: introducingtutor_37cl; Type: DATABASE; Schema: -; Owner: trungquoc
 --
 
-ALTER DATABASE introducingtutor SET "TimeZone" TO 'Asia/Ho_Chi_Minh';
+CREATE DATABASE introducingtutor_37cl WITH TEMPLATE = template0 ENCODING = 'UTF8' LOCALE_PROVIDER = libc LOCALE = 'en_US.utf8';
 
 
-\connect introducingtutor
+ALTER DATABASE introducingtutor_37cl OWNER TO trungquoc;
+
+\c introducingtutor_37cl
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -60,16 +40,36 @@ SET client_min_messages = warning;
 SET row_security = off;
 
 --
--- Name: public; Type: SCHEMA; Schema: -; Owner: postgres
+-- Name: introducingtutor_37cl; Type: DATABASE PROPERTIES; Schema: -; Owner: trungquoc
+--
+
+ALTER DATABASE introducingtutor_37cl SET "TimeZone" TO 'Asia/Ho_Chi_Minh';
+
+
+\c introducingtutor_37cl
+
+SET statement_timeout = 0;
+SET lock_timeout = 0;
+SET idle_in_transaction_session_timeout = 0;
+SET client_encoding = 'UTF8';
+SET standard_conforming_strings = on;
+SELECT pg_catalog.set_config('search_path', '', false);
+SET check_function_bodies = false;
+SET xmloption = content;
+SET client_min_messages = warning;
+SET row_security = off;
+
+--
+-- Name: public; Type: SCHEMA; Schema: -; Owner: trungquoc
 --
 
 CREATE SCHEMA public;
 
 
-ALTER SCHEMA public OWNER TO postgres;
+ALTER SCHEMA public OWNER TO trungquoc;
 
 --
--- Name: SCHEMA public; Type: COMMENT; Schema: -; Owner: postgres
+-- Name: SCHEMA public; Type: COMMENT; Schema: -; Owner: trungquoc
 --
 
 COMMENT ON SCHEMA public IS 'standard public schema';
@@ -80,7 +80,7 @@ SET default_tablespace = '';
 SET default_table_access_method = heap;
 
 --
--- Name: document; Type: TABLE; Schema: public; Owner: postgres
+-- Name: document; Type: TABLE; Schema: public; Owner: trungquoc
 --
 
 CREATE TABLE public.document (
@@ -89,12 +89,13 @@ CREATE TABLE public.document (
     url text NOT NULL,
     lesson_id uuid DEFAULT public.uuid_generate_v4() NOT NULL
 );
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
 
-ALTER TABLE public.document OWNER TO postgres;
+ALTER TABLE public.document OWNER TO trungquoc;
 
 --
--- Name: lesson; Type: TABLE; Schema: public; Owner: postgres
+-- Name: lesson; Type: TABLE; Schema: public; Owner: trungquoc
 --
 
 CREATE TABLE public.lesson (
@@ -106,10 +107,10 @@ CREATE TABLE public.lesson (
 );
 
 
-ALTER TABLE public.lesson OWNER TO postgres;
+ALTER TABLE public.lesson OWNER TO trungquoc;
 
 --
--- Name: location; Type: TABLE; Schema: public; Owner: postgres
+-- Name: location; Type: TABLE; Schema: public; Owner: trungquoc
 --
 
 CREATE TABLE public.location (
@@ -120,10 +121,10 @@ CREATE TABLE public.location (
 );
 
 
-ALTER TABLE public.location OWNER TO postgres;
+ALTER TABLE public.location OWNER TO trungquoc;
 
 --
--- Name: otp; Type: TABLE; Schema: public; Owner: postgres
+-- Name: otp; Type: TABLE; Schema: public; Owner: trungquoc
 --
 
 CREATE TABLE public.otp (
@@ -134,10 +135,10 @@ CREATE TABLE public.otp (
 );
 
 
-ALTER TABLE public.otp OWNER TO postgres;
+ALTER TABLE public.otp OWNER TO trungquoc;
 
 --
--- Name: salary; Type: TABLE; Schema: public; Owner: postgres
+-- Name: salary; Type: TABLE; Schema: public; Owner: trungquoc
 --
 
 CREATE TABLE public.salary (
@@ -151,10 +152,10 @@ CREATE TABLE public.salary (
 );
 
 
-ALTER TABLE public.salary OWNER TO postgres;
+ALTER TABLE public.salary OWNER TO trungquoc;
 
 --
--- Name: student; Type: TABLE; Schema: public; Owner: postgres
+-- Name: student; Type: TABLE; Schema: public; Owner: trungquoc
 --
 
 CREATE TABLE public.student (
@@ -164,10 +165,10 @@ CREATE TABLE public.student (
 );
 
 
-ALTER TABLE public.student OWNER TO postgres;
+ALTER TABLE public.student OWNER TO trungquoc;
 
 --
--- Name: student_teaching_subject_map; Type: TABLE; Schema: public; Owner: postgres
+-- Name: student_teaching_subject_map; Type: TABLE; Schema: public; Owner: trungquoc
 --
 
 CREATE TABLE public.student_teaching_subject_map (
@@ -181,10 +182,10 @@ CREATE TABLE public.student_teaching_subject_map (
 );
 
 
-ALTER TABLE public.student_teaching_subject_map OWNER TO postgres;
+ALTER TABLE public.student_teaching_subject_map OWNER TO trungquoc;
 
 --
--- Name: subject; Type: TABLE; Schema: public; Owner: postgres
+-- Name: subject; Type: TABLE; Schema: public; Owner: trungquoc
 --
 
 CREATE TABLE public.subject (
@@ -193,10 +194,10 @@ CREATE TABLE public.subject (
 );
 
 
-ALTER TABLE public.subject OWNER TO postgres;
+ALTER TABLE public.subject OWNER TO trungquoc;
 
 --
--- Name: teaching_subject; Type: TABLE; Schema: public; Owner: postgres
+-- Name: teaching_subject; Type: TABLE; Schema: public; Owner: trungquoc
 --
 
 CREATE TABLE public.teaching_subject (
@@ -216,10 +217,10 @@ CREATE TABLE public.teaching_subject (
 );
 
 
-ALTER TABLE public.teaching_subject OWNER TO postgres;
+ALTER TABLE public.teaching_subject OWNER TO trungquoc;
 
 --
--- Name: tutor; Type: TABLE; Schema: public; Owner: postgres
+-- Name: tutor; Type: TABLE; Schema: public; Owner: trungquoc
 --
 
 CREATE TABLE public.tutor (
@@ -230,10 +231,10 @@ CREATE TABLE public.tutor (
 );
 
 
-ALTER TABLE public.tutor OWNER TO postgres;
+ALTER TABLE public.tutor OWNER TO trungquoc;
 
 --
--- Name: tutor_subject_map; Type: TABLE; Schema: public; Owner: postgres
+-- Name: tutor_subject_map; Type: TABLE; Schema: public; Owner: trungquoc
 --
 
 CREATE TABLE public.tutor_subject_map (
@@ -243,10 +244,10 @@ CREATE TABLE public.tutor_subject_map (
 );
 
 
-ALTER TABLE public.tutor_subject_map OWNER TO postgres;
+ALTER TABLE public.tutor_subject_map OWNER TO trungquoc;
 
 --
--- Name: users; Type: TABLE; Schema: public; Owner: postgres
+-- Name: users; Type: TABLE; Schema: public; Owner: trungquoc
 --
 
 CREATE TABLE public.users (
@@ -262,22 +263,28 @@ CREATE TABLE public.users (
 );
 
 
-ALTER TABLE public.users OWNER TO postgres;
+ALTER TABLE public.users OWNER TO trungquoc;
 
 --
--- Data for Name: document; Type: TABLE DATA; Schema: public; Owner: postgres
---
-
-
-
---
--- Data for Name: lesson; Type: TABLE DATA; Schema: public; Owner: postgres
+-- Data for Name: document; Type: TABLE DATA; Schema: public; Owner: trungquoc
 --
 
 
 
 --
--- Data for Name: location; Type: TABLE DATA; Schema: public; Owner: postgres
+-- Data for Name: lesson; Type: TABLE DATA; Schema: public; Owner: trungquoc
+--
+
+INSERT INTO public.lesson VALUES ('7b05f30e-13b4-4640-b1b1-ed3b2b39880f', '07:30:00', 120, '6963ae7a-7009-4fe3-a522-17f845320c06', 2);
+INSERT INTO public.lesson VALUES ('a196ddf9-aec1-49a0-b13b-8182dc987e40', '09:30:00', 120, '6963ae7a-7009-4fe3-a522-17f845320c06', 4);
+INSERT INTO public.lesson VALUES ('6ba99652-bc1e-480f-86ca-be0f222bf513', '13:30:00', 120, '6963ae7a-7009-4fe3-a522-17f845320c06', 6);
+INSERT INTO public.lesson VALUES ('b69dad1e-5a69-49d5-b3ac-2c9d1f4db925', '09:45:00', 90, '441a8ef1-aebe-4698-91e8-43943c77ce92', 2);
+INSERT INTO public.lesson VALUES ('675377b5-c6d9-4713-9328-cb94e11b1446', '07:45:00', 90, '441a8ef1-aebe-4698-91e8-43943c77ce92', 4);
+INSERT INTO public.lesson VALUES ('1c64b896-bde3-4681-b571-83bea962d1ce', '07:30:00', 120, 'e7e8c4c3-715f-4dd2-8f7e-dbdc9281a35e', 3);
+
+
+--
+-- Data for Name: location; Type: TABLE DATA; Schema: public; Owner: trungquoc
 --
 
 INSERT INTO public.location VALUES ('8e54a027-e6ae-4e1d-b864-c7e8ba9ebc26', 'Quận Tân Bình', '2e82e344-5f98-4228-81bb-89b7740984b1', 766);
@@ -293,7 +300,7 @@ INSERT INTO public.location VALUES ('cb814cc4-52eb-4554-90bf-cce29b170646', 'Qu�
 
 
 --
--- Data for Name: otp; Type: TABLE DATA; Schema: public; Owner: postgres
+-- Data for Name: otp; Type: TABLE DATA; Schema: public; Owner: trungquoc
 --
 
 INSERT INTO public.otp VALUES ('b4afac0c-89df-4d25-a34c-1f8d8b5d5699', '062425', 'nhauyen@gmail.com', '2024-06-22 21:19:27.384613');
@@ -303,13 +310,13 @@ INSERT INTO public.otp VALUES ('57f87489-f3ac-42e3-b606-b785b741eccb', '405996',
 
 
 --
--- Data for Name: salary; Type: TABLE DATA; Schema: public; Owner: postgres
+-- Data for Name: salary; Type: TABLE DATA; Schema: public; Owner: trungquoc
 --
 
 
 
 --
--- Data for Name: student; Type: TABLE DATA; Schema: public; Owner: postgres
+-- Data for Name: student; Type: TABLE DATA; Schema: public; Owner: trungquoc
 --
 
 INSERT INTO public.student VALUES ('ef1c3757-5ad6-4bf8-b861-611fcc59ea0d', 12, '5e072379-c77b-465a-a7fa-a2549da1259e');
@@ -317,14 +324,13 @@ INSERT INTO public.student VALUES ('4e620549-5a80-4c20-93b6-4e5bbc4dc770', 12, '
 
 
 --
--- Data for Name: student_teaching_subject_map; Type: TABLE DATA; Schema: public; Owner: postgres
+-- Data for Name: student_teaching_subject_map; Type: TABLE DATA; Schema: public; Owner: trungquoc
 --
 
-INSERT INTO public.student_teaching_subject_map VALUES ('3e4a9a92-5f5d-489c-9455-57f425e205cf', 'ef1c3757-5ad6-4bf8-b861-611fcc59ea0d', '483a2fab-e6ad-4626-a4d1-4c66b5c70fef', 'MOMO1719318453394', 500000.00, NULL, 1);
 
 
 --
--- Data for Name: subject; Type: TABLE DATA; Schema: public; Owner: postgres
+-- Data for Name: subject; Type: TABLE DATA; Schema: public; Owner: trungquoc
 --
 
 INSERT INTO public.subject VALUES ('50899f5e-0ee7-43af-a448-701d3515b03b', 'Toán');
@@ -335,17 +341,16 @@ INSERT INTO public.subject VALUES ('ed55892a-5892-47a3-af1e-4defac6c1bd4', 'Sinh
 
 
 --
--- Data for Name: teaching_subject; Type: TABLE DATA; Schema: public; Owner: postgres
+-- Data for Name: teaching_subject; Type: TABLE DATA; Schema: public; Owner: trungquoc
 --
 
-INSERT INTO public.teaching_subject VALUES ('db3453de-ba19-4486-978e-b7c285432b05', 'Hình học không gian', 'caa269c1-eb92-421d-aeac-f28941b394d0', '50899f5e-0ee7-43af-a448-701d3515b03b', 'Hình cầu, hình nón, hình trụ trong không gian', '2024-07-01', 10, 776, 10000, 5, 1, 12, '180 Cao Lỗ');
-INSERT INTO public.teaching_subject VALUES ('483a2fab-e6ad-4626-a4d1-4c66b5c70fef', 'Toán hình học: Thể tích hình khối 8', '960b6904-fb8e-4331-9f4d-7b9710a9e497', '50899f5e-0ee7-43af-a448-701d3515b03b', 'Ôn tập các công thức cách tính thể tích các hình khối trong không gian Oxyz', '2024-07-01', 12, 776, 500000, 1, 1, 12, '180 Đường Cao Lỗ, phường 4, ');
-INSERT INTO public.teaching_subject VALUES ('287e84d5-4f58-49c0-a309-a3680567d29e', 'Dao động điều hòa', 'caa269c1-eb92-421d-aeac-f28941b394d0', '2dfba33f-f110-45f0-9b9e-bc4fd19145bd', 'Lý thuyết, công thức, ứng dụng của dao động điều hòa', '2024-06-30', 6, 776, 10000, 5, 1, 12, '180 Cao Lỗ');
-INSERT INTO public.teaching_subject VALUES ('19778088-d6ce-496a-8cdb-85fd30b86bb3', 'Khảo sát hàm số', 'caa269c1-eb92-421d-aeac-f28941b394d0', '50899f5e-0ee7-43af-a448-701d3515b03b', 'Chương 1: Khảo sát hàm số, cực trị hàm số', '2024-06-28', 6, 776, 10000, 2, 0, 12, '180 Cao Lỗ');
+INSERT INTO public.teaching_subject VALUES ('441a8ef1-aebe-4698-91e8-43943c77ce92', 'Dao động', 'caa269c1-eb92-421d-aeac-f28941b394d0', '2dfba33f-f110-45f0-9b9e-bc4fd19145bd', 'Chuyển động điều hoà', '2024-07-06', 6, 776, 200000, 2, 2, 12, '180 Cao Lỗ');
+INSERT INTO public.teaching_subject VALUES ('6963ae7a-7009-4fe3-a522-17f845320c06', 'Hàm số ', 'caa269c1-eb92-421d-aeac-f28941b394d0', '50899f5e-0ee7-43af-a448-701d3515b03b', 'Khảo sát hàm số, tìm khoảng đồng biến, nghịch biến của hàm số', '2024-07-04', 5, 776, 200000, 2, 1, 12, '180 Cao Lỗ');
+INSERT INTO public.teaching_subject VALUES ('e7e8c4c3-715f-4dd2-8f7e-dbdc9281a35e', 'Hình học', 'caa269c1-eb92-421d-aeac-f28941b394d0', '50899f5e-0ee7-43af-a448-701d3515b03b', 'Hình học không gian', '2024-07-04', 6, 776, 200000, 2, 2, 12, '180 Cao Lỗ');
 
 
 --
--- Data for Name: tutor; Type: TABLE DATA; Schema: public; Owner: postgres
+-- Data for Name: tutor; Type: TABLE DATA; Schema: public; Owner: trungquoc
 --
 
 INSERT INTO public.tutor VALUES ('2e82e344-5f98-4228-81bb-89b7740984b1', 'Sinh viên', 'Sinh viên năm 4', '28aaab3c-e228-411b-b1c2-b43867198376');
@@ -356,7 +361,7 @@ INSERT INTO public.tutor VALUES ('128cf786-6c1a-47a1-bc5e-1bac5f94f6cc', 'Giáo 
 
 
 --
--- Data for Name: tutor_subject_map; Type: TABLE DATA; Schema: public; Owner: postgres
+-- Data for Name: tutor_subject_map; Type: TABLE DATA; Schema: public; Owner: trungquoc
 --
 
 INSERT INTO public.tutor_subject_map VALUES ('e63729d2-ee67-42a1-afcc-4f84ef126eb3', '2e82e344-5f98-4228-81bb-89b7740984b1', 'ed55892a-5892-47a3-af1e-4defac6c1bd4');
@@ -374,7 +379,7 @@ INSERT INTO public.tutor_subject_map VALUES ('3bb09f3f-f5b2-4e6d-bf71-71387706d8
 
 
 --
--- Data for Name: users; Type: TABLE DATA; Schema: public; Owner: postgres
+-- Data for Name: users; Type: TABLE DATA; Schema: public; Owner: trungquoc
 --
 
 INSERT INTO public.users VALUES ('3da5fef8-6e90-45bd-840d-c4a9678140ae', 'admin', 'admin@gmail.com', '0398454152', 22, 'admin0123', '$2a$10$J3lOrNI0U.2MNcosAhZF4eoxvfA8fqNO5L.VpExwNivQ8RtKU0hnm', 0, 1);
@@ -388,7 +393,7 @@ INSERT INTO public.users VALUES ('53237248-41fd-4fc5-8215-f582dc127c33', 'Văn B
 
 
 --
--- Name: document document_pk; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: document document_pk; Type: CONSTRAINT; Schema: public; Owner: trungquoc
 --
 
 ALTER TABLE ONLY public.document
@@ -396,7 +401,7 @@ ALTER TABLE ONLY public.document
 
 
 --
--- Name: lesson lession_pk; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: lesson lession_pk; Type: CONSTRAINT; Schema: public; Owner: trungquoc
 --
 
 ALTER TABLE ONLY public.lesson
@@ -404,7 +409,7 @@ ALTER TABLE ONLY public.lesson
 
 
 --
--- Name: location location_pk; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: location location_pk; Type: CONSTRAINT; Schema: public; Owner: trungquoc
 --
 
 ALTER TABLE ONLY public.location
@@ -412,7 +417,7 @@ ALTER TABLE ONLY public.location
 
 
 --
--- Name: otp otp_pk; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: otp otp_pk; Type: CONSTRAINT; Schema: public; Owner: trungquoc
 --
 
 ALTER TABLE ONLY public.otp
@@ -420,7 +425,7 @@ ALTER TABLE ONLY public.otp
 
 
 --
--- Name: salary salary_pk; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: salary salary_pk; Type: CONSTRAINT; Schema: public; Owner: trungquoc
 --
 
 ALTER TABLE ONLY public.salary
@@ -428,7 +433,7 @@ ALTER TABLE ONLY public.salary
 
 
 --
--- Name: student student_pk; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: student student_pk; Type: CONSTRAINT; Schema: public; Owner: trungquoc
 --
 
 ALTER TABLE ONLY public.student
@@ -436,7 +441,7 @@ ALTER TABLE ONLY public.student
 
 
 --
--- Name: student_teaching_subject_map student_teaching_subject_map_pk; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: student_teaching_subject_map student_teaching_subject_map_pk; Type: CONSTRAINT; Schema: public; Owner: trungquoc
 --
 
 ALTER TABLE ONLY public.student_teaching_subject_map
@@ -444,7 +449,7 @@ ALTER TABLE ONLY public.student_teaching_subject_map
 
 
 --
--- Name: subject subject_pk; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: subject subject_pk; Type: CONSTRAINT; Schema: public; Owner: trungquoc
 --
 
 ALTER TABLE ONLY public.subject
@@ -452,7 +457,7 @@ ALTER TABLE ONLY public.subject
 
 
 --
--- Name: teaching_subject teaching_subject_pk; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: teaching_subject teaching_subject_pk; Type: CONSTRAINT; Schema: public; Owner: trungquoc
 --
 
 ALTER TABLE ONLY public.teaching_subject
@@ -460,7 +465,7 @@ ALTER TABLE ONLY public.teaching_subject
 
 
 --
--- Name: tutor tutor_pk; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: tutor tutor_pk; Type: CONSTRAINT; Schema: public; Owner: trungquoc
 --
 
 ALTER TABLE ONLY public.tutor
@@ -468,7 +473,7 @@ ALTER TABLE ONLY public.tutor
 
 
 --
--- Name: tutor_subject_map tutor_subject_map_pk; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: tutor_subject_map tutor_subject_map_pk; Type: CONSTRAINT; Schema: public; Owner: trungquoc
 --
 
 ALTER TABLE ONLY public.tutor_subject_map
@@ -476,7 +481,7 @@ ALTER TABLE ONLY public.tutor_subject_map
 
 
 --
--- Name: users users_pk; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: users users_pk; Type: CONSTRAINT; Schema: public; Owner: trungquoc
 --
 
 ALTER TABLE ONLY public.users
@@ -484,28 +489,28 @@ ALTER TABLE ONLY public.users
 
 
 --
--- Name: document_lesson_id_instructor_id_uindex; Type: INDEX; Schema: public; Owner: postgres
+-- Name: document_lesson_id_instructor_id_uindex; Type: INDEX; Schema: public; Owner: trungquoc
 --
 
 CREATE UNIQUE INDEX document_lesson_id_instructor_id_uindex ON public.document USING btree (lesson_id, instructor_id);
 
 
 --
--- Name: salary_tutor_id_uindex; Type: INDEX; Schema: public; Owner: postgres
+-- Name: salary_tutor_id_uindex; Type: INDEX; Schema: public; Owner: trungquoc
 --
 
 CREATE UNIQUE INDEX salary_tutor_id_uindex ON public.salary USING btree (tutor_id);
 
 
 --
--- Name: users_username_uindex; Type: INDEX; Schema: public; Owner: postgres
+-- Name: users_username_uindex; Type: INDEX; Schema: public; Owner: trungquoc
 --
 
 CREATE UNIQUE INDEX users_username_uindex ON public.users USING btree (username);
 
 
 --
--- Name: document document_tutor_id_fk; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: document document_tutor_id_fk; Type: FK CONSTRAINT; Schema: public; Owner: trungquoc
 --
 
 ALTER TABLE ONLY public.document
@@ -513,7 +518,7 @@ ALTER TABLE ONLY public.document
 
 
 --
--- Name: lesson lession_class_id_fk; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: lesson lession_class_id_fk; Type: FK CONSTRAINT; Schema: public; Owner: trungquoc
 --
 
 ALTER TABLE ONLY public.lesson
@@ -521,7 +526,7 @@ ALTER TABLE ONLY public.lesson
 
 
 --
--- Name: location location_tutor_id_fk; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: location location_tutor_id_fk; Type: FK CONSTRAINT; Schema: public; Owner: trungquoc
 --
 
 ALTER TABLE ONLY public.location
@@ -529,7 +534,7 @@ ALTER TABLE ONLY public.location
 
 
 --
--- Name: salary salary_tutor_id_fk; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: salary salary_tutor_id_fk; Type: FK CONSTRAINT; Schema: public; Owner: trungquoc
 --
 
 ALTER TABLE ONLY public.salary
@@ -537,7 +542,7 @@ ALTER TABLE ONLY public.salary
 
 
 --
--- Name: student_teaching_subject_map student_class_map_class_id_fk; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: student_teaching_subject_map student_class_map_class_id_fk; Type: FK CONSTRAINT; Schema: public; Owner: trungquoc
 --
 
 ALTER TABLE ONLY public.student_teaching_subject_map
@@ -545,7 +550,7 @@ ALTER TABLE ONLY public.student_teaching_subject_map
 
 
 --
--- Name: student_teaching_subject_map student_teaching_subject_map_student_id_fk; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: student_teaching_subject_map student_teaching_subject_map_student_id_fk; Type: FK CONSTRAINT; Schema: public; Owner: trungquoc
 --
 
 ALTER TABLE ONLY public.student_teaching_subject_map
@@ -553,7 +558,7 @@ ALTER TABLE ONLY public.student_teaching_subject_map
 
 
 --
--- Name: student student_user_id_fk; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: student student_user_id_fk; Type: FK CONSTRAINT; Schema: public; Owner: trungquoc
 --
 
 ALTER TABLE ONLY public.student
@@ -561,7 +566,7 @@ ALTER TABLE ONLY public.student
 
 
 --
--- Name: teaching_subject teaching_subject_subject_id_fk; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: teaching_subject teaching_subject_subject_id_fk; Type: FK CONSTRAINT; Schema: public; Owner: trungquoc
 --
 
 ALTER TABLE ONLY public.teaching_subject
@@ -569,7 +574,7 @@ ALTER TABLE ONLY public.teaching_subject
 
 
 --
--- Name: teaching_subject teaching_subject_tutor_id_fk; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: teaching_subject teaching_subject_tutor_id_fk; Type: FK CONSTRAINT; Schema: public; Owner: trungquoc
 --
 
 ALTER TABLE ONLY public.teaching_subject
@@ -577,7 +582,7 @@ ALTER TABLE ONLY public.teaching_subject
 
 
 --
--- Name: tutor_subject_map tutor_subject_map_subject_id_fk; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: tutor_subject_map tutor_subject_map_subject_id_fk; Type: FK CONSTRAINT; Schema: public; Owner: trungquoc
 --
 
 ALTER TABLE ONLY public.tutor_subject_map
@@ -585,7 +590,7 @@ ALTER TABLE ONLY public.tutor_subject_map
 
 
 --
--- Name: tutor_subject_map tutor_subject_map_tutor_id_fk; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: tutor_subject_map tutor_subject_map_tutor_id_fk; Type: FK CONSTRAINT; Schema: public; Owner: trungquoc
 --
 
 ALTER TABLE ONLY public.tutor_subject_map
@@ -593,7 +598,7 @@ ALTER TABLE ONLY public.tutor_subject_map
 
 
 --
--- Name: tutor tutor_user_id_fk; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: tutor tutor_user_id_fk; Type: FK CONSTRAINT; Schema: public; Owner: trungquoc
 --
 
 ALTER TABLE ONLY public.tutor
@@ -601,6 +606,6 @@ ALTER TABLE ONLY public.tutor
 
 
 --
--- PostgreSQL database dump complete
+-- trungquocQL database dump complete
 --
 

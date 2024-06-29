@@ -1,4 +1,4 @@
-version: '3.8'
+version: "3.8"
 
 services:
     db:
@@ -7,7 +7,7 @@ services:
         restart: always
         volumes:
             - ./datasourse:/docker-entrypoint-initdb.d
-            - postgres_data:/var/lib/postgresql/data
+            - postgres_data:/var/lib/postgresql/data/
         environment:
             POSTGRES_DB: introducingtutor
             POSTGRES_USER: postgres

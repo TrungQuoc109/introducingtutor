@@ -5,7 +5,7 @@
     "license": "MIT",
     "private": true,
     "scripts": {
-        "all": "concurrently --kill-others-on-fail \"yarn dev:db\" \"yarn dev:server\" \"yarn dev:web\"",
+        "all": "concurrently --kill-others-on-fail \"yarn dev:server\" \"yarn dev:web\"",
         "dev:web": "yarn workspace client dev",
         "dev:server": "yarn workspace server dev",
         "dev:db": "yarn workspace server db"

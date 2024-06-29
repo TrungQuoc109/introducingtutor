@@ -169,9 +169,9 @@ export default function CourseDetail() {
                             {courseDetail ? (
                                 <Paper
                                     elevation={3}
-                                    sx={{ p: 4, width: "100%" }}
+                                    sx={{ p: 4, ml: 3.2, width: "100%" }}
                                 >
-                                    <Grid container>
+                                    <Grid container spacing={2}>
                                         {/* Tiêu Đề */}
                                         <Grid item xs={12}>
                                             <Typography
@@ -184,17 +184,17 @@ export default function CourseDetail() {
                                         </Grid>
 
                                         {/* Cặp Tiêu đề và Nội dung */}
-                                        <Grid item xs={2}>
+                                        <Grid item xs={12} sm={2}>
                                             <Typography>Mô tả</Typography>
                                         </Grid>
-                                        <Grid item xs={10}>
+                                        <Grid item xs={12} sm={10}>
                                             <Typography>
                                                 :{" "}
                                                 {courseDetail &&
                                                     courseDetail.description}
                                             </Typography>
                                         </Grid>
-                                        <Grid item container xs={6}>
+                                        <Grid item container xs={12} sm={6}>
                                             <Grid item xs={4}>
                                                 <Typography variant="subtitle1">
                                                     Môn học
@@ -209,7 +209,7 @@ export default function CourseDetail() {
                                                 </Typography>
                                             </Grid>
                                         </Grid>
-                                        <Grid item container xs={6}>
+                                        <Grid item container xs={12} sm={6}>
                                             <Grid item xs={4}>
                                                 <Typography variant="subtitle1">
                                                     Lớp
@@ -223,7 +223,7 @@ export default function CourseDetail() {
                                                 </Typography>
                                             </Grid>
                                         </Grid>
-                                        <Grid item container xs={6}>
+                                        <Grid item container xs={12} sm={6}>
                                             <Grid item xs={4}>
                                                 <Typography variant="subtitle1">
                                                     Số buổi
@@ -238,7 +238,7 @@ export default function CourseDetail() {
                                                 </Typography>
                                             </Grid>
                                         </Grid>
-                                        <Grid item container xs={6}>
+                                        <Grid item container xs={12} sm={6}>
                                             <Grid item xs={4}>
                                                 <Typography variant="subtitle1">
                                                     Số học viên
@@ -258,7 +258,7 @@ export default function CourseDetail() {
                                             </Grid>
                                         </Grid>
 
-                                        <Grid item container xs={6}>
+                                        <Grid item container xs={12} sm={6}>
                                             <Grid item xs={4}>
                                                 <Typography variant="subtitle1">
                                                     Bắt đầu từ:
@@ -274,7 +274,7 @@ export default function CourseDetail() {
                                                 </Typography>
                                             </Grid>
                                         </Grid>
-                                        <Grid item container xs={6}>
+                                        <Grid item container xs={12} sm={6}>
                                             <Grid item xs={4}>
                                                 <Typography variant="subtitle1">
                                                     Kết thúc dự kiến
@@ -290,12 +290,12 @@ export default function CourseDetail() {
                                                 </Typography>
                                             </Grid>
                                         </Grid>
-                                        <Grid item xs={2}>
+                                        <Grid item xs={12} sm={2}>
                                             <Typography variant="subtitle1">
                                                 Giá
                                             </Typography>
                                         </Grid>
-                                        <Grid item xs={10}>
+                                        <Grid item xs={12} sm={10}>
                                             <Typography variant="subtitle1">
                                                 :{" "}
                                                 {courseDetail &&
@@ -307,15 +307,15 @@ export default function CourseDetail() {
                                                 VND
                                             </Typography>
                                         </Grid>
-                                        <Grid item xs={2}>
+                                        <Grid item xs={12} sm={2}>
                                             <Typography variant="subtitle1">
                                                 Địa chỉ
                                             </Typography>
                                         </Grid>
-                                        <Grid item xs={10}>
+                                        <Grid item xs={12} sm={10}>
                                             <Typography variant="subtitle1">
                                                 : {courseDetail.specificAddress}
-                                                {", "}
+                                                ,{" "}
                                                 {courseDetail &&
                                                     districts.find(
                                                         (district) =>
@@ -329,6 +329,7 @@ export default function CourseDetail() {
                                         container
                                         justifyContent="space-between"
                                         alignItems="center"
+                                        sx={{ mt: 2 }}
                                     >
                                         <Grid item xs={10}>
                                             <Typography variant="h5">
@@ -345,7 +346,6 @@ export default function CourseDetail() {
                                                         handleOpenDialog();
                                                     }}
                                                 >
-                                                    {" "}
                                                     Thêm buổi học
                                                 </Button>
                                             </Grid>
@@ -358,6 +358,9 @@ export default function CourseDetail() {
                                                         }
                                                         price={
                                                             courseDetail.price
+                                                        }
+                                                        status={
+                                                            courseDetail.status
                                                         }
                                                     />
                                                 </Grid>

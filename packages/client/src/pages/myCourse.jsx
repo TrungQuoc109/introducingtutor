@@ -19,12 +19,20 @@ import {
 } from "@mui/material";
 import Footer from "../components/footer";
 import Header from "../components/header";
-import { baseURL, districts, formatDate, statusCourse } from "../config/config";
+import {
+    baseURL,
+    districts,
+    formatDate,
+    paymentStatus,
+    statusCourse,
+} from "../config/config";
 // Firebase imports
 // Nếu DataContext không chứa thông tin về khóa học, bạn không cần sử dụng DataContext ở đây.
 import { useNavigate } from "react-router-dom";
 import CreateCourseDialog from "../components/createCourseDialog";
+import CourseDetails from "../components/courseDetail";
 export default function MyCourse() {
+    const [dialogAction, setDialogAction] = useState(null); // 'edit', 'cancel'
     const [clickedCourseId, setClickedCourseId] = useState(null);
     const [courses, setCourses] = useState([]);
     const [selectedStatuses, setSelectedStatuses] = useState([]);
@@ -39,41 +47,67 @@ export default function MyCourse() {
         courseId: null,
         status: null,
     });
-    // const [resultCode, setResultCode] = useState(null);
 
     const navigate = useNavigate();
     const token = localStorage.getItem("token");
     const role = localStorage.getItem("role");
+
+    const openEditDialog = (course) => {
+        setIsDialogOpen(true);
+        setDialogMode("edit");
+        setEditingCourse(course);
+    };
+    const openCreateDialog = () => {
+        setIsDialogOpen(true);
+        setDialogMode("create");
+        setEditingCourse(null); // Đảm bảo không có dữ liệu của khóa học nào được tải trước
+    };
+    const openCancelDialog = (courseId) => {
+        setOpenDialogStatus(true);
+        setPendingStatusChange({ courseId: courseId, status: null });
+        setDialogAction("cancel");
+    };
+
     const handleStatusChange = (courseId, event) => {
+        setDialogAction("edit");
         const newStatus = event.target.value;
         setPendingStatusChange({ courseId, status: newStatus });
-        setOpenDialogStatus(true); // Mở dialog
+        setOpenDialogStatus(true);
     };
     const handleCloseDialog = async (isConfirmed) => {
         setOpenDialogStatus(false);
         if (isConfirmed) {
             const { courseId, status } = pendingStatusChange;
+            if (dialogAction === "edit") {
+                setSelectedStatuses({
+                    ...selectedStatuses,
+                    [courseId]: status,
+                });
+                const response = await fetch(
+                    `${baseURL}/tutor/change-status-course`,
+                    {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                            authorization: `Bearer ${token}`,
+                        },
+                        body: JSON.stringify({ courseId, status }),
+                    }
+                );
 
-            setSelectedStatuses({ ...selectedStatuses, [courseId]: status });
-            const response = await fetch(
-                `${baseURL}/tutor/change-status-course`,
-                {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        authorization: `Bearer ${token}`,
-                    },
-                    body: JSON.stringify({ courseId, status }),
+                if (response.ok || response.status == 400) {
+                    const data = await response.json();
+                    alert(data.message ?? data.error);
                 }
-            );
-            if (response.ok) {
-                const data = await response.json();
-                alert(data.message);
+                setPendingStatusChange({ courseId: null, status: null });
+                fetchData();
+            } else {
+                const { courseId } = pendingStatusChange;
+                console.log("test", courseId);
             }
-            setPendingStatusChange({ courseId: null, status: null });
         }
     };
-    // Ví dụ sử dụng useCallback (Nếu bạn đang sử dụng setResultCode trong callback)
+
     const updateResultCode = useCallback(async () => {
         const searchParams = new URLSearchParams(location.search);
         const code = searchParams.get("resultCode") ?? null;
@@ -96,13 +130,13 @@ export default function MyCourse() {
                 if (response.ok) {
                     const data = await response.json();
                     alert(data.message);
+                    fetchData();
                 }
             } catch (error) {
                 console.log(error);
             }
         }
-        //  setResultCode(code);
-    }, [location.search]); // Re-run this effect when location.search changes
+    }, [location.search]);
     const fetchLocation = async () => {
         try {
             const response = await fetch(
@@ -136,6 +170,7 @@ export default function MyCourse() {
             if (response.ok) {
                 const data = await response.json();
                 setCourses(data.data.courses);
+
                 const newSelectedStatuses = data.data.courses.reduce(
                     (acc, course) => ({
                         ...acc,
@@ -178,20 +213,11 @@ export default function MyCourse() {
         });
     };
 
-    const openCreateDialog = () => {
-        setIsDialogOpen(true);
-        setDialogMode("create");
-        setEditingCourse(null); // Đảm bảo không có dữ liệu của khóa học nào được tải trước
-    };
-
-    const openEditDialog = (course) => {
-        setIsDialogOpen(true);
-        setDialogMode("edit");
-        setEditingCourse(course); // Nạp dữ liệu khóa học vào form để chỉnh sửa
-    };
-
     const handleDialogClose = () => {
         setIsDialogOpen(false);
+        fetchData();
+    };
+    const handleCancelCourse = (courseId) => {
         fetchData();
     };
     return (
@@ -285,83 +311,19 @@ export default function MyCourse() {
                                                 <ListItemText
                                                     primary={`${course.name}`}
                                                     secondary={
-                                                        <React.Fragment>
-                                                            <Grid
-                                                                container
-                                                                spacing={2}
-                                                                alignItems="center"
-                                                            >
-                                                                <Grid item xs>
-                                                                    <Typography
-                                                                        component="span"
-                                                                        variant="body2"
-                                                                        color="textPrimary"
-                                                                    >
-                                                                        Môn:{" "}
-                                                                        {
-                                                                            course
-                                                                                .Subject
-                                                                                .name
-                                                                        }
-                                                                    </Typography>
-                                                                </Grid>
-                                                                <Grid item xs>
-                                                                    <Typography
-                                                                        component="span"
-                                                                        variant="body2"
-                                                                        color="textPrimary"
-                                                                    >
-                                                                        | Lớp:{" "}
-                                                                        {
-                                                                            course.gradeLevel
-                                                                        }
-                                                                    </Typography>
-                                                                </Grid>
-                                                                <Grid item xs>
-                                                                    <Typography
-                                                                        component="span"
-                                                                        variant="body2"
-                                                                        color="textPrimary"
-                                                                    >
-                                                                        | Ngày
-                                                                        bắt đầu:{" "}
-                                                                        {formatDate(
-                                                                            course.startDate
-                                                                        )}
-                                                                    </Typography>
-                                                                </Grid>
-                                                                <Grid
-                                                                    item
-                                                                    xs={12}
-                                                                >
-                                                                    <Typography
-                                                                        component="span"
-                                                                        variant="body2"
-                                                                        color="textSecondary"
-                                                                    >
-                                                                        Địa chỉ:{" "}
-                                                                        {
-                                                                            course.specificAddress
-                                                                        }
-                                                                        {", "}
-                                                                        {
-                                                                            districts.find(
-                                                                                (
-                                                                                    district
-                                                                                ) =>
-                                                                                    district.id ==
-                                                                                    course.location
-                                                                            )
-                                                                                .name
-                                                                        }
-                                                                        | Giá:{" "}
-                                                                        {
-                                                                            course.price
-                                                                        }
-                                                                    </Typography>
-                                                                </Grid>
-                                                            </Grid>
-                                                        </React.Fragment>
+                                                        <CourseDetails
+                                                            course={course}
+                                                            districts={
+                                                                districts
+                                                            }
+                                                            role={role}
+                                                            paymentStatus={
+                                                                paymentStatus
+                                                            }
+                                                            formatDate={
+                                                                formatDate
+                                                            }
+                                                        />
                                                     }
                                                 />
                                             </Grid>
@@ -461,10 +423,9 @@ export default function MyCourse() {
                                                         variant="contained"
                                                         onClick={(event) => {
                                                             event.stopPropagation(); // Ngăn chặn sự kiện lan tỏa
-                                                            // cancelRegistration(
-                                                            //     course.id
-                                                            // );
-                                                            console.log("huy");
+                                                            openCancelDialog(
+                                                                course.id
+                                                            );
                                                         }}
                                                     >
                                                         Hủy đăng ký
@@ -483,14 +444,60 @@ export default function MyCourse() {
                             aria-labelledby="alert-dialog-title"
                             aria-describedby="alert-dialog-description"
                         >
-                            <DialogTitle id="alert-dialog-title">
-                                {"Xác nhận thay đổi trạng thái"}
+                            <DialogTitle
+                                id="alert-dialog-title"
+                                sx={{ textAlign: "center" }}
+                            >
+                                {dialogAction === "edit"
+                                    ? "Xác nhận thay đổi trạng thái"
+                                    : "Xác nhận hủy khóa học"}
                             </DialogTitle>
                             <DialogContent>
-                                <DialogContentText id="alert-dialog-description">
-                                    Bạn có chắc chắn muốn thay đổi trạng thái
-                                    của khóa học này không?
-                                </DialogContentText>
+                                {dialogAction === "edit" ? (
+                                    <DialogContentText id="alert-dialog-description">
+                                        Bạn có chắc chắn muốn thay đổi trạng
+                                        thái của khóa học này không?
+                                    </DialogContentText>
+                                ) : (
+                                    <>
+                                        <DialogContentText
+                                            id="alert-dialog-description"
+                                            sx={{
+                                                color: "black",
+                                                fontSize: 20,
+                                            }}
+                                        >
+                                            Bạn có chắc chắn muốn hủy khóa học
+                                            này không?
+                                        </DialogContentText>
+                                        <DialogContentText
+                                            id="alert-dialog-description-refund-policy"
+                                            sx={{ color: "black" }}
+                                        >
+                                            Chính sách hoàn tiền khi hủy khóa
+                                            học như sau (tính từ ngày bắt đầu
+                                            khoá học):
+                                            <ul>
+                                                <li>
+                                                    Nếu hủy trước 7 ngày trở
+                                                    lên: 95%.
+                                                </li>
+                                                <li>
+                                                    Nếu huỷ trước từ 3 đến 7
+                                                    ngày: 70%
+                                                </li>
+                                                <li>
+                                                    Nếu huỷ trước từ 0 đến 3
+                                                    ngày: 50%
+                                                </li>
+                                                <li>
+                                                    Nếu huỷ sau ngày bắt đầu
+                                                    khoá học: 0%
+                                                </li>
+                                            </ul>
+                                        </DialogContentText>
+                                    </>
+                                )}
                             </DialogContent>
                             <DialogActions>
                                 <Button

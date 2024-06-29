@@ -48,7 +48,6 @@ export default function Profile() {
     const nameRegex = /^[\p{L} .]{4,30}$/u;
     const passwordRegex =
         /^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[-`~!@#$%^&*()_+={}[\\]|\:\;\"\'\<\>\,\.?\/]).{8,30}$/;
-    const usernameRegex = /^[a-zA-Z0-9_]{4,30}$/;
     const validateField = (name, value) => {
         let errorMsg = "";
         switch (name) {
@@ -133,7 +132,7 @@ export default function Profile() {
 
         setErrors(newErrors);
 
-        return Object.keys(newErrors).length === 0;
+        return Object.keys(newErrors).length == 0;
     };
     useEffect(() => {
         const fetchData = async () => {
@@ -161,6 +160,7 @@ export default function Profile() {
                         setSelectedSubjectIds(subjectId);
                         setSelectedAddresses(addressIds);
                     }
+                    console.log(data.data.user.id);
                     const imageUrl = await fetchImageUrl(data.data.user.id);
                     setImageUrl(imageUrl);
                 } else {
@@ -199,20 +199,20 @@ export default function Profile() {
     const renderNames = (selectedIds, array) => {
         let itemsArray = Array.isArray(array) ? array : array.data;
         return selectedIds
-            .map((id) => itemsArray.find((item) => item.id === id)?.name)
+            .map((id) => itemsArray.find((item) => item.id == id)?.name)
             .filter((name) => name) // Lọc ra các giá trị undefined hoặc null
             .join(", ");
     };
     const handleExtraInfoChange = (event) => {
         const { name, value } = event.target;
         setIsChange(true);
-        if (profileData.role === 1) {
+        if (profileData.role == 1) {
             // Tutor
             setProfileData({
                 ...profileData,
                 Tutor: { ...profileData.Tutor, [name]: value },
             });
-        } else if (profileData.role === 2) {
+        } else if (profileData.role == 2) {
             // Student
             setProfileData({
                 ...profileData,
@@ -327,14 +327,19 @@ export default function Profile() {
                         minHeight: "100vh",
                         pt: 12,
                         pb: 4,
+                        display: "flex", // Center children vertically
+                        flexDirection: "column", // Align children in a column
+                        alignItems: "center", // Center children horizontally
                     }}
                 >
-                    <Header />
+                    <Header /> {/* Header component */}
                     <Container maxWidth="lg">
                         <Box
                             sx={{
                                 bgcolor: "white",
                                 p: 4,
+                                width: "100%", // Ensure content fills the container width
+                                maxWidth: "100%", // Ensure content doesn't exceed container width
                             }}
                         >
                             <Grid container spacing={4}>
@@ -344,10 +349,12 @@ export default function Profile() {
                                         src={imgURL ?? logo}
                                         alt="Profile"
                                         sx={{
-                                            width: 300,
-                                            height: 300,
+                                            width: "100%", // Full width on smaller screens
+                                            maxWidth: 300, // Maximum width on larger screens
+                                            height: "auto",
                                             objectFit: "contain",
-                                            ml: 16,
+                                            mx: "auto", // Center align image
+                                            mb: { xs: 4, md: 0 }, // Margin bottom spacing based on screen size
                                         }}
                                     />
                                 </Grid>
@@ -366,7 +373,7 @@ export default function Profile() {
                                             className: "helper-text",
                                         }}
                                         sx={{
-                                            position: "relative",
+                                            mb: 2, // Margin bottom
                                         }}
                                     />
                                     <TextField
@@ -383,7 +390,7 @@ export default function Profile() {
                                             className: "helper-text",
                                         }}
                                         sx={{
-                                            position: "relative",
+                                            mb: 2, // Margin bottom
                                         }}
                                     />
                                     <TextField
@@ -400,7 +407,7 @@ export default function Profile() {
                                             className: "helper-text",
                                         }}
                                         sx={{
-                                            position: "relative",
+                                            mb: 2, // Margin bottom
                                         }}
                                     />
                                     <TextField
@@ -417,7 +424,7 @@ export default function Profile() {
                                             className: "helper-text",
                                         }}
                                         sx={{
-                                            position: "relative",
+                                            mb: 2, // Margin bottom
                                         }}
                                     />
 
@@ -439,7 +446,7 @@ export default function Profile() {
                                                     className: "helper-text",
                                                 }}
                                                 sx={{
-                                                    position: "relative",
+                                                    mb: 2, // Margin bottom
                                                 }}
                                             />
                                             <TextField
@@ -458,13 +465,15 @@ export default function Profile() {
                                                     className: "helper-text",
                                                 }}
                                                 sx={{
-                                                    position: "relative",
+                                                    mb: 2, // Margin bottom
                                                 }}
                                             />
                                             {subjects && (
                                                 <Typography
                                                     variant="body1"
-                                                    marginY={2}
+                                                    sx={{
+                                                        mb: 2, // Margin bottom
+                                                    }}
                                                 >
                                                     Môn học giảng dạy:{" "}
                                                     {renderNames(
@@ -476,7 +485,9 @@ export default function Profile() {
                                             {selectedAddresses && (
                                                 <Typography
                                                     variant="body1"
-                                                    marginY={2}
+                                                    sx={{
+                                                        mb: 2, // Margin bottom
+                                                    }}
                                                 >
                                                     Địa chỉ giảng dạy:{" "}
                                                     {renderNames(
@@ -504,29 +515,38 @@ export default function Profile() {
                                                 className: "helper-text",
                                             }}
                                             sx={{
-                                                position: "relative",
+                                                mb: 2, // Margin bottom
                                             }}
                                         />
                                     )}
-                                    <Button
-                                        disabled={
-                                            profileData.role == 0 ? true : false
-                                        }
-                                        variant="contained"
-                                        color="primary"
-                                        onClick={handleSave}
-                                        sx={{ mt: 4, ml: 4 }}
+                                    <Box
+                                        sx={{
+                                            display: "flex",
+                                            justifyContent: "center", // Center align buttons horizontally
+                                            alignItems: "center", // Align buttons vertically
+                                            mt: 2, // Margin top
+                                        }}
                                     >
-                                        Save
-                                    </Button>
-                                    <Button
-                                        variant="contained"
-                                        color="secondary"
-                                        onClick={handleOpenChangePasswordDialog}
-                                        sx={{ mt: 4, ml: 16 }}
-                                    >
-                                        Đổi mật khẩu
-                                    </Button>
+                                        <Button
+                                            disabled={profileData.role == 0}
+                                            variant="contained"
+                                            color="primary"
+                                            onClick={handleSave}
+                                            sx={{ mx: 2 }} // Horizontal margin
+                                        >
+                                            Save
+                                        </Button>
+                                        <Button
+                                            variant="contained"
+                                            color="secondary"
+                                            onClick={
+                                                handleOpenChangePasswordDialog
+                                            }
+                                            sx={{ ml: { xs: 8, md: 4 } }}
+                                        >
+                                            Đổi mật khẩu
+                                        </Button>
+                                    </Box>
                                 </Grid>
                             </Grid>
                         </Box>
@@ -576,7 +596,7 @@ export default function Profile() {
                         </Dialog>
                     </Container>
                 </Box>
-                <Footer />
+                <Footer /> {/* Footer component */}
             </Container>
         </React.Fragment>
     );

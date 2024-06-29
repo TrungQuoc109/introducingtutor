@@ -64,7 +64,7 @@ TeachingSubject.init(
         },
         status: {
             type: DataTypes.INTEGER,
-            defaultValue: 1,
+            defaultValue: 2,
             allowNull: false,
         },
     },

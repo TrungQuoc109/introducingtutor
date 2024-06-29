@@ -14,6 +14,11 @@ export const statusCourse = [
     "Đóng đăng ký",
     "Kết thúc",
 ];
+export const paymentStatus = [
+    "Đăng ký thành công",
+    "Chờ thanh toán",
+    "Huỷ đăng ký",
+];
 export function formatDate(dateString) {
     const date = new Date(dateString);
     const day = date.getDate() < 10 ? `0${date.getDate()}` : date.getDate();

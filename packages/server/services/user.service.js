@@ -737,8 +737,9 @@ export class UserService {
                 );
             }
 
-            const educationLevel = userInfo.educationLevel;
+            var educationLevel = userInfo.Tutor;
             if (userInfo.role == ROLE.tutor) {
+                educationLevel = userInfo.Tutor;
                 if (
                     educationLevel &&
                     (!educationLevel.education || !educationLevel.experience)
@@ -749,6 +750,7 @@ export class UserService {
                     );
                 }
             } else {
+                educationLevel = userInfo.Student;
                 if (
                     educationLevel &&
                     (!educationLevel.gradeLevel ||
@@ -802,7 +804,7 @@ export class UserService {
                 }
             }
 
-            let hasChanges = false;
+            var hasChanges = false;
             for (const key in userInfo) {
                 if (
                     key !== "Student" &&
@@ -813,39 +815,32 @@ export class UserService {
                     hasChanges = true;
                 }
             }
-            if (educationLevel) {
-                if (user.role === ROLE.student && user.Student) {
-                    if (
-                        user.Student.gradeLevel !==
-                        userInfo.educationLevel.gradeLevel
-                    ) {
-                        user.Student.gradeLevel =
-                            userInfo.educationLevel.gradeLevel;
-                        hasChanges = true;
-                    }
-                }
 
-                if (user.role === ROLE.tutor && user.Tutor) {
-                    if (
-                        user.Tutor.education !==
-                            userInfo.educationLevel.education ||
-                        user.Tutor.experience !==
-                            userInfo.educationLevel.experience
-                    ) {
-                        user.Tutor.education =
-                            userInfo.educationLevel.education;
-                        user.Tutor.experience =
-                            userInfo.educationLevel.experience;
-                        hasChanges = true;
-                    }
+            if (user.role == ROLE.student && user.Student != null) {
+                if (user.Student.gradeLevel !== userInfo.Student.gradeLevel) {
+                    user.Student.gradeLevel = userInfo.Student.gradeLevel;
+                    hasChanges = true;
                 }
             }
+
+            if (user.role == ROLE.tutor && user.Tutor != null) {
+                if (
+                    user.Tutor.education != userInfo.Tutor.education ||
+                    user.Tutor.experience != userInfo.Tutor.experience
+                ) {
+                    user.Tutor.education = userInfo.Tutor.education;
+                    user.Tutor.experience = userInfo.Tutor.experience;
+                    hasChanges = true;
+                }
+            }
+
             if (hasChanges) {
                 await user.save();
                 if (user.Student) {
                     await user.Student.save();
                 }
                 if (user.Tutor) {
+                    console.log(1);
                     await user.Tutor.save();
                 }
                 return responseMessageInstance.getSuccess(
@@ -931,6 +926,7 @@ export class UserService {
                         },
                         startDate: { [Op.gte]: new Date() },
                     },
+                    order: [["status", "asc"]],
                     limit: limit,
                     offset: page * limit,
                 });
@@ -1028,7 +1024,7 @@ export class UserService {
                     },
                     { model: Subject, attributes: ["name"] },
                 ],
-
+                order: [["status", "asc"]],
                 limit: limit,
                 offset: page * limit,
             };
@@ -1036,7 +1032,14 @@ export class UserService {
             if (userRole == 2) {
                 queryOptions.include.push({
                     model: StudentTeachingSubjectMap,
-                    include: [{ model: Student, where: { userId: userId } }],
+                    attributes: ["id", "status", "orderId"],
+                    include: [
+                        {
+                            model: Student,
+                            attributes: [],
+                            where: { userId: userId },
+                        },
+                    ],
                 });
             } else if (userRole == 1) {
                 queryOptions.attributes.push("studentCount", "status");
@@ -1194,10 +1197,12 @@ export class UserService {
                             "location",
                             "price",
                             "studentCount",
+                            "status",
                         ],
                         include: [
                             { model: Subject, attributes: ["id", "name"] },
                         ],
+                        order: [["status", "asc"]],
                     },
                 ],
             });
@@ -1286,108 +1291,109 @@ export class UserService {
         }
     }
     async SearchCourse(req, res) {
-        const limit = 8;
-        const { page = 0, subjectId, location, searchTerm } = req.query;
+        try {
+            const limit = 8;
+            const { page = 0, subjectId, location, searchTerm } = req.query;
 
-        let countOptions = {
-            where: {
-                status: {
-                    [Op.and]: [
-                        { [Op.ne]: COURSE_STATUS.disabledCourse },
-                        { [Op.ne]: COURSE_STATUS.completedCourse },
-                    ],
+            let countOptions = {
+                where: {
+                    status: {
+                        [Op.and]: [
+                            { [Op.ne]: COURSE_STATUS.disabledCourse },
+                            { [Op.ne]: COURSE_STATUS.completedCourse },
+                        ],
+                    },
                 },
-            },
-        };
-
-        if (location) {
-            countOptions.where.location = location;
-        }
-
-        if (searchTerm) {
-            countOptions.where = {
-                [Op.or]: [
-                    { name: { [Op.iLike]: `%${searchTerm}%` } },
-                    { description: { [Op.iLike]: `%${searchTerm}%` } },
-                ],
             };
-        }
-        if (subjectId) {
-            countOptions.where.subjectId = subjectId;
-        }
 
-        const count = await TeachingSubject.count(countOptions);
+            if (location) {
+                countOptions.where.location = location;
+            }
 
-        let option = {
-            attributes: [
-                "id",
-                "name",
-                "description",
-                "gradeLevel",
-                "startDate",
-                "numberOfSessions",
-                "specificAddress",
-                "location",
-                "price",
-                "studentCount",
-                "status",
-            ],
-            include: [
-                {
-                    model: Tutor,
-                    attributes: ["id"],
-                    include: [
-                        {
-                            model: User,
-                            attributes: ["name"],
-                        },
+            if (searchTerm) {
+                countOptions.where = {
+                    [Op.or]: [
+                        { name: { [Op.iLike]: `%${searchTerm}%` } },
+                        { description: { [Op.iLike]: `%${searchTerm}%` } },
                     ],
-                },
-                { model: Subject },
-            ],
-            where: {
-                status: {
-                    [Op.and]: [
-                        { [Op.ne]: COURSE_STATUS.disabledCourse },
-                        { [Op.ne]: COURSE_STATUS.completedCourse },
-                    ],
-                },
-            },
-            limit: limit,
-            offset: page * limit,
-        };
+                };
+            }
+            if (subjectId) {
+                countOptions.where.subjectId = subjectId;
+            }
 
-        if (subjectId) {
-            option.where.subjectId = subjectId;
-        }
+            const count = await TeachingSubject.count(countOptions);
 
-        // Thêm điều kiện location nếu có
-        if (location) {
-            option.where.location = location;
-        }
-
-        // Thêm điều kiện tìm kiếm theo tên hoặc mô tả nếu có
-        if (searchTerm) {
-            option.where = {
-                [Op.or]: [
-                    { name: { [Op.iLike]: `%${searchTerm}%` } },
-                    { description: { [Op.iLike]: `%${searchTerm}%` } },
+            let option = {
+                attributes: [
+                    "id",
+                    "name",
+                    "description",
+                    "gradeLevel",
+                    "startDate",
+                    "numberOfSessions",
+                    "specificAddress",
+                    "location",
+                    "price",
+                    "studentCount",
+                    "status",
                 ],
+                include: [
+                    {
+                        model: Tutor,
+                        attributes: ["id"],
+                        include: [
+                            {
+                                model: User,
+                                attributes: ["name"],
+                            },
+                        ],
+                    },
+                    { model: Subject },
+                ],
+                where: {
+                    status: {
+                        [Op.and]: [
+                            { [Op.ne]: COURSE_STATUS.disabledCourse },
+                            { [Op.ne]: COURSE_STATUS.completedCourse },
+                        ],
+                    },
+                },
+                limit: limit,
+                offset: page * limit,
             };
-        }
-        const courses = await TeachingSubject.findAll(option);
 
-        return responseMessageInstance.getSuccess(res, 200, "Succesful", {
-            data: { courses, page: Math.ceil(count / limit) },
-        });
-    }
-    catch(error) {
-        console.log(error);
-        return responseMessageInstance.getError(
-            res,
-            error.code ?? 500,
-            error.message
-        );
+            if (subjectId) {
+                option.where.subjectId = subjectId;
+            }
+
+            // Thêm điều kiện location nếu có
+            if (location) {
+                option.where.location = location;
+            }
+
+            // Thêm điều kiện tìm kiếm theo tên hoặc mô tả nếu có
+            if (searchTerm) {
+                option.where = {
+                    [Op.or]: [
+                        { name: { [Op.iLike]: `%${searchTerm}%` } },
+                        { description: { [Op.iLike]: `%${searchTerm}%` } },
+                    ],
+                };
+            }
+            const courses = await TeachingSubject.findAll(option);
+
+            return responseMessageInstance.getSuccess(res, 200, "Succesful", {
+                data: { courses, page: Math.ceil(count / limit) },
+            });
+        } catch (error) {
+            console.log(error);
+            return responseMessageInstance.getError(
+                res,
+                error.code ?? 500,
+                error.message
+            );
+        }
     }
 }
 

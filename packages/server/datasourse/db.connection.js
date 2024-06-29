@@ -13,7 +13,7 @@ const sequelize = new Sequelize({
     password: password,
     database: db,
     dialectOptions: {
-        ssl: false,
+        ssl: true,
     },
 });
 

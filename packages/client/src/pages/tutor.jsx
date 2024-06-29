@@ -168,7 +168,13 @@ function TutorPage() {
                         <Grid container spacing={2} mt={4}>
                             {tutorCards &&
                                 tutorCards.map((card) => (
-                                    <Grid item xs={12} md={3} key={card.id}>
+                                    <Grid
+                                        item
+                                        xs={12}
+                                        sm={6}
+                                        md={3}
+                                        key={card.id}
+                                    >
                                         <Card
                                             sx={{ maxHeight: 500 }}
                                             onClick={() =>

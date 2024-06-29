@@ -23,6 +23,9 @@ export class TutorController {
     async ChangStatusCourse(req, res) {
         return await tutorServiceInstance.ChangStatusCourse(req, res);
     }
+    async UpdateCourse(req, res) {
+        return await tutorServiceInstance.UpdateCourse(req, res);
+    }
 }
 //------------------------------------------------
 export const tutorInstance = TutorController.getInstance();

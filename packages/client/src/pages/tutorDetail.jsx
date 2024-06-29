@@ -52,7 +52,7 @@ export default function TutorDetail() {
                 );
                 if (response.ok) {
                     const data = await response.json();
-                    console.log(data.data.tutor);
+
                     setProfileData(data.data.tutor);
 
                     const subjectId = data.data.tutor.TutorSubjectMaps.map(
@@ -223,9 +223,20 @@ export default function TutorDetail() {
                                     Khóa học
                                 </Typography>
                                 {profileData &&
-                                    profileData.TeachingSubjects && (
-                                        <List>
-                                            {profileData.TeachingSubjects.map(
+                                profileData.TeachingSubjects &&
+                                profileData.TeachingSubjects.length == 0 ? (
+                                    <Typography
+                                        variant="body1"
+                                        align="center"
+                                        gutterBottom
+                                    >
+                                        Chưa có khoá học nào
+                                    </Typography>
+                                ) : (
+                                    <List>
+                                        {profileData &&
+                                            profileData.TeachingSubjects &&
+                                            profileData.TeachingSubjects.map(
                                                 (course) => (
                                                     <ListItem
                                                         key={course.id}
@@ -402,14 +413,17 @@ export default function TutorDetail() {
                                                                     price={
                                                                         course.price
                                                                     }
+                                                                    status={
+                                                                        course.status
+                                                                    }
                                                                 />
                                                             </Grid>
                                                         </Grid>
                                                     </ListItem>
                                                 )
                                             )}
-                                        </List>
-                                    )}
+                                    </List>
+                                )}
                             </Grid>
                         </Grid>{" "}
                     </Container>

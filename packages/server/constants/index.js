@@ -69,9 +69,9 @@ export function CredentialsValidation(type, value) {
             const date = new Date(value);
             const now = new Date();
             const after30Day = new Date();
-            now.setDate(now.getDate() + 3);
             after30Day.setMonth(now.getMonth() + 1);
-            //   console.log(after30Day, now);
+            now.setDate(now.getDate() + 3);
+
             return (
                 date instanceof Date &&
                 !isNaN(date) &&
@@ -102,6 +102,33 @@ export const momoConfig = {
     autoCapture: true,
     lang: "vi",
 };
+export const validationRules = [
+    {
+        field: "studentCount",
+        type: "count",
+        errorMessage: "Số lượng học viên không hợp lệ.",
+    },
+    {
+        field: "numberOfSessions",
+        type: "count",
+        errorMessage: "Số lượng buổi học không hợp lệ.",
+    },
+    {
+        field: "gradeLevel",
+        type: "gradelLevel",
+        errorMessage: "Lớp không hợp lệ.",
+    },
+    {
+        field: "startDate",
+        type: "date",
+        errorMessage: "Ngày bắt đầu không hợp lệ.",
+    },
+    {
+        field: "price",
+        type: "price",
+        errorMessage: "Giá khóa học không hợp lệ.",
+    },
+];
 export const districts = [
     {
         id: "760",

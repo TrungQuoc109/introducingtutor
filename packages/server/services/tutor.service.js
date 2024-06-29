@@ -12,6 +12,7 @@ import {
     COURSE_STATUS,
     CredentialsValidation,
     ROLE,
+    validationRules,
 } from "../constants/index.js";
 import jwt from "jsonwebtoken";
 import { Op } from "sequelize";
@@ -109,34 +110,6 @@ export class TutorService {
             }
             data.startDate = new Date(data.startDate);
 
-            //Validate lai
-            const validationRules = [
-                {
-                    field: "studentCount",
-                    type: "count",
-                    errorMessage: "Số lượng học viên không hợp lệ.",
-                },
-                {
-                    field: "numberOfSessions",
-                    type: "count",
-                    errorMessage: "Số lượng buổi học không hợp lệ.",
-                },
-                {
-                    field: "gradeLevel",
-                    type: "gradelLevel",
-                    errorMessage: "Lớp không hợp lệ.",
-                },
-                {
-                    field: "startDate",
-                    type: "date",
-                    errorMessage: "Ngày bắt đầu không hợp lệ.",
-                },
-                {
-                    field: "price",
-                    type: "price",
-                    errorMessage: "Giá khóa học không hợp lệ.",
-                },
-            ];
             if (data.name.length == 0 || data.name.length > 255) {
                 responseMessageInstance.throwError(
                     "Tên khóa học không hợp lệ.",
@@ -200,7 +173,7 @@ export class TutorService {
                     400
                 );
             }
-            console.log(data);
+
             const course = await TeachingSubject.create(data);
 
             return responseMessageInstance.getSuccess(
@@ -457,6 +430,7 @@ export class TutorService {
                 );
             }
             const course = await TeachingSubject.findOne({
+                include: [{ model: Lesson }],
                 where: {
                     id: courseId,
                 },
@@ -468,12 +442,126 @@ export class TutorService {
                 );
             }
             course.status = status;
+            if (status == 1 && course.Lessons.length == 0) {
+                responseMessageInstance.throwError(
+                    "Phải tạo ít nhất 1 buổi học trước khi mở đăng ký!",
+                    400
+                );
+            }
             await course.save();
             return responseMessageInstance.getSuccess(
                 res,
                 200,
                 "Cập nhật trạng thái khóa học thành công"
             );
+        } catch (error) {
+            console.log(error);
+            return responseMessageInstance.getError(
+                res,
+                error.code ?? 500,
+                error.message
+            );
+        }
+    }
+    async UpdateCourse(req, res) {
+        try {
+            const accessKey = req.headers["authorization"] ?? "";
+            const course = req.body.data;
+            delete course.Tutor;
+            delete course.Subject;
+
+            if (!accessKey) {
+                return responseMessageInstance.throwError(
+                    "Invalid accessKey",
+                    400
+                );
+            }
+
+            const decodedToken = jwt.verify(
+                accessKey.split(" ")[1],
+                process.env.SECRET_KEY
+            );
+            const userId = decodedToken.userId;
+            const role = decodedToken.role;
+            if (!role || role != ROLE.tutor) {
+                responseMessageInstance.throwError(
+                    "Bạn không có quyền truy cập!",
+                    401
+                );
+            }
+
+            if (
+                !course ||
+                (typeof course === "object" && Object.keys(course).length === 0)
+            ) {
+                responseMessageInstance.throwError(
+                    "Thông tin khoá học không hợp lệ.",
+                    400
+                );
+            }
+            course.startDate = new Date(course.startDate);
+
+            if (course.name.length == 0 || course.name.length > 255) {
+                responseMessageInstance.throwError(
+                    "Tên khóa học không hợp lệ.",
+                    400
+                );
+            }
+            if (course.description.length == 0) {
+                responseMessageInstance.throwError(
+                    "Địa chỉ khóa học không hợp lệ.",
+                    400
+                );
+            }
+            if (course.specificAddress.length == 0) {
+                responseMessageInstance.throwError(
+                    "Mô tả khóa học không hợp lệ.",
+                    400
+                );
+            }
+            validationRules.forEach((rule) => {
+                if (rule.type != "date")
+                    if (
+                        !course[rule.field] ||
+                        !CredentialsValidation(rule.type, course[rule.field])
+                    ) {
+                        responseMessageInstance.throwError(
+                            rule.errorMessage,
+                            400
+                        );
+                    }
+            });
+            const tutor = await Tutor.findOne({
+                attributes: ["id"],
+                where: { userId },
+            });
+            if (!tutor) {
+                responseMessageInstance.throwError(
+                    "Không tìm thấy gia sư",
+                    404
+                );
+            }
+            const existedCourse = await TeachingSubject.findOne({
+                where: {
+                    id: course.id,
+                },
+            });
+            if (!existedCourse) {
+                responseMessageInstance.throwError(
+                    "Không tìm thấy khóa học",
+                    404
+                );
+            }
+            const now = new Date();
+            if (existedCourse.startDate >= now) {
+                responseMessageInstance.throwError(
+                    "Không được phép cập nhật khoá học khi đã bắt đầu giảng dạy",
+                    400
+                );
+            }
+            await existedCourse.update(course);
+
+            return responseMessageInstance.getSuccess(res, 200, "ok");
         } catch (error) {
             console.log(error);
             return responseMessageInstance.getError(

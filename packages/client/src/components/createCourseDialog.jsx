@@ -104,9 +104,9 @@ function CreateCourseDialog({
         setFormData((prev) => ({ ...prev, [name]: value }));
     };
 
+    const token = localStorage.getItem("token");
     const handleFormSubmit = async () => {
         if (!isChange) {
-            const token = localStorage.getItem("token");
             const response = await fetch(`${baseURL}/tutor/teaching-subject`, {
                 method: "POST",
                 headers: {
@@ -124,7 +124,21 @@ function CreateCourseDialog({
                 alert(data.error);
             }
         } else {
-            console.log(formData);
+            const response = await fetch(`${baseURL}/tutor/update-course`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    authorization: `Bearer ${token}`,
+                },
+                body: JSON.stringify({ data: formData }),
+            });
+            const data = await response.json();
+            if (response.ok) {
+                alert(data.message);
+                onClose();
+            } else {
+                alert(data.error);
+            }
         }
     };
 

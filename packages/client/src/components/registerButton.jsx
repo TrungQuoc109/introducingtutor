@@ -11,7 +11,7 @@ import {
 import { baseURL } from "../config/config";
 import { useNavigate } from "react-router-dom";
 
-const RegisterButton = ({ courseId, price }) => {
+const RegisterButton = ({ courseId, price, status }) => {
     const [openDialog, setOpenDialog] = useState(false);
 
     // Hàm để mở dialog
@@ -45,6 +45,7 @@ const RegisterButton = ({ courseId, price }) => {
 
             const data = await response.json();
             if (response.ok) {
+                console.log(data.data);
                 if (data.data.resultCode == 0 && data.data.payUrl) {
                     window.location.href = data.data.payUrl;
                 }
@@ -67,12 +68,14 @@ const RegisterButton = ({ courseId, price }) => {
                     event.stopPropagation();
                     handleOpenDialog();
                 }}
+                disabled={status == 2}
             >
                 Giá: {price}
             </Button>
             <Dialog
                 open={openDialog}
                 onClose={(event) => {
+                    event.stopPropagation();
                     handleCloseDialog(false);
                 }}
                 aria-labelledby="alert-dialog-title"

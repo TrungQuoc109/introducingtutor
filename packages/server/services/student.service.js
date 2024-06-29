@@ -62,117 +62,135 @@ export class StudentService {
                 responseMessageInstance.throwError("Course not found!", 404);
             }
 
-            const startDate = course.startDate;
-            const endDate = calculateEndDate(
-                startDate,
-                course.numberOfSessions,
-                course.Lessons.lenght == 0 ? 1 : course.Lessons.lenght
-            );
-
-            const registeredCourses = await TeachingSubject.findAll({
-                include: [
-                    {
-                        model: StudentTeachingSubjectMap,
-                        where: {
-                            studentId: student.id,
-                            status: PAYMENT_STATUS.REGISTRATION_SUCCESS,
-                        },
-                    },
-                    { model: Lesson },
-                ],
+            const isCoursePending = await StudentTeachingSubjectMap.findOne({
                 where: {
-                    status: {
-                        [Op.and]: [
-                            { [Op.ne]: COURSE_STATUS.disabledCourse },
-                            { [Op.ne]: COURSE_STATUS.completedCourse },
-                        ],
-                    },
+                    teachingSubjectId: courseId,
+                    studentId: student.id,
                 },
             });
-            const filteredCourses = registeredCourses.filter(
-                (registerCourse) => {
-                    const startDateOfregisterCourse = registerCourse.startDate;
-                    const endDateOfregisterCourse = calculateEndDate(
-                        registerCourse.startDate,
-                        registerCourse.numberOfSessions,
-                        registerCourse.Lessons.length == 0
-                            ? 1
-                            : registerCourse.Lessons.length
-                    );
+            if (isCoursePending && isCoursePending.status == 0) {
+                responseMessageInstance.throwError(
+                    "Bạn đã đăng ký khoá học này rồi!",
+                    400
+                );
+            }
+            let conflictingLessons;
+            if (!isCoursePending) {
+                const startDate = course.startDate;
+                const endDate = calculateEndDate(
+                    startDate,
+                    course.numberOfSessions,
+                    course.Lessons.lenght == 0 ? 1 : course.Lessons.lenght
+                );
 
-                    return (
-                        (startDateOfregisterCourse >= startDate &&
-                            startDateOfregisterCourse <= endDate) ||
-                        (startDate >= startDateOfregisterCourse &&
-                            startDate <= endDateOfregisterCourse)
-                    );
-                }
-            );
+                const registeredCourses = await TeachingSubject.findAll({
+                    include: [
+                        {
+                            model: StudentTeachingSubjectMap,
+                            where: {
+                                studentId: student.id,
+                                status: PAYMENT_STATUS.REGISTRATION_SUCCESS,
+                            },
+                        },
+                        { model: Lesson },
+                    ],
+                    where: {
+                        status: {
+                            [Op.and]: [
+                                { [Op.ne]: COURSE_STATUS.disabledCourse },
+                                { [Op.ne]: COURSE_STATUS.completedCourse },
+                            ],
+                        },
+                    },
+                });
 
-            const conflictingLessons = await Promise.all(
-                filteredCourses.map(async (courseInRange) => {
-                    try {
-                        const lessons = await Promise.all(
-                            course.Lessons.map(async (lesson) => {
-                                const startTime = lesson.startTime;
-                                const startTimeUTC = new Date(
-                                    `1970-01-01T${lesson.startTime}Z`
-                                );
-                                const endTimeUTC = new Date(
-                                    startTimeUTC.getTime() +
-                                        lesson.duration * 60 * 1000
-                                );
-                                return await Lesson.findOne({
-                                    attributes: [
-                                        "dayOfWeek",
-                                        "startTime",
-                                        "teachingSubjectId",
-                                    ],
-                                    where: {
-                                        dayOfWeek: lesson.dayOfWeek,
-                                        teachingSubjectId: courseInRange.id,
-
-                                        [Op.or]: [
-                                            {
-                                                startTime: {
-                                                    [Op.between]: [
-                                                        courseInRange.startTime,
-                                                        endTimeUTC,
-                                                    ],
-                                                },
-                                            },
-                                            sequelize.literal(
-                                                `'${startTime}' BETWEEN "Lesson"."start_time" AND ("Lesson"."start_time" + (duration * INTERVAL '1 minute'))`
-                                            ),
-                                        ],
-                                    },
-                                });
-                            })
+                const filteredCourses = registeredCourses.filter(
+                    (registerCourse) => {
+                        const startDateOfregisterCourse =
+                            registerCourse.startDate;
+                        const endDateOfregisterCourse = calculateEndDate(
+                            registerCourse.startDate,
+                            registerCourse.numberOfSessions,
+                            registerCourse.Lessons.length == 0
+                                ? 1
+                                : registerCourse.Lessons.length
                         );
-                        return lessons;
-                    } catch (error) {
-                        console.error("Error fetching lessons:", error);
-                        throw error;
+
+                        return (
+                            (startDateOfregisterCourse >= startDate &&
+                                startDateOfregisterCourse <= endDate) ||
+                            (startDate >= startDateOfregisterCourse &&
+                                startDate <= endDateOfregisterCourse)
+                        );
                     }
-                })
-            );
+                );
 
-            const flattenedConflictingLessons = conflictingLessons.flat();
+                conflictingLessons = await Promise.all(
+                    filteredCourses.map(async (courseInRange) => {
+                        try {
+                            const lessons = await Promise.all(
+                                course.Lessons.map(async (lesson) => {
+                                    const startTime = lesson.startTime;
+                                    const startTimeUTC = new Date(
+                                        `1970-01-01T${lesson.startTime}Z`
+                                    );
+                                    const endTimeUTC = new Date(
+                                        startTimeUTC.getTime() +
+                                            lesson.duration * 60 * 1000
+                                    );
+                                    return await Lesson.findOne({
+                                        attributes: [
+                                            "dayOfWeek",
+                                            "startTime",
+                                            "teachingSubjectId",
+                                        ],
+                                        where: {
+                                            dayOfWeek: lesson.dayOfWeek,
+                                            teachingSubjectId: courseInRange.id,
 
-            flattenedConflictingLessons.forEach((item) => {
-                if (item != null) {
-                    responseMessageInstance.throwError(
-                        `Đã có buổi học vào ${item.startTime} thứ ${
-                            item.dayOfWeek
-                        } của khóa học ${
-                            registeredCourses.find(
-                                (course) => course.id == item.teachingSubjectId
-                            ).name
-                        }.`,
-                        400
-                    );
-                }
-            });
+                                            [Op.or]: [
+                                                {
+                                                    startTime: {
+                                                        [Op.between]: [
+                                                            courseInRange.startTime,
+                                                            endTimeUTC,
+                                                        ],
+                                                    },
+                                                },
+                                                sequelize.literal(
+                                                    `'${startTime}' BETWEEN "Lesson"."start_time" AND ("Lesson"."start_time" + (duration * INTERVAL '1 minute'))`
+                                                ),
+                                            ],
+                                        },
+                                    });
+                                })
+                            );
+                            return lessons;
+                        } catch (error) {
+                            console.error("Error fetching lessons:", error);
+                            throw error;
+                        }
+                    })
+                );
+                console.log(conflictingLessons);
+                const flattenedConflictingLessons = conflictingLessons.flat();
+
+                flattenedConflictingLessons.forEach((item) => {
+                    if (item != null) {
+                        responseMessageInstance.throwError(
+                            `Đã có buổi học vào ${item.startTime} thứ ${
+                                item.dayOfWeek
+                            } của khóa học ${
+                                registeredCourses.find(
+                                    (course) =>
+                                        course.id == item.teachingSubjectId
+                                ).name
+                            }.`,
+                            400
+                        );
+                    }
+                });
+            }
 
             const requestId = momoConfig.partnerCode + new Date().getTime();
             const orderId = requestId;
@@ -219,9 +237,9 @@ export class StudentService {
                 signature: signature,
                 lang: "en",
             });
-            console.log(signature);
+
             const options = {
-                url: "https://test-payment.momo.vn/v2/gateway/api/create",
+                url: `https://test-payment.momo.vn/v2/gateway/api/create`,
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -239,8 +257,10 @@ export class StudentService {
                     orderId: orderId,
                     amount: amount,
                 };
-                console.log(data);
-                await StudentTeachingSubjectMap.create(data);
+
+                // if (!isCoursePending) {
+                //     await StudentTeachingSubjectMap.create(data);
+                // } else isCoursePending.update({ orderId: orderId });
                 return responseMessageInstance.getSuccess(
                     res,
                     200,
@@ -265,7 +285,6 @@ export class StudentService {
     }
     async ConfirmRegisterCourse(req, res) {
         try {
-            console.log(req.body);
             const orderId = req.body.orderId ?? "";
             const accessKey = req.headers["authorization"] ?? "";
             if (!accessKey) {
@@ -298,7 +317,6 @@ export class StudentService {
             if (!order) {
                 responseMessageInstance.throwError("Order not found!", 404);
             }
-            //     const requestId = momoConfig.partnerCode + new Date().getTime();
 
             const rawSignature = `accessKey=${momoConfig.accessKey}&orderId=${orderId}&partnerCode=${momoConfig.partnerCode}&requestId=${orderId}`;
 
@@ -350,6 +368,50 @@ export class StudentService {
                 "Có lỗi trong quá trình xử lý",
                 500
             );
+        } catch (error) {
+            console.log(error);
+            return responseMessageInstance.getError(
+                res,
+                error.code ?? 500,
+                error.message
+            );
+        }
+    }
+    async CancelCourse(req, res) {
+        try {
+            const courseId = req.body.courseId ?? "";
+            const accessKey = req.headers["authorization"] ?? "";
+            if (!accessKey) {
+                return responseMessageInstance.throwError(
+                    "Invalid accessKey",
+                    400
+                );
+            }
+
+            const decodedToken = jwt.verify(
+                accessKey.split(" ")[1],
+                process.env.SECRET_KEY
+            );
+            const userId = decodedToken.userId;
+            const role = decodedToken.role;
+            if (!role || role != ROLE.student) {
+                responseMessageInstance.throwError(
+                    "Bạn không phải là học sinh",
+                    401
+                );
+            }
+            const student = await Student.findOne({ where: { userId } });
+            if (!student) {
+                responseMessageInstance.throwError("Student not found!", 404);
+            }
+
+            const course = await TeachingSubject.findByPk(courseId, {
+                include: [{ model: Lesson }],
+            });
+            if (!course) {
+                responseMessageInstance.throwError("Course not found!", 404);
+            }
+            console.log(course.startDate.getDay());
         } catch (error) {
             console.log(error);
             return responseMessageInstance.getError(
