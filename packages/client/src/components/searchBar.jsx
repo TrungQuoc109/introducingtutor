@@ -39,10 +39,10 @@ const SearchBar = ({
                 display: "flex",
                 alignItems: "center",
                 width: "100%",
-
                 boxSizing: "border-box",
                 flexWrap: { xs: "wrap", md: "nowrap" },
                 height: "auto", // Độ cao tự động theo nội dung
+                borderRadius: 16, // Góc tròn
             }}
             onSubmit={performSearch}
         >
@@ -79,7 +79,7 @@ const SearchBar = ({
                             {subjects &&
                                 [
                                     <MenuItem key={-1} value="">
-                                        <em>None</em>
+                                        <em>Tất cả</em>
                                     </MenuItem>,
                                 ].concat(
                                     subjects.data.map((subj) => (
@@ -112,7 +112,7 @@ const SearchBar = ({
                         >
                             {[
                                 <MenuItem key={-1} value="">
-                                    <em>None</em>
+                                    <em>Tất cả</em>
                                 </MenuItem>,
                             ].concat(
                                 districts.map((district) => (
@@ -137,7 +137,7 @@ const SearchBar = ({
                 >
                     <IconButton
                         type="submit"
-                        sx={{ p: "10px" }}
+                        sx={{ p: 2 }}
                         aria-label="search"
                         onClick={performSearch}
                     >

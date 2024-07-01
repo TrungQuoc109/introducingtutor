@@ -41,13 +41,11 @@ function Header() {
             const temp = fullname.split(" ").at(-1);
 
             setName(temp);
+
             setRole(localStorage.getItem("role"));
         }
     }, [isLoggedIn]);
-    window.addEventListener("unload", function (e) {
-        // Xóa localStorage
-        localStorage.clear();
-    });
+
     const handleLogout = () => {
         localStorage.removeItem("token");
         localStorage.removeItem("name");
@@ -281,7 +279,11 @@ function Header() {
                                     color="primary"
                                     onMouseEnter={handlePopoverProfileHover}
                                     onMouseLeave={handlePopoverProfileClose}
-                                    onClick={() => handleNavigate("my-course")}
+                                    onClick={() => {
+                                        if (role == 0)
+                                            handleNavigate("dashboard/users");
+                                        else handleNavigate("my-course");
+                                    }}
                                     sx={{
                                         justifyContent: "center",
                                         minWidth: 60,
@@ -361,7 +363,11 @@ function Header() {
                                 </ListItem>
                                 <ListItem
                                     button
-                                    onClick={() => handleNavigate("my-course")}
+                                    onClick={() => {
+                                        if (role == 0)
+                                            handleNavigate("dashboard/users");
+                                        handleNavigate("my-course");
+                                    }}
                                 >
                                     {role && role === 1
                                         ? "Khóa học của tôi"

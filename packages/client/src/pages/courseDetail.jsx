@@ -23,6 +23,7 @@ import {
     InputLabel,
     Select,
     MenuItem,
+    CircularProgress,
 } from "@mui/material";
 import { useLocation, useParams } from "react-router-dom";
 import { DataContext } from "../dataprovider/subject";
@@ -33,7 +34,7 @@ import {
     getDayOfWeekLabel,
 } from "../config/config";
 import Header from "../components/header";
-import Footer from "../components/footer";
+import Footer from "../components/Footer";
 import RegisterButton from "../components/registerButton";
 // Mock data, replace this with your data fetching logic
 
@@ -46,7 +47,8 @@ export default function CourseDetail() {
     const [courseDetail, setCourseDetail] = useState(null);
     const [registeredStudents, setRegisteredStudents] = useState(0);
     const [isDialogOpen, setIsDialogOpen] = useState(false);
-
+    const currentDate = new Date();
+    const [courseStartDate, setCourseStartDate] = useState(null);
     const location = useLocation();
     const fromPage = location.state?.fromPage;
     const { courseId } = useParams();
@@ -66,7 +68,7 @@ export default function CourseDetail() {
             );
             if (response.ok) {
                 const data = await response.json();
-
+                setCourseStartDate(new Date(data.data.course.startDate));
                 data.data.course.Lessons.sort((lesson1, lesson2) => {
                     if (lesson1.dayOfWeek !== lesson2.dayOfWeek) {
                         return lesson1.dayOfWeek - lesson2.dayOfWeek;
@@ -341,6 +343,10 @@ export default function CourseDetail() {
                                                 <Button
                                                     variant="contained"
                                                     color="primary"
+                                                    disabled={
+                                                        currentDate >
+                                                        courseStartDate
+                                                    }
                                                     onClick={(event) => {
                                                         event.stopPropagation();
                                                         handleOpenDialog();
@@ -430,9 +436,16 @@ export default function CourseDetail() {
                                     </TableContainer>
                                 </Paper>
                             ) : (
-                                <Typography variant="body1">
-                                    Đang tải thông tin khóa học...
-                                </Typography>
+                                <Box
+                                    sx={{
+                                        display: "flex",
+                                        justifyContent: "center",
+                                        alignItems: "center",
+                                        height: "50vh",
+                                    }}
+                                >
+                                    <CircularProgress />
+                                </Box>
                             )}
                             <Dialog
                                 open={isDialogOpen}
@@ -541,8 +554,8 @@ export default function CourseDetail() {
                         </Grid>
                     </Container>
                 </Box>
-                <Footer />
             </Container>
+            <Footer />
         </React.Fragment>
     );
 }

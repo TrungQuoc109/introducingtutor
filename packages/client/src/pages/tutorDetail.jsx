@@ -5,10 +5,10 @@ import {
     CssBaseline,
     Grid,
     Typography,
-    Button,
     List,
     ListItem,
     ListItemText,
+    CircularProgress,
 } from "@mui/material";
 import { useLocation, useNavigate } from "react-router-dom";
 import { getDownloadURL, getStorage, ref } from "firebase/storage";
@@ -21,10 +21,9 @@ import {
     formatDate,
 } from "../config/config";
 import Header from "../components/header";
-import Footer from "../components/footer";
+import Footer from "../components/Footer";
 import logo from "../../public/image/Logo_STU.png";
 import RegisterButton from "../components/registerButton";
-// Mock data, replace this with your data fetching logic
 
 export default function TutorDetail() {
     const [profileData, setProfileData] = useState(null);
@@ -34,10 +33,12 @@ export default function TutorDetail() {
     const [imgURL, setImageUrl] = useState("");
     const [selectedAddresses, setSelectedAddresses] = useState([]);
     const [selectedSubjectIds, setSelectedSubjectIds] = useState([]);
+    const [loading, setLoading] = useState(true); // State to manage loading state
     const [clickedCourseId, setClickedCourseId] = useState(null);
     const location = useLocation();
     const tutorId = location.state.tutorId;
     const navigate = useNavigate();
+
     useEffect(() => {
         const fetchData = async () => {
             try {
@@ -73,6 +74,8 @@ export default function TutorDetail() {
                 }
             } catch (error) {
                 console.error("Error fetching profile data:", error);
+            } finally {
+                setLoading(false); // Set loading to false regardless of success or error
             }
         };
         fetchData();
@@ -88,7 +91,7 @@ export default function TutorDetail() {
             return null;
         }
     };
-    // Sắp xếp `selectedIds` hỗ trợ cả chuỗi và số
+
     const renderNames = (selectedIds, array) => {
         let itemsArray = Array.isArray(array) ? array : array.data;
         const sortedSelectedIds = selectedIds.sort((a, b) =>
@@ -102,14 +105,29 @@ export default function TutorDetail() {
             .filter((name) => name)
             .join(", ");
     };
+
     const navigateToCourseDetail = (courseId) => {
-        // Sử dụng navigate từ 'useNavigate' để chuyển sang trang CourseDetail
         navigate(`/course-detail/${courseId}`);
     };
+
+    if (loading) {
+        return (
+            <Box
+                sx={{
+                    display: "flex",
+                    justifyContent: "center",
+                    alignItems: "center",
+                    height: "100vh",
+                }}
+            >
+                <CircularProgress />
+            </Box>
+        );
+    }
+
     return (
         <React.Fragment>
             <CssBaseline />
-
             <Container maxWidth="false">
                 <Box
                     sx={{
@@ -120,11 +138,9 @@ export default function TutorDetail() {
                     }}
                 >
                     <Header />
-
                     <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
                         <Grid container spacing={3}>
                             <Grid item xs={12} md={4}>
-                                {/* Assumed profile image place */}
                                 <Box
                                     component="img"
                                     sx={{
@@ -134,7 +150,7 @@ export default function TutorDetail() {
                                         objectFit: "contain",
                                     }}
                                     alt="The house from the offer."
-                                    src={imgURL ?? logo} // Replace with profile.imageUrl if available
+                                    src={imgURL ?? logo}
                                 />
                             </Grid>
                             <Grid item xs={12} md={8} container>
@@ -156,7 +172,6 @@ export default function TutorDetail() {
                                     </Typography>
                                 </Grid>
 
-                                {/* Trình độ */}
                                 <Grid item xs={2}>
                                     <Typography variant="subtitle1">
                                         Trình độ
@@ -168,7 +183,6 @@ export default function TutorDetail() {
                                     </Typography>
                                 </Grid>
 
-                                {/* Kinh nghiệm */}
                                 <Grid item xs={2}>
                                     <Typography variant="subtitle1">
                                         Kinh nghiệm
@@ -182,7 +196,6 @@ export default function TutorDetail() {
                                     </Typography>
                                 </Grid>
 
-                                {/* Môn học */}
                                 {subjects && (
                                     <>
                                         <Grid item xs={2}>
@@ -202,7 +215,6 @@ export default function TutorDetail() {
                                     </>
                                 )}
 
-                                {/* Địa chỉ */}
                                 <Grid item xs={2}>
                                     <Typography variant="subtitle1">
                                         Địa chỉ
@@ -224,7 +236,7 @@ export default function TutorDetail() {
                                 </Typography>
                                 {profileData &&
                                 profileData.TeachingSubjects &&
-                                profileData.TeachingSubjects.length == 0 ? (
+                                profileData.TeachingSubjects.length === 0 ? (
                                     <Typography
                                         variant="body1"
                                         align="center"
@@ -247,7 +259,6 @@ export default function TutorDetail() {
                                                             )
                                                         }
                                                     >
-                                                        {/* Phần còn lại của mã ListItem */}
                                                         <Grid
                                                             container
                                                             spacing={2}
@@ -392,7 +403,6 @@ export default function TutorDetail() {
                                                                     }
                                                                 />
                                                             </Grid>
-                                                            {/* Cách render nút Đăng ký dưới đây */}
                                                             <Grid
                                                                 item
                                                                 xs={12}
@@ -425,11 +435,11 @@ export default function TutorDetail() {
                                     </List>
                                 )}
                             </Grid>
-                        </Grid>{" "}
+                        </Grid>
                     </Container>
                 </Box>
-                <Footer />
             </Container>
+            <Footer />
         </React.Fragment>
     );
 }

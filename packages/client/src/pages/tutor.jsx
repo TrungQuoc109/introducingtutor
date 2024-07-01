@@ -9,19 +9,14 @@ import {
     Card,
     CardMedia,
     CardContent,
-    InputBase,
-    IconButton,
-    Select,
-    MenuItem,
-    FormControl,
-    InputLabel,
+    CircularProgress,
     Tabs,
     Tab,
 } from "@mui/material";
 import CardActionArea from "@mui/material/CardActionArea";
 import SearchIcon from "@mui/icons-material/Search";
 import Header from "../components/header";
-import Footer from "../components/footer";
+import Footer from "../components/Footer";
 import { baseURL, firebaseConfig } from "../config/config";
 import { initializeApp } from "firebase/app";
 import { getStorage, ref, getDownloadURL } from "firebase/storage";
@@ -42,14 +37,16 @@ function TutorPage() {
     const subjects = useContext(DataContext);
     const [totalPages, setTotalPages] = useState(0);
     const [searching, setSearching] = useState(false);
+    const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
+
     const performSearch = (event) => {
         if (event) event.preventDefault();
 
-        // Khởi tạo URL cơ bản cho API
+        // Initialize base URL for API
         const baseApiUrl = `${baseURL}/user/search-tutor`;
 
-        // Sử dụng URLSearchParams để xây dựng các tham số truy vấn
+        // Use URLSearchParams to build query parameters
         const searchParams = new URLSearchParams();
         searchParams.append("page", page);
         if (searchTerm) searchParams.append("searchTerm", searchTerm);
@@ -57,7 +54,7 @@ function TutorPage() {
         if (location) searchParams.append("location", location);
 
         const apiUrl = `${baseApiUrl}?${searchParams.toString()}`;
-        setSearching(true);
+        setLoading(true);
         fetch(apiUrl)
             .then((response) => {
                 if (!response.ok) {
@@ -68,13 +65,14 @@ function TutorPage() {
             .then((data) => {
                 setTotalPages(data.data.page);
                 setTutors(data.data.tutors);
-                !searching ? setPage(0) : null;
+                setLoading(false);
             })
             .catch((error) => {
                 console.error(
                     "There was an issue fetching the tutor data:",
                     error
                 );
+                setLoading(false);
             });
     };
 
@@ -83,8 +81,10 @@ function TutorPage() {
             performSearch();
         }
     };
+
     useEffect(() => {
         const fetchTutors = async () => {
+            setLoading(true);
             try {
                 const response = await fetch(
                     `${baseURL}/user/get-tutors/${page}`
@@ -97,22 +97,28 @@ function TutorPage() {
                 const data = await response.json();
                 setTotalPages(data.data.page);
                 setTutors(data.data.tutors);
+                setLoading(false);
             } catch (error) {
-                console.log(error);
+                console.error(
+                    "There was an issue fetching the tutor data:",
+                    error
+                );
                 setError(error.message);
+                setLoading(false);
             }
         };
+
         searching ? performSearch() : fetchTutors();
     }, [page]);
-    const [tutorCards, setTutorCards] = useState([]); // This state will hold your tutors along with their image URLs
+
+    const [tutorCards, setTutorCards] = useState([]);
 
     useEffect(() => {
-        // Assuming `tutors` is available as a prop or state
         const fetchAllImageUrls = async () => {
             const tutorsWithImages = await Promise.all(
                 tutors.map(async (tutor) => {
-                    const imageUrl = await fetchImageUrl(tutor.User.id); // Call your function to fetch image URL
-                    return { ...tutor, imageUrl }; // Spread tutor properties and add `imageUrl`
+                    const imageUrl = await fetchImageUrl(tutor.User.id);
+                    return { ...tutor, imageUrl };
                 })
             );
 
@@ -121,24 +127,27 @@ function TutorPage() {
 
         fetchAllImageUrls();
     }, [tutors]);
+
     const fetchImageUrl = async (filePath) => {
         const fileRef = ref(storage, `avatar/${filePath}`);
 
         try {
             const downloadUrl = await getDownloadURL(fileRef);
-
             return downloadUrl;
         } catch (error) {
             console.error("Cannot fetch URL", error);
             return null;
         }
     };
+
     const handleCardClick = (tutorId) => {
         navigate(`/tutor-detail`, { state: { tutorId: tutorId } });
     };
+
     const handleChange = (event, newValue) => {
         setPage(newValue);
     };
+
     return (
         <React.Fragment>
             <CssBaseline />
@@ -165,102 +174,119 @@ function TutorPage() {
                             performSearch={performSearch}
                             handleKeyPress={handleKeyPress}
                         />
-                        <Grid container spacing={2} mt={4}>
-                            {tutorCards &&
-                                tutorCards.map((card) => (
-                                    <Grid
-                                        item
-                                        xs={12}
-                                        sm={6}
-                                        md={3}
-                                        key={card.id}
-                                    >
-                                        <Card
-                                            sx={{ maxHeight: 500 }}
-                                            onClick={() =>
-                                                handleCardClick(card.id)
-                                            }
+                        {loading ? (
+                            <Box
+                                sx={{
+                                    display: "flex",
+                                    justifyContent: "center",
+                                    alignItems: "center",
+                                    height: "50vh",
+                                }}
+                            >
+                                <CircularProgress />
+                            </Box>
+                        ) : (
+                            <Grid container spacing={2} mt={4}>
+                                {tutorCards &&
+                                    tutorCards.map((card) => (
+                                        <Grid
+                                            item
+                                            xs={12}
+                                            sm={6}
+                                            md={3}
+                                            key={card.id}
                                         >
-                                            <CardActionArea>
-                                                <CardMedia
-                                                    component="img"
-                                                    image={
-                                                        card.imageUrl ?? logo
-                                                    }
-                                                    alt="Image title"
-                                                    sx={{
-                                                        // height: "100%",
-                                                        height: 300,
-                                                        width: "100%",
-                                                        objectFit: "contain",
-                                                        border: "1px solid #ccc",
-                                                        boxShadow:
-                                                            "0 4px 12px 0 rgba(0, 0, 0, 0.2)",
-                                                    }}
-                                                />
-                                                <CardContent>
-                                                    <Typography
-                                                        variant="h6"
+                                            <Card
+                                                sx={{ maxHeight: 500 }}
+                                                onClick={() =>
+                                                    handleCardClick(card.id)
+                                                }
+                                            >
+                                                <CardActionArea>
+                                                    <CardMedia
+                                                        component="img"
+                                                        image={
+                                                            card.imageUrl ??
+                                                            logo
+                                                        }
+                                                        alt="Image title"
                                                         sx={{
-                                                            overflow: "hidden",
-                                                            textOverflow:
-                                                                "ellipsis",
-                                                            whiteSpace:
-                                                                "nowrap",
+                                                            height: 300,
+                                                            width: "100%",
+                                                            objectFit:
+                                                                "contain",
+                                                            border: "1px solid #ccc",
+                                                            boxShadow:
+                                                                "0 4px 12px 0 rgba(0, 0, 0, 0.2)",
                                                         }}
-                                                    >
-                                                        {card.User.name}
-                                                    </Typography>
-                                                    <Typography variant="subtitle1">
-                                                        {card.education}
-                                                    </Typography>
-                                                    <Typography
-                                                        variant="subtitle1"
-                                                        sx={{
-                                                            overflow: "hidden",
-                                                            textOverflow:
-                                                                "ellipsis",
-                                                            whiteSpace:
-                                                                "nowrap",
-                                                        }}
-                                                    >
-                                                        {card.experience}
-                                                    </Typography>
-                                                    <Typography
-                                                        variant="subtitle1"
-                                                        sx={{
-                                                            overflow: "hidden",
-                                                            textOverflow:
-                                                                "ellipsis",
-                                                            whiteSpace:
-                                                                "nowrap",
-                                                        }}
-                                                    >
-                                                        {card.TutorSubjectMaps.map(
-                                                            (element) => (
-                                                                <span
-                                                                    key={
-                                                                        element
-                                                                            .Subject
-                                                                            .id
-                                                                    }
-                                                                >
-                                                                    {
-                                                                        element
-                                                                            .Subject
-                                                                            .name
-                                                                    }
-                                                                    ,{" "}
-                                                                </span>
-                                                            )
-                                                        )}
-                                                    </Typography>
-                                                </CardContent>
-                                            </CardActionArea>
-                                        </Card>
-                                    </Grid>
-                                ))}
-                        </Grid>
+                                                    />
+                                                    <CardContent>
+                                                        <Typography
+                                                            variant="h6"
+                                                            sx={{
+                                                                overflow:
+                                                                    "hidden",
+                                                                textOverflow:
+                                                                    "ellipsis",
+                                                                whiteSpace:
+                                                                    "nowrap",
+                                                            }}
+                                                        >
+                                                            {card.User.name}
+                                                        </Typography>
+                                                        <Typography variant="subtitle1">
+                                                            {card.education}
+                                                        </Typography>
+                                                        <Typography
+                                                            variant="subtitle1"
+                                                            sx={{
+                                                                overflow:
+                                                                    "hidden",
+                                                                textOverflow:
+                                                                    "ellipsis",
+                                                                whiteSpace:
+                                                                    "nowrap",
+                                                            }}
+                                                        >
+                                                            {card.experience}
+                                                        </Typography>
+                                                        <Typography
+                                                            variant="subtitle1"
+                                                            sx={{
+                                                                overflow:
+                                                                    "hidden",
+                                                                textOverflow:
+                                                                    "ellipsis",
+                                                                whiteSpace:
+                                                                    "nowrap",
+                                                            }}
+                                                        >
+                                                            {card.TutorSubjectMaps.map(
+                                                                (element) => (
+                                                                    <span
+                                                                        key={
+                                                                            element
+                                                                                .Subject
+                                                                                .id
+                                                                        }
+                                                                    >
+                                                                        {
+                                                                            element
+                                                                                .Subject
+                                                                                .name
+                                                                        }
+                                                                        ,{" "}
+                                                                    </span>
+                                                                )
+                                                            )}
+                                                        </Typography>
+                                                    </CardContent>
+                                                </CardActionArea>
+                                            </Card>
+                                        </Grid>
+                                    ))}
+                            </Grid>
+                        )}
                         <Grid
                             container
                             justifyContent="center"
@@ -301,8 +327,8 @@ function TutorPage() {
                         </Grid>
                     </Container>
                 </Box>
-                <Footer />
             </Container>
+            <Footer />
         </React.Fragment>
     );
 }

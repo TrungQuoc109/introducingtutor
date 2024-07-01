@@ -29,21 +29,8 @@ export class TutorService {
     }
     async GetTutorLocation(req, res) {
         try {
-            const accessKey = req.headers["authorization"] ?? "";
-
-            if (!accessKey) {
-                return responseMessageInstance.throwError(
-                    "Invalid accessKey",
-                    400
-                );
-            }
-
-            const decodedToken = jwt.verify(
-                accessKey.split(" ")[1],
-                process.env.SECRET_KEY
-            );
-            const userId = decodedToken.userId;
-            const role = decodedToken.role;
+            const userId = req.userId;
+            const role = req.role;
             if (!role || role != ROLE.tutor) {
                 responseMessageInstance.throwError("Unauthorized", 401);
             }
@@ -83,22 +70,10 @@ export class TutorService {
     }
     async CreateTeachingSubject(req, res) {
         try {
-            const accessKey = req.headers["authorization"] ?? "";
             const data = req.body.data ?? {};
 
-            if (!accessKey) {
-                return responseMessageInstance.throwError(
-                    "Invalid accessKey",
-                    400
-                );
-            }
-
-            const decodedToken = jwt.verify(
-                accessKey.split(" ")[1],
-                process.env.SECRET_KEY
-            );
-            const userId = decodedToken.userId;
-            const role = decodedToken.role;
+            const userId = req.userId;
+            const role = req.role;
             if (!role || role != ROLE.tutor) {
                 responseMessageInstance.throwError("Unauthorized", 401);
             }
@@ -193,23 +168,11 @@ export class TutorService {
     }
     async CreateLesson(req, res) {
         try {
-            const accessKey = req.headers["authorization"] ?? "";
-
             const data = req.body ?? {};
             const lessonTimes = [90, 120, 150, 180];
-            if (!accessKey) {
-                return responseMessageInstance.throwError(
-                    "Invalid accessKey",
-                    400
-                );
-            }
 
-            const decodedToken = jwt.verify(
-                accessKey.split(" ")[1],
-                process.env.SECRET_KEY
-            );
-            const userId = decodedToken.userId;
-            const role = decodedToken.role;
+            const userId = req.userId;
+            const role = req.role;
             if (!role || role != ROLE.tutor) {
                 responseMessageInstance.throwError("Unauthorized", 401);
             }
@@ -280,6 +243,8 @@ export class TutorService {
                     404
                 );
             }
+            const now = new Date();
+
             const endDate = calculateEndDate(
                 course.startDate,
                 course.numberOfSessions,
@@ -287,6 +252,12 @@ export class TutorService {
             );
 
             const startTime = data.startTime;
+            if (now > startDate) {
+                responseMessageInstance.throwError(
+                    "Bạn không thể tạo thêm buổi học khi khoá học đã bắt đầu",
+                    400
+                );
+            }
             const startTimeUTC = new Date(`1970-01-01T${data.startTime}Z`);
             const endTimeUTC = new Date(
                 startTimeUTC.getTime() + data.duration * 60 * 1000
@@ -394,21 +365,10 @@ export class TutorService {
     async ChangStatusCourse(req, res) {
         try {
             const { courseId, status } = req.body ?? {};
-            const accessKey = req.headers["authorization"] ?? "";
 
-            if (!accessKey) {
-                return responseMessageInstance.throwError(
-                    "Invalid accessKey",
-                    400
-                );
-            }
+            const userId = req.userId;
+            const role = req.role;
 
-            const decodedToken = jwt.verify(
-                accessKey.split(" ")[1],
-                process.env.SECRET_KEY
-            );
-            const userId = decodedToken.userId;
-            const role = decodedToken.role;
             if (!role || role != ROLE.tutor) {
                 responseMessageInstance.throwError("Unauthorized", 401);
             }
@@ -465,24 +425,12 @@ export class TutorService {
     }
     async UpdateCourse(req, res) {
         try {
-            const accessKey = req.headers["authorization"] ?? "";
             const course = req.body.data;
             delete course.Tutor;
             delete course.Subject;
 
-            if (!accessKey) {
-                return responseMessageInstance.throwError(
-                    "Invalid accessKey",
-                    400
-                );
-            }
-
-            const decodedToken = jwt.verify(
-                accessKey.split(" ")[1],
-                process.env.SECRET_KEY
-            );
-            const userId = decodedToken.userId;
-            const role = decodedToken.role;
+            const userId = req.userId;
+            const role = req.role;
             if (!role || role != ROLE.tutor) {
                 responseMessageInstance.throwError(
                     "Bạn không có quyền truy cập!",

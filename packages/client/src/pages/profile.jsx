@@ -12,7 +12,7 @@ import {
     DialogTitle,
     Dialog,
 } from "@mui/material";
-import Footer from "../components/footer";
+import Footer from "../components/Footer";
 import Header from "../components/header";
 import { baseURL, districts, firebaseConfig } from "../config/config";
 // Firebase imports
@@ -369,6 +369,8 @@ export default function Profile() {
                                         margin="normal"
                                         error={!!errors.name}
                                         helperText={errors.name}
+                                        type="text"
+                                        inputProps={{ maxLength: 50 }}
                                         FormHelperTextProps={{
                                             className: "helper-text",
                                         }}
@@ -386,6 +388,8 @@ export default function Profile() {
                                         margin="normal"
                                         error={!!errors.email}
                                         helperText={errors.email}
+                                        type="text"
+                                        inputProps={{ maxLength: 255 }}
                                         FormHelperTextProps={{
                                             className: "helper-text",
                                         }}
@@ -418,6 +422,7 @@ export default function Profile() {
                                         value={profileData.age}
                                         onChange={handleChange}
                                         margin="normal"
+                                        type="number"
                                         error={!!errors.age}
                                         helperText={errors.age}
                                         FormHelperTextProps={{
@@ -596,8 +601,8 @@ export default function Profile() {
                         </Dialog>
                     </Container>
                 </Box>
-                <Footer /> {/* Footer component */}
             </Container>
+            <Footer /> {/* Footer component */}
         </React.Fragment>
     );
 }

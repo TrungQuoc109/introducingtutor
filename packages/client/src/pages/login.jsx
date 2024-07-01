@@ -88,20 +88,14 @@ export default function SignInSide() {
                     localStorage.setItem("token", data.data.token);
                     localStorage.setItem("name", data.data.name);
                     localStorage.setItem("role", data.data.role);
-                    handleNavigate("");
+                    console.log(data.data);
+                    if (data.data.role == 0) {
+                        handleNavigate("dashboard/users");
+                    } else handleNavigate("");
                 } else {
                     const errorData = await response.json();
-                    if (errorData.error == "Invalid Username or Password") {
-                        setErrorMessage(
-                            "Vui lòng kiểm tra lại tài khoản mật khẩu"
-                        );
-                    } else {
-                        // if (errorData.error == "Invalid User Credential") {
-                        setErrorMessage(" Sai tên đăng nhập hoặc mật khẩu");
-                        // } else {
-                        //     setErrorMessage(errorData.error);
-                        // }
-                    }
+
+                    setErrorMessage(errorData.error);
                 }
             } catch (error) {
                 console.error("Error during login", error.message);

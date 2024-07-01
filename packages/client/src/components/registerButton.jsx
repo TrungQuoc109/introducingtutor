@@ -13,7 +13,7 @@ import { useNavigate } from "react-router-dom";
 
 const RegisterButton = ({ courseId, price, status }) => {
     const [openDialog, setOpenDialog] = useState(false);
-
+    const navigate = useNavigate();
     // Hàm để mở dialog
     const handleOpenDialog = () => {
         setOpenDialog(true);
@@ -29,34 +29,39 @@ const RegisterButton = ({ courseId, price, status }) => {
         }
     };
     const registerCourse = async () => {
-        const toekn = localStorage.getItem("token");
+        const token = localStorage.getItem("token");
+        if (!token) {
+            navigate("/login");
+        } else
+            try {
+                const response = await fetch(
+                    `${baseURL}/student/register-course`,
+                    {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                            Authorization: `Bearer ${token}`,
+                        },
+                        body: JSON.stringify({
+                            courseId: courseId,
+                        }),
+                    }
+                );
 
-        try {
-            const response = await fetch(`${baseURL}/student/register-course`, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    Authorization: `Bearer ${toekn}`,
-                },
-                body: JSON.stringify({
-                    courseId: courseId,
-                }),
-            });
-
-            const data = await response.json();
-            if (response.ok) {
-                console.log(data.data);
-                if (data.data.resultCode == 0 && data.data.payUrl) {
-                    window.location.href = data.data.payUrl;
+                const data = await response.json();
+                if (response.ok) {
+                    console.log(data.data);
+                    if (data.data.resultCode == 0 && data.data.payUrl) {
+                        window.location.href = data.data.payUrl;
+                    }
+                } else {
+                    // Xử lý lỗi từ response
+                    alert(data.error);
                 }
-            } else {
-                // Xử lý lỗi từ response
-                alert(data.error);
+            } catch (error) {
+                console.error("Đã xảy ra lỗi:", error);
+                alert("Có lỗi xảy ra. Vui lòng kiểm tra lại.");
             }
-        } catch (error) {
-            console.error("Đã xảy ra lỗi:", error);
-            alert("Có lỗi xảy ra. Vui lòng kiểm tra lại.");
-        }
     };
 
     return (

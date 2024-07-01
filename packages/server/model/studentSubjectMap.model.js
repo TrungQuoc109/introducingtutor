@@ -26,6 +26,11 @@ StudentTeachingSubjectMap.init(
         },
         amount: { type: DataTypes.DECIMAL(10, 2), allowNull: false },
         transId: { type: DataTypes.STRING, field: "trans_id" },
+        orderDate: {
+            type: DataTypes.DATE,
+            defaultValue: DataTypes.NOW,
+            field: "order_date",
+        },
         status: { type: DataTypes.INTEGER, defaultValue: 1 },
     },
     {

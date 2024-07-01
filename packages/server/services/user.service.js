@@ -67,7 +67,7 @@ export class UserService {
 
             if (!userCredentials) {
                 responseMessageInstance.throwError(
-                    "Login failed. Please check your username or password",
+                    "Đăng nhập thất bại. Vui lòng kiểm tra lại",
                     400
                 );
             }
@@ -77,7 +77,7 @@ export class UserService {
             );
             if (!checkpassword) {
                 responseMessageInstance.throwError(
-                    "Login failed. Please check your username or password",
+                    "Đăng nhập thất bại. Vui lòng kiểm tra lại",
                     400
                 );
             }
@@ -90,7 +90,7 @@ export class UserService {
             });
             if (authenticatedUser.status == 0) {
                 responseMessageInstance.throwError(
-                    "Your account has been deactivated.",
+                    "Tài khoản của bạn đã bị vô hiệu hoá",
                     400
                 );
             }
@@ -415,21 +415,12 @@ export class UserService {
     }
     async ChangePassword(req, res) {
         try {
-            const accessKey = req.headers["authorization"] ?? "";
             const { oldPassword, password, retypePassword } =
                 req.body.data ?? {};
 
             const verify = req.body.verify ?? "";
 
-            if (!accessKey) {
-                responseMessageInstance.throwError("Invalid accessKey", 400);
-            }
-
-            const decodedToken = jwt.verify(
-                accessKey.split(" ")[1],
-                process.env.SECRET_KEY
-            );
-            const userId = decodedToken.userId;
+            const userId = req.userId;
             if (!oldPassword || !password || !retypePassword) {
                 responseMessageInstance.throwError(
                     "Please provide old password, new password, and retype password",
@@ -592,19 +583,7 @@ export class UserService {
     }
     async GetProfile(req, res) {
         try {
-            const accessKey = req.headers["authorization"] ?? "";
-            if (!accessKey) {
-                return responseMessageInstance.throwError(
-                    "Invalid accessKey",
-                    400
-                );
-            }
-
-            const decodedToken = jwt.verify(
-                accessKey.split(" ")[1],
-                process.env.SECRET_KEY
-            );
-            const userId = decodedToken.userId;
+            const userId = req.userId;
             const user = await User.findByPk(userId, {
                 attributes: [
                     "id",
@@ -678,10 +657,10 @@ export class UserService {
     }
     async ChangeProfile(req, res) {
         try {
+            const userId = req.userId;
             const userInfo = req.body.data ?? {};
-            const accessKey = req.headers["authorization"] ?? "";
             const verify = req.body.verify ?? "";
-            console.log(userInfo, verify);
+
             if (
                 !verify ||
                 !CredentialsValidation("otp", verify.otpCode) ||
@@ -699,18 +678,6 @@ export class UserService {
                 );
             }
 
-            if (!accessKey) {
-                return responseMessageInstance.throwError(
-                    "Invalid accessKey",
-                    400
-                );
-            }
-
-            const decodedToken = jwt.verify(
-                accessKey.split(" ")[1],
-                process.env.SECRET_KEY
-            );
-            const userId = decodedToken.userId;
             if (
                 !userInfo ||
                 (typeof userInfo === "object" &&
@@ -949,7 +916,7 @@ export class UserService {
     async GetTutors(req, res) {
         try {
             const { page = 0 } = req.params || {};
-            const limit = 8;
+            const limit = 12;
 
             const tutors = await Tutor.findAll({
                 attributes: ["id", "education", "experience"],
@@ -989,20 +956,9 @@ export class UserService {
         try {
             const { page = 0 } = req.params || {};
             const limit = 10;
-            const accessKey = req.headers["authorization"] ?? "";
-            if (!accessKey) {
-                return responseMessageInstance.throwError(
-                    "Invalid accessKey",
-                    400
-                );
-            }
 
-            const decodedToken = jwt.verify(
-                accessKey.split(" ")[1],
-                process.env.SECRET_KEY
-            );
-            const userId = decodedToken.userId;
-            const userRole = decodedToken.role;
+            const userId = req.userId;
+            const userRole = req.role;
             let queryOptions = {
                 attributes: [
                     "id",
@@ -1024,7 +980,7 @@ export class UserService {
                     },
                     { model: Subject, attributes: ["name"] },
                 ],
-                order: [["status", "asc"]],
+
                 limit: limit,
                 offset: page * limit,
             };

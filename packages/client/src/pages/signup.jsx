@@ -358,6 +358,8 @@ export default function SignUp() {
                                     error={!!errors.name}
                                     helperText={errors.name}
                                     autoFocus
+                                    type="text"
+                                    inputProps={{ maxLength: 50 }}
                                     onChange={handleChange}
                                     FormHelperTextProps={{
                                         className: "helper-text",
@@ -371,6 +373,7 @@ export default function SignUp() {
                                     id="age"
                                     label="Tuổi"
                                     name="age"
+                                    type="number"
                                     error={!!errors.age}
                                     helperText={errors.age}
                                     onChange={handleChange}
@@ -385,6 +388,8 @@ export default function SignUp() {
                                     id="email"
                                     label="Email"
                                     name="email"
+                                    type="text"
+                                    inputProps={{ maxLength: 255 }}
                                     error={!!errors.email}
                                     helperText={errors.email}
                                     onChange={handleChange}
@@ -415,6 +420,8 @@ export default function SignUp() {
                                     name="username"
                                     label="Tài khoản"
                                     id="username"
+                                    type="text"
+                                    inputProps={{ maxLength: 30 }}
                                     error={!!errors.username}
                                     helperText={errors.username}
                                     onChange={handleChange}
@@ -430,6 +437,7 @@ export default function SignUp() {
                                     label="Password"
                                     type="password"
                                     id="password"
+                                    inputProps={{ maxLength: 30 }}
                                     error={!!errors.password}
                                     helperText={errors.password}
                                     onChange={handleChange}
@@ -455,6 +463,7 @@ export default function SignUp() {
                                         value={value}
                                         onChange={handleChangeRole}
                                         row
+                                        sx={{ mb: 0.8 }}
                                     >
                                         <Grid container>
                                             <Grid item xs={6}>
@@ -484,11 +493,13 @@ export default function SignUp() {
                                             name="education"
                                             error={!!errors.education}
                                             helperText={errors.education}
+                                            type="text"
+                                            inputProps={{ maxLength: 50 }}
                                             onChange={handleChange}
                                             FormHelperTextProps={{
                                                 className: "helper-text",
                                             }}
-                                            sx={{ mb: 4, minHeight: 60 }}
+                                            sx={{ mb: 3.6, minHeight: 60 }}
                                         />
                                         <TextField
                                             required
@@ -498,6 +509,8 @@ export default function SignUp() {
                                             name="experience"
                                             error={!!errors.experience}
                                             helperText={errors.experience}
+                                            type="text"
+                                            inputProps={{ maxLength: 255 }}
                                             onChange={handleChange}
                                             FormHelperTextProps={{
                                                 className: "helper-text",
@@ -585,7 +598,7 @@ export default function SignUp() {
                                         <FormControl
                                             sx={{
                                                 width: "100%",
-                                                // mt: 1,
+                                                mt: 0.4,
                                             }}
                                         >
                                             <InputLabel id="district">

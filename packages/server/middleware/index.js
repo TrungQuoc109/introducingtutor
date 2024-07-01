@@ -30,6 +30,7 @@ export class Middleware {
             if (userRole != ROLE.admin) {
                 responseMessageInstance.throwError("Unauthorized", 401);
             }
+
             next();
         } catch (error) {
             console.log(error);
@@ -69,6 +70,9 @@ export class Middleware {
                 accessKey.split(" ")[1],
                 process.env.SECRET_KEY
             );
+
+            req.userId = decodedToken.userId;
+            req.role = decodedToken.role;
 
             next();
         } catch (error) {

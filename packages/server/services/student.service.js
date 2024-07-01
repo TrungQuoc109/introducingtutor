@@ -3,6 +3,7 @@ import {
     COURSE_STATUS,
     PAYMENT_STATUS,
     ROLE,
+    districts,
     momoConfig,
 } from "../constants/index.js";
 import crypto from "crypto";
@@ -11,11 +12,14 @@ import { responseMessageInstance } from "../utils/index.js";
 import { Student } from "../model/student.model.js";
 import jwt from "jsonwebtoken";
 import { TeachingSubject } from "../model/teachingSubject.model.js";
-import { calculateEndDate } from "../utils/validate.js";
+import { calculateEndDate, formatDate } from "../utils/validate.js";
 import { Lesson } from "../model/lesson.model.js";
 import { StudentTeachingSubjectMap } from "../model/studentSubjectMap.model.js";
 import { Op, where } from "sequelize";
 import { sequelize } from "../datasourse/db.connection.js";
+import nodemailer from "nodemailer";
+import { User } from "../model/user.model.js";
+import { Tutor } from "../model/tutor.model.js";
 dotenv.config();
 export class StudentService {
     static instance;
@@ -29,20 +33,9 @@ export class StudentService {
     async RegisterCourse(req, res) {
         try {
             const courseId = req.body.courseId ?? "";
-            const accessKey = req.headers["authorization"] ?? "";
-            if (!accessKey) {
-                return responseMessageInstance.throwError(
-                    "Invalid accessKey",
-                    400
-                );
-            }
 
-            const decodedToken = jwt.verify(
-                accessKey.split(" ")[1],
-                process.env.SECRET_KEY
-            );
-            const userId = decodedToken.userId;
-            const role = decodedToken.role;
+            const userId = req.userId;
+            const role = req.role;
             if (!role || role != ROLE.student) {
                 responseMessageInstance.throwError(
                     "Bạn không phải là học sinh",
@@ -172,7 +165,7 @@ export class StudentService {
                         }
                     })
                 );
-                console.log(conflictingLessons);
+
                 const flattenedConflictingLessons = conflictingLessons.flat();
 
                 flattenedConflictingLessons.forEach((item) => {
@@ -258,9 +251,9 @@ export class StudentService {
                     amount: amount,
                 };
 
-                // if (!isCoursePending) {
-                //     await StudentTeachingSubjectMap.create(data);
-                // } else isCoursePending.update({ orderId: orderId });
+                if (!isCoursePending) {
+                    await StudentTeachingSubjectMap.create(data);
+                } else isCoursePending.update({ orderId: orderId });
                 return responseMessageInstance.getSuccess(
                     res,
                     200,
@@ -286,20 +279,9 @@ export class StudentService {
     async ConfirmRegisterCourse(req, res) {
         try {
             const orderId = req.body.orderId ?? "";
-            const accessKey = req.headers["authorization"] ?? "";
-            if (!accessKey) {
-                return responseMessageInstance.throwError(
-                    "Invalid accessKey",
-                    400
-                );
-            }
 
-            const decodedToken = jwt.verify(
-                accessKey.split(" ")[1],
-                process.env.SECRET_KEY
-            );
-            const userId = decodedToken.userId;
-            const role = decodedToken.role;
+            const userId = req.userId;
+            const role = req.role;
             if (!role || role != ROLE.student) {
                 responseMessageInstance.throwError(
                     "Bạn không phải là học sinh",
@@ -307,7 +289,10 @@ export class StudentService {
                 );
             }
 
-            const student = await Student.findOne({ where: { userId } });
+            const student = await Student.findOne({
+                include: [{ model: User, attributes: ["email", "name"] }],
+                where: { userId },
+            });
             if (!student) {
                 responseMessageInstance.throwError("Student not found!", 404);
             }
@@ -317,7 +302,16 @@ export class StudentService {
             if (!order) {
                 responseMessageInstance.throwError("Order not found!", 404);
             }
-
+            const course = await TeachingSubject.findOne({
+                include: [
+                    {
+                        model: Tutor,
+                        attributes: ["id"],
+                        include: [{ model: User }],
+                    },
+                ],
+                where: { id: order.teachingSubjectId },
+            });
             const rawSignature = `accessKey=${momoConfig.accessKey}&orderId=${orderId}&partnerCode=${momoConfig.partnerCode}&requestId=${orderId}`;
 
             const signature = crypto
@@ -357,7 +351,57 @@ export class StudentService {
                     order.transId = transId;
                     await order.save();
                 }
+                const transporter = nodemailer.createTransport({
+                    service: "gmail",
+                    auth: {
+                        user: process.env.EMAIL_ADDRESS,
+                        pass: process.env.EMAIL_PASSWORD,
+                    },
+                });
+                const startDate = formatDate(course.startDate);
+                const mailOptions = {
+                    from: process.env.EMAIL_ADDRESS,
+                    to: process.env.EMAIL_ADDRESS, //student.User.email,
+                    subject: `Đăng ký khoá học ${course.name}`,
+                    html: `
+    <div>
+        <p>Thân gửi ${student.User.name},</p>
+        <p>Chúng tôi rất vui mừng thông báo rằng bạn đã đăng ký thành công khóa học ${
+            course.name
+        }.</p>
+        <p>Thông tin khóa học:</p>
+        <ul>
+            <li>Tên khóa học: ${course.name}.</li>
+            <li>Ngày bắt đầu: ${startDate}.</li>
+            <li>Địa điểm: ${course.specificAddress}, ${
+                        districts.find(
+                            (district) => district.id == course.location
+                        )?.name
+                    }.</li>
+        </ul>
+        <p>Thông tin liên lạc với gia sư</p>
+        <ul>
+            <li>Tên gia sư: ${course.Tutor.User.name}.</li>
+            <li>Số điện thoại: ${course.Tutor.User.phoneNumber}.</li>
+            <li>Email: ${course.Tutor.User.email}.</li>
+        </ul>
 
+        <p>Chúng tôi hy vọng bạn sẽ có trải nghiệm học tập tuyệt vời và đạt được những kiến thức hữu ích từ khóa học.</p>
+        <p>Chúc bạn thành công!</p>
+        <p>Trân trọng,<br/>Introducing Tutor<br/>${
+            process.env.EMAIL_ADDRESS
+        }</p>
+    </div>
+`,
+                };
+                transporter.sendMail(mailOptions, (error) => {
+                    if (error) {
+                        responseMessageInstance.throwError(
+                            `There was an error while sending the email. ${error}`,
+                            500
+                        );
+                    }
+                });
                 return responseMessageInstance.getSuccess(
                     res,
                     200,
@@ -380,20 +424,9 @@ export class StudentService {
     async CancelCourse(req, res) {
         try {
             const courseId = req.body.courseId ?? "";
-            const accessKey = req.headers["authorization"] ?? "";
-            if (!accessKey) {
-                return responseMessageInstance.throwError(
-                    "Invalid accessKey",
-                    400
-                );
-            }
 
-            const decodedToken = jwt.verify(
-                accessKey.split(" ")[1],
-                process.env.SECRET_KEY
-            );
-            const userId = decodedToken.userId;
-            const role = decodedToken.role;
+            const userId = req.userId;
+            const role = req.role;
             if (!role || role != ROLE.student) {
                 responseMessageInstance.throwError(
                     "Bạn không phải là học sinh",
@@ -402,16 +435,112 @@ export class StudentService {
             }
             const student = await Student.findOne({ where: { userId } });
             if (!student) {
-                responseMessageInstance.throwError("Student not found!", 404);
+                responseMessageInstance.throwError(
+                    "Không tìm thấy học sinh này",
+                    404
+                );
             }
 
             const course = await TeachingSubject.findByPk(courseId, {
                 include: [{ model: Lesson }],
             });
             if (!course) {
-                responseMessageInstance.throwError("Course not found!", 404);
+                responseMessageInstance.throwError(
+                    "Không tìm thấy khoá học",
+                    404
+                );
             }
-            console.log(course.startDate.getDay());
+            const order = await StudentTeachingSubjectMap.findOne({
+                where: {
+                    studentId: student.id,
+                    teachingSubjectId: course.id,
+                    status: { [Op.ne]: 2 },
+                },
+            });
+            if (!order) {
+                responseMessageInstance.throwError(
+                    "Bạn chưa đăng ký khoá học này!",
+                    404
+                );
+            }
+            if (order.status == PAYMENT_STATUS.REGISTRATION_CANCELLED) {
+                responseMessageInstance.throwError(
+                    "Khoá học đã được huỷ đăng ký trước đó",
+                    400
+                );
+            }
+            if (order.status == PAYMENT_STATUS.PENDING_PAYMENT) {
+                order.status = PAYMENT_STATUS.REGISTRATION_CANCELLED;
+                await order.save();
+            } else {
+                const startDate = new Date(course.startDate);
+                const now = new Date();
+                const daysUntilCourseStart = Math.ceil(
+                    (startDate - now) / (24 * 60 * 60 * 1000)
+                );
+
+                let refundRate = 0;
+                if (daysUntilCourseStart > 7) refundRate = 1;
+                else if (daysUntilCourseStart >= 3) refundRate = 0.75;
+                else if (daysUntilCourseStart >= 0) refundRate = 0.5;
+
+                if (refundRate != 0) {
+                    const orderId =
+                        momoConfig.partnerCode + new Date().getTime();
+                    const transId = order.transId;
+                    const description = `Huỷ đăng ký khoá học ${course.name}`;
+                    const amount = Math.round(order.amount * refundRate);
+                    const rawSignature =
+                        "accessKey=" +
+                        momoConfig.accessKey +
+                        "&amount=" +
+                        amount +
+                        "&description=" +
+                        description +
+                        "&orderId=" +
+                        orderId +
+                        "&partnerCode=" +
+                        momoConfig.partnerCode +
+                        "&requestId=" +
+                        orderId +
+                        "&transId=" +
+                        transId;
+                    const signature = crypto
+                        .createHmac("sha256", momoConfig.secretKey)
+                        .update(rawSignature)
+                        .digest("hex");
+                    console.log(signature, rawSignature);
+                    const requestBody = JSON.stringify({
+                        partnerCode: momoConfig.partnerCode,
+                        orderId: orderId,
+                        requestId: orderId,
+                        amount: amount,
+                        transId: transId,
+                        lang: "vi",
+                        description: description,
+                        signature: signature,
+                    });
+                    const options = {
+                        url: "https://test-payment.momo.vn/v2/gateway/api/refund",
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                            "Content-Length": Buffer.byteLength(requestBody),
+                        },
+                        data: requestBody,
+                    };
+                    const result = await axios(options);
+                    if (result.status == 200) {
+                        order.status = PAYMENT_STATUS.REGISTRATION_CANCELLED;
+                        await order.save();
+                    }
+                }
+            }
+            return responseMessageInstance.getSuccess(
+                res,
+                200,
+                "Huỷ thành công"
+            );
         } catch (error) {
             console.log(error);
             return responseMessageInstance.getError(

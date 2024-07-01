@@ -19,6 +19,8 @@ export const paymentStatus = [
     "Chờ thanh toán",
     "Huỷ đăng ký",
 ];
+export const userStatus = ["Vô hiệu hoá", "Đang hoạt động"];
+export const userRole = ["", "Gia sư", "Học sinh"];
 export function formatDate(dateString) {
     const date = new Date(dateString);
     const day = date.getDate() < 10 ? `0${date.getDate()}` : date.getDate();

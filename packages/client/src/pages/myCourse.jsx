@@ -17,7 +17,6 @@ import {
     DialogContentText,
     DialogActions,
 } from "@mui/material";
-import Footer from "../components/footer";
 import Header from "../components/header";
 import {
     baseURL,
@@ -31,6 +30,7 @@ import {
 import { useNavigate } from "react-router-dom";
 import CreateCourseDialog from "../components/createCourseDialog";
 import CourseDetails from "../components/courseDetail";
+import Footer from "../components/Footer";
 export default function MyCourse() {
     const [dialogAction, setDialogAction] = useState(null); // 'edit', 'cancel'
     const [clickedCourseId, setClickedCourseId] = useState(null);
@@ -76,35 +76,59 @@ export default function MyCourse() {
     };
     const handleCloseDialog = async (isConfirmed) => {
         setOpenDialogStatus(false);
-        if (isConfirmed) {
-            const { courseId, status } = pendingStatusChange;
-            if (dialogAction === "edit") {
-                setSelectedStatuses({
-                    ...selectedStatuses,
-                    [courseId]: status,
-                });
-                const response = await fetch(
-                    `${baseURL}/tutor/change-status-course`,
-                    {
-                        method: "POST",
-                        headers: {
-                            "Content-Type": "application/json",
-                            authorization: `Bearer ${token}`,
-                        },
-                        body: JSON.stringify({ courseId, status }),
-                    }
-                );
+        try {
+            if (isConfirmed) {
+                const { courseId, status } = pendingStatusChange;
+                if (dialogAction === "edit") {
+                    setSelectedStatuses({
+                        ...selectedStatuses,
+                        [courseId]: status,
+                    });
+                    const response = await fetch(
+                        `${baseURL}/tutor/change-status-course`,
+                        {
+                            method: "POST",
+                            headers: {
+                                "Content-Type": "application/json",
+                                authorization: `Bearer ${token}`,
+                            },
+                            body: JSON.stringify({ courseId, status }),
+                        }
+                    );
 
-                if (response.ok || response.status == 400) {
+                    if (response.ok || response.status == 400) {
+                        const data = await response.json();
+                        alert(data.message ?? data.error);
+                    }
+                    setPendingStatusChange({ courseId: null, status: null });
+                } else {
+                    const { courseId } = pendingStatusChange;
+                    const response = await fetch(
+                        `${baseURL}/student/cancel-course`,
+                        {
+                            method: "POST",
+                            headers: {
+                                "Content-Type": "application/json",
+                                authorization: `Bearer ${token}`,
+                            },
+                            body: JSON.stringify({ courseId }),
+                        }
+                    );
                     const data = await response.json();
-                    alert(data.message ?? data.error);
+                    if (response.ok) {
+                        console.log(data);
+                        alert(data.message);
+                    } else {
+                        if (response.status >= 500) {
+                            throw new Error(data.error);
+                        }
+                        alert(data.error);
+                    }
                 }
-                setPendingStatusChange({ courseId: null, status: null });
-                fetchData();
-            } else {
-                const { courseId } = pendingStatusChange;
-                console.log("test", courseId);
             }
+            fetchData();
+        } catch (error) {
+            console.log(error);
         }
     };
 
@@ -217,9 +241,7 @@ export default function MyCourse() {
         setIsDialogOpen(false);
         fetchData();
     };
-    const handleCancelCourse = (courseId) => {
-        fetchData();
-    };
+
     return (
         <React.Fragment>
             <CssBaseline />
@@ -421,6 +443,11 @@ export default function MyCourse() {
                                                     </Typography>
                                                     <Button
                                                         variant="contained"
+                                                        disabled={
+                                                            course
+                                                                .StudentTeachingSubjectMaps[0]
+                                                                ?.status == 2
+                                                        }
                                                         onClick={(event) => {
                                                             event.stopPropagation(); // Ngăn chặn sự kiện lan tỏa
                                                             openCancelDialog(
@@ -517,8 +544,8 @@ export default function MyCourse() {
                         </Dialog>
                     </Container>
                 </Box>
-                <Footer />
             </Container>
+            <Footer />
         </React.Fragment>
     );
 }

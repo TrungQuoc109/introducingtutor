@@ -9,7 +9,7 @@ import {
     CssBaseline,
 } from "@mui/material";
 import Header from "../components/header";
-import Footer from "../components/footer";
+import Footer from "../components/Footer";
 import bg from "../../public/image/bg1.jpg";
 import graduate from "../../public/image/graduate.png";
 import book from "../../public/image/book.png";
@@ -188,8 +188,8 @@ function HomePage() {
                         </Grid>
                     </Container>
                 </Box>
-                <Footer />
             </Container>
+            <Footer />
         </React.Fragment>
     );
 }

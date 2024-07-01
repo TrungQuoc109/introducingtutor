@@ -1,8 +1,14 @@
 import dotenv from "dotenv";
 import { responseMessageInstance } from "../utils/index.js";
-import { User } from "../model/index.js";
+import {
+    Location,
+    Subject,
+    Tutor,
+    TutorSubjectMap,
+    User,
+} from "../model/index.js";
 import { STATUS } from "../constants/index.js";
-import { Op } from "sequelize";
+import { Op, literal } from "sequelize";
 dotenv.config();
 export class AdminService {
     static instance;
@@ -14,8 +20,50 @@ export class AdminService {
     }
     async GetListUsers(req, res) {
         try {
-            const { page = 0 } = req.params || {};
+            const {
+                page = 0,
+                role,
+                status,
+                district,
+                subject,
+                searchText,
+            } = req.query;
             const limit = 10;
+
+            const whereClause = { role: { [Op.ne]: 0 } };
+            if (role) {
+                whereClause.role = role;
+            }
+            if (status) {
+                whereClause.status = status;
+            }
+            if (searchText) {
+                whereClause.name = {
+                    [Op.iLike]: `%${searchText}%`,
+                };
+            }
+            const tutorInclude = {
+                model: Tutor,
+                include: [],
+            };
+
+            if (subject) {
+                tutorInclude.include.push({
+                    model: TutorSubjectMap,
+                    attributes: ["id"],
+
+                    where: { subjectId: subject },
+                });
+            }
+
+            if (district) {
+                tutorInclude.include.push({
+                    model: Location,
+                    attributes: ["districtsId", "name"],
+                    where: { districtsId: district },
+                });
+            }
+
             const { count, rows: users } = await User.findAndCountAll({
                 attributes: [
                     "id",
@@ -26,24 +74,31 @@ export class AdminService {
                     "status",
                     "role",
                 ],
-                where: { role: { [Op.ne]: 0 }, status: { [Op.ne]: 0 } },
+                include: [tutorInclude],
+                where: whereClause,
                 limit: limit,
                 offset: page * limit,
             });
-            if (!users) {
-                responseMessageInstance.throwError("User not found!", 404);
+
+            if (!users || users.length === 0) {
+                // Nếu không tìm thấy người dùng, trả về lỗi 404
+                return responseMessageInstance.throwError(
+                    "Users not found!",
+                    404,
+                    res
+                );
             }
 
             return responseMessageInstance.getSuccess(
                 res,
                 200,
-                "Get profile successfull",
+                "Get profile successful",
                 {
                     data: { users, page: Math.ceil(count / limit) },
                 }
             );
         } catch (error) {
-            console.log(error);
+            console.error("Error in GetListUsers:", error);
             return responseMessageInstance.getError(
                 res,
                 error.code ?? 500,
@@ -51,10 +106,11 @@ export class AdminService {
             );
         }
     }
+
     async ChangeStatusUser(req, res) {
         try {
             const userId = req.params.userId;
-            const status = req.body.status;
+            const status = req.body.newStatus;
             if (!userId) {
                 responseMessageInstance.throwError("Invalid UserId", 400);
             }
