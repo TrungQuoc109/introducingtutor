@@ -1,0 +1,23 @@
+/* Hide scrollbar */
+* {
+    box-sizing: border-box;
+}
+
+.root::-webkit-scrollbar {
+    display: none;
+}
+
+.root {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+.helper-text {
+    position: absolute;
+    bottom: -20px;
+    left: 0;
+}
+.helper-text-password {
+    position: absolute;
+    bottom: -40px;
+    left: 0;
+}
