@@ -90,11 +90,12 @@ export const PAYMENT_STATUS = {
     PENDING_PAYMENT: 1,
     REGISTRATION_CANCELLED: 2,
 };
+export const momoUrl = process.env.MOMO_URL;
 export const momoConfig = {
     accessKey: process.env.ACCESSKEY_MOMO,
     secretKey: process.env.SECRETKEY_MOMO,
     partnerCode: "MOMO",
-    redirectUrl: "http://localhost:5173/my-course",
+    redirectUrl: `${process.env.FE_URL}/my-course`,
     ipnUrl: "https://callback.url/notify",
     requestType: "captureWallet",
     extraData: "",

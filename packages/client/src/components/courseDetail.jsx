@@ -1,75 +1,47 @@
 import React from "react";
 import { Grid, Typography } from "@mui/material";
+import { paymentStatus } from "../config/config";
 
-const CourseDetails = ({
-    course,
-    districts,
-    role,
-    paymentStatus,
-    formatDate,
-}) => {
+const CourseDetails = ({ course, districts, role, status, formatDate }) => {
     return (
         <React.Fragment>
             <Grid container spacing={2} alignItems="center">
-                <Grid item xs={12} sm={4}>
+                <Grid item xs={12} sm={6} md={6}>
                     <Typography
-                        component="span"
+                        component="div"
                         variant="body2"
                         color="textPrimary"
                     >
-                        Môn: {course.Subject.name}
-                    </Typography>
-                </Grid>
-                <Grid item xs={12} sm={4}>
-                    <Typography
-                        component="span"
-                        variant="body2"
-                        color="textPrimary"
-                    >
-                        | Lớp: {course.gradeLevel}
-                    </Typography>
-                </Grid>
-                <Grid item xs={12} sm={4}>
-                    <Typography
-                        component="span"
-                        variant="body2"
-                        color="textPrimary"
-                    >
-                        | Ngày bắt đầu: {formatDate(course.startDate)}
-                    </Typography>
-                </Grid>
-                <Grid item xs={12}>
-                    <Typography
-                        component="span"
-                        variant="body2"
-                        color="textSecondary"
-                        sx={{
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "space-between",
-                            flexWrap: "wrap",
-                            gap: 2,
-                        }}
-                    >
-                        <span>
+                        <div>Môn: {course.Subject.name}</div>
+                        <div>
                             Địa chỉ: {course.specificAddress},{" "}
                             {
                                 districts.find(
                                     (district) => district.id == course.location
                                 )?.name
                             }
-                        </span>
-                        <span>Giá: {course.price}</span>
+                        </div>
+                    </Typography>
+                </Grid>
+                <Grid item xs={12} sm={6} md={2}>
+                    <Typography
+                        component="div"
+                        variant="body2"
+                        color="textPrimary"
+                    >
+                        <div>Lớp: {course.gradeLevel}</div>
+                        <div>Giá: {course.price}</div>
+                    </Typography>
+                </Grid>
+                <Grid item xs={12} md={4}>
+                    <Typography
+                        component="div"
+                        variant="body2"
+                        color="textPrimary"
+                    >
+                        <div>Ngày bắt đầu: {formatDate(course.startDate)}</div>
                         {role == 2 && (
-                            <span>
-                                Trạng Thái:{" "}
-                                {
-                                    paymentStatus[
-                                        course.StudentTeachingSubjectMaps[0]
-                                            ?.status
-                                    ]
-                                }
-                            </span>
+                            <div>Trạng Thái: {paymentStatus[status]}</div>
                         )}
                     </Typography>
                 </Grid>

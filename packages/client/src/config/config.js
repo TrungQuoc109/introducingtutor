@@ -7,6 +7,8 @@ export const firebaseConfig = {
     appId: "1:1051596096960:web:58db92d5c78a3981b53425",
     measurementId: "G-Q8GKPLWELC",
 };
+
+export const reCaptchaV3Provider = "6LeadggqAAAAAMKN-SV4gM8qlFCeTCVpggPeTlf3";
 export const baseURL = "http://localhost:5999/v1/api";
 export const statusCourse = [
     "Vô hiệu hóa",

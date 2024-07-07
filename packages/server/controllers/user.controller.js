@@ -69,6 +69,9 @@ export class UserController {
     async GetCourseDetail(req, res) {
         return await userServiceInstance.GetCourseDetail(req, res);
     }
+    async GetSchedule(req, res) {
+        return await userServiceInstance.GetSchedule(req, res);
+    }
 }
 
 //------------------------------------------------

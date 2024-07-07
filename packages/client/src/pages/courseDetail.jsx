@@ -54,6 +54,7 @@ export default function CourseDetail() {
     const { courseId } = useParams();
     const dayOfWeek = [2, 3, 4, 5, 6, 7, 8];
     const duration = [90, 120, 150, 180];
+    const token = localStorage.getItem("token");
     const role = localStorage.getItem("role");
     const fetchData = async () => {
         try {
@@ -103,7 +104,6 @@ export default function CourseDetail() {
     }, [courseId]);
     const handleAddLesson = async () => {
         try {
-            const token = localStorage.getItem("token");
             const response = await fetch(`${baseURL}/tutor/create-lesson`, {
                 method: "POST",
                 headers: {
@@ -123,13 +123,33 @@ export default function CourseDetail() {
             alert(data.message);
 
             fetchData();
-            // Xử lý sau khi thêm buổi học thành công, ví dụ: thông báo cho người dùng, cập nhật UI...
 
-            handleCloseDialog(); // Đóng dialog sau khi thêm thành công
+            handleCloseDialog();
         } catch (error) {
             alert(`${error}`);
             console.error("Lỗi khi thêm buổi học:", error);
             // Xử lý lỗi, thông báo cho người dùng...
+        }
+    };
+    const handleDeleteLesson = async (lessonId) => {
+        try {
+            const response = await fetch(`${baseURL}/tutor/delete-lesson`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    authorization: `Bearer ${token}`,
+                },
+                body: JSON.stringify({ courseId, lessonId }),
+            });
+            const data = await response.json();
+            if (response.ok) {
+                alert(data.message);
+                fetchData();
+            } else if (response.status < 500) {
+                alert(data.error);
+            } else throw new Error(data.error);
+        } catch (error) {
+            console.error(error);
         }
     };
     const handleOpenDialog = () => {
@@ -142,7 +162,6 @@ export default function CourseDetail() {
     const handleInputChange = (event) => {
         const { name, value } = event.target;
 
-        // Tự động thêm ':00' vào cuối cho trường startTime để tạo định dạng hh:mm:ss
         let newValue = value;
         if (name === "startTime") {
             newValue = `${value}:00`;
@@ -389,6 +408,10 @@ export default function CourseDetail() {
                                                     <TableCell align="center">
                                                         Thời lượng (phút)
                                                     </TableCell>
+                                                    {fromPage == "mycourse" &&
+                                                        role == 1 && (
+                                                            <TableCell align="center"></TableCell>
+                                                        )}
                                                 </TableRow>
                                             </TableHead>
                                             <TableBody>
@@ -415,6 +438,22 @@ export default function CourseDetail() {
                                                                         lesson.duration
                                                                     }
                                                                 </TableCell>
+                                                                {fromPage ==
+                                                                    "mycourse" &&
+                                                                    role ==
+                                                                        1 && (
+                                                                        <TableCell align="center">
+                                                                            <Button
+                                                                                onClick={() =>
+                                                                                    handleDeleteLesson(
+                                                                                        lesson.id
+                                                                                    )
+                                                                                }
+                                                                            >
+                                                                                Xoá
+                                                                            </Button>
+                                                                        </TableCell>
+                                                                    )}
                                                             </TableRow>
                                                         )
                                                     )

@@ -26,6 +26,9 @@ export class TutorController {
     async UpdateCourse(req, res) {
         return await tutorServiceInstance.UpdateCourse(req, res);
     }
+    async DeleteLesson(req, res) {
+        return await tutorServiceInstance.DeleteLesson(req, res);
+    }
 }
 //------------------------------------------------
 export const tutorInstance = TutorController.getInstance();

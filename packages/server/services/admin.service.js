@@ -28,7 +28,7 @@ export class AdminService {
                 subject,
                 searchText,
             } = req.query;
-            const limit = 10;
+            const limit = 20;
 
             const whereClause = { role: { [Op.ne]: 0 } };
             if (role) {
@@ -79,15 +79,6 @@ export class AdminService {
                 limit: limit,
                 offset: page * limit,
             });
-
-            if (!users || users.length === 0) {
-                // Nếu không tìm thấy người dùng, trả về lỗi 404
-                return responseMessageInstance.throwError(
-                    "Users not found!",
-                    404,
-                    res
-                );
-            }
 
             return responseMessageInstance.getSuccess(
                 res,

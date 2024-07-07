@@ -12,7 +12,7 @@ import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
 import Typography from "@mui/material/Typography";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 import Header from "../components/header";
-import Footer from "../components/footer";
+import Footer from "../components/Footer";
 import { useNavigate } from "react-router-dom";
 import logo from "../../public/image/Logo_STU.png";
 
@@ -108,7 +108,7 @@ export default function SignInSide() {
     };
     return (
         <ThemeProvider theme={defaultTheme}>
-            <Grid container component="main" sx={{ height: "100vh" }}>
+            <Grid container component="main" sx={{ height: "82.1vh" }}>
                 <CssBaseline />
                 <Header />
 
@@ -202,7 +202,10 @@ export default function SignInSide() {
                             </Button>
                             <Grid container>
                                 <Grid item xs>
-                                    <Link href="#" variant="body2">
+                                    <Link
+                                        href="/forgot-password"
+                                        variant="body2"
+                                    >
                                         Forgot password?
                                     </Link>
                                 </Grid>
@@ -215,8 +218,8 @@ export default function SignInSide() {
                         </Box>
                     </Box>
                 </Grid>
-                <Footer />
             </Grid>
+            <Footer />
         </ThemeProvider>
     );
 }

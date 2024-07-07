@@ -8,6 +8,7 @@ import {
     MAX_GRADEL_LEVEL,
     MIN_GRADEL_LEVEL,
     OTP_LENGTH,
+    PAYMENT_STATUS,
     ROLE,
     districts,
 } from "../constants/index.js";
@@ -132,7 +133,7 @@ export class UserService {
             }
 
             let whereCondition = {
-                [Op.or]: [],
+                [Op.or]: [{ email: email }],
             };
 
             if (username) {
@@ -150,7 +151,7 @@ export class UserService {
                 raw: true,
             });
             var existingInfoAttributes = {};
-            if (existingInfo) {
+            if (existingInfo.length != 0) {
                 if (action == "sign-up") {
                     existingInfo.map((item) => {
                         Object.keys(item).forEach((element) => {
@@ -177,7 +178,10 @@ export class UserService {
                 }
             } else {
                 if (action != "sign-up") {
-                    responseMessageInstance.throwError("Email not found!", 404);
+                    responseMessageInstance.throwError(
+                        "Không tìm thấy email xác thực!",
+                        404
+                    );
                 }
             }
             const otp = Array.from({ length: OTP_LENGTH }, () =>
@@ -210,7 +214,7 @@ export class UserService {
             transporter.sendMail(mailOptions, (error) => {
                 if (error) {
                     responseMessageInstance.throwError(
-                        `There was an error while sending the email. ${error}`,
+                        `Có lỗi trong quá trình gủi mail xác thực. ${error}`,
                         500
                     );
                 }
@@ -224,6 +228,7 @@ export class UserService {
             setTimeout(async () => {
                 await Otp.destroy({ where: { code: otp } });
             }, 15 * 60 * 1000);
+            console.log(otp);
             return responseMessageInstance.getSuccess(res, 200, "OK!", {
                 data: {
                     otp,
@@ -508,8 +513,7 @@ export class UserService {
     }
     async ForgotPassword(req, res) {
         try {
-            const { username, newPassword, retypePassword } =
-                req.body.data ?? {};
+            const { newPassword, retypePassword } = req.body.data ?? {};
             const verify = req.body.verify ?? {};
 
             if (
@@ -517,39 +521,43 @@ export class UserService {
                 !CredentialsValidation("otp", verify.otpCode) ||
                 !CredentialsValidation("email", verify.email)
             ) {
-                responseMessageInstance.throwError("Invalid Verify info", 400);
+                responseMessageInstance.throwError(
+                    "Không tìm thấy thông tin xác thực",
+                    400
+                );
             }
             const checkOTP = await Otp.findOne({
                 where: { code: verify.otpCode, email: verify.email },
             });
             if (!checkOTP) {
                 responseMessageInstance.throwError(
-                    "Incorrect verification code.",
+                    "Mã OTP không chính xác.",
                     400
                 );
             }
             if (
-                !username ||
                 !newPassword ||
                 !retypePassword ||
-                !CredentialsValidation("username", username) ||
                 !CredentialsValidation("password", newPassword) ||
                 !CredentialsValidation("password", retypePassword)
             ) {
                 responseMessageInstance.throwError(
-                    "Invalid User Credential",
+                    "Không tìm thấy mật khẩu mới",
                     400
                 );
             }
             if (newPassword != retypePassword) {
                 responseMessageInstance.throwError(
-                    "New password does not match Retype password.",
+                    "Nhập lại mật khẩu mới không khớp với mật khẩu mới",
                     400
                 );
             }
-            const user = await User.findOne({ where: { username: username } });
+            const user = await User.findOne({ where: { email: verify.email } });
             if (!user) {
-                responseMessageInstance.throwError("User not found!", 404);
+                responseMessageInstance.throwError(
+                    "Không tìm thấy người dùng",
+                    404
+                );
             }
             bcrypt.hash(newPassword, 10, async (err, hash) => {
                 if (err) {
@@ -562,14 +570,14 @@ export class UserService {
                     { password: hash },
                     {
                         where: {
-                            username: username,
+                            email: verify.email,
                         },
                     }
                 );
                 return responseMessageInstance.getSuccess(
                     res,
                     200,
-                    "Reset password successfully"
+                    "Làm lại mật khẩu thành công"
                 );
             });
         } catch (error) {
@@ -1028,7 +1036,7 @@ export class UserService {
     }
     async SearchTutor(req, res) {
         try {
-            const limit = 8;
+            const limit = 12;
             const { page = 0, subjectId, location, searchTerm } = req.query;
             let countOptions = {
                 where: {},
@@ -1108,7 +1116,7 @@ export class UserService {
             }
 
             const tutors = await Tutor.findAll(option);
-            console.log(count);
+
             return responseMessageInstance.getSuccess(res, 200, "Succesful", {
                 data: { tutors, page: Math.ceil(count / limit) },
             });
@@ -1344,6 +1352,96 @@ export class UserService {
             });
         } catch (error) {
             console.log(error);
+            return responseMessageInstance.getError(
+                res,
+                error.code ?? 500,
+                error.message
+            );
+        }
+    }
+    async GetSchedule(req, res) {
+        try {
+            const userId = req.userId;
+            const role = req.role;
+            const user = await User.findByPk(userId, {
+                attributes: ["id", "role"],
+                include: [
+                    { model: Student, required: false },
+                    { model: Tutor, required: false },
+                ],
+                raw: true,
+                nest: true,
+            });
+            if (!user) {
+                responseMessageInstance.throwError(
+                    "Không tìm thấy người dùng",
+                    404
+                );
+            }
+            let schedule;
+            let includeCondition;
+
+            if (role == 1) {
+                includeCondition = [
+                    {
+                        model: TeachingSubject,
+                        attributes: ["id", "name"],
+                        where: {
+                            instructorId: user.Tutor.id,
+                            status: {
+                                [Op.and]: {
+                                    [Op.ne]: COURSE_STATUS.completedCourse,
+                                    [Op.ne]: COURSE_STATUS.disabledCourse,
+                                },
+                            },
+                        },
+                    },
+                ];
+            } else {
+                includeCondition = [
+                    {
+                        model: TeachingSubject,
+                        attributes: ["id", "name"],
+                        include: [
+                            {
+                                model: StudentTeachingSubjectMap,
+                                where: {
+                                    studentId: user.Student.id,
+                                    status: PAYMENT_STATUS.REGISTRATION_SUCCESS,
+                                },
+                            },
+                        ],
+                        where: {
+                            status: {
+                                [Op.and]: {
+                                    [Op.ne]: COURSE_STATUS.completedCourse,
+                                    [Op.ne]: COURSE_STATUS.disabledCourse,
+                                },
+                            },
+                        },
+                    },
+                ];
+            }
+
+            schedule = await Lesson.findAll({
+                attributes: ["id", "dayOfWeek", "startTime", "duration"],
+                include: includeCondition,
+                raw: true,
+                nest: true,
+            });
+            schedule.sort((a, b) => {
+                // Sắp xếp theo dayOfWeek trước
+                if (a.dayOfWeek !== b.dayOfWeek) {
+                    return a.dayOfWeek - b.dayOfWeek;
+                }
+                // Nếu dayOfWeek giống nhau, sắp xếp theo startTime
+                return a.startTime.localeCompare(b.startTime);
+            });
+            console.log(schedule);
+            return responseMessageInstance.getSuccess(res, 200, "Ok", {
+                schedule,
+            });
+        } catch (error) {
             return responseMessageInstance.getError(
                 res,
                 error.code ?? 500,

@@ -25,7 +25,7 @@ import { createTheme, ThemeProvider } from "@mui/material/styles";
 import { RxAvatar } from "react-icons/rx";
 import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
 import Header from "../components/header";
-import Footer from "../components/footer";
+import Footer from "../components/Footer";
 import { useNavigate } from "react-router-dom";
 import { DataContext } from "../dataprovider/subject.jsx";
 import { baseURL, districts } from "../config/config.js";
@@ -535,6 +535,13 @@ export default function SignUp() {
                                                 error={!!errors.subjects}
                                                 helperText={errors.subjects}
                                                 label="Môn học"
+                                                MenuProps={{
+                                                    PaperProps: {
+                                                        style: {
+                                                            maxHeight: 200,
+                                                        },
+                                                    },
+                                                }}
                                             >
                                                 {options &&
                                                     options.data.map(
@@ -719,8 +726,8 @@ export default function SignUp() {
                         </Grid>
                     </Box>
                 </Box>
-                <Footer />
             </Container>
+            <Footer />
         </ThemeProvider>
     );
 }

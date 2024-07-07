@@ -21,7 +21,10 @@ import { initializeApp } from "firebase/app";
 import { DataContext } from "../dataprovider/subject";
 import logo from "../../public/image/Logo_STU.png";
 import { useNavigate } from "react-router-dom";
+import Schedule from "../components/schedule";
 export default function Profile() {
+    const token = localStorage.getItem("token");
+    const role = localStorage.getItem("role");
     const subjects = useContext(DataContext);
     const app = initializeApp(firebaseConfig);
     const storage = getStorage(app);
@@ -30,6 +33,7 @@ export default function Profile() {
     const [errorMessage, setErrorMessage] = useState(null);
     const [selectedAddresses, setSelectedAddresses] = useState([]);
     const [selectedSubjectIds, setSelectedSubjectIds] = useState([]);
+    const [schedule, setSchedule] = useState();
     const [openPasswordDialog, setOpenPasswordDialog] = useState(false);
     const [isChange, setIsChange] = useState(false);
     const [oldEmail, setOldEmail] = useState("");
@@ -135,44 +139,42 @@ export default function Profile() {
         return Object.keys(newErrors).length == 0;
     };
     useEffect(() => {
-        const fetchData = async () => {
-            const token = localStorage.getItem("token");
-            const role = localStorage.getItem("role");
-            try {
-                const response = await fetch(`${baseURL}/user/get-profile`, {
-                    method: "GET",
-                    headers: {
-                        "Content-Type": "application/json",
-                        authorization: `Bearer ${token}`,
-                    },
-                });
-                if (response.ok) {
-                    const data = await response.json();
-                    setProfileData(data.data.user);
-                    setOldEmail(data.data.user.email);
-                    if (role == 1) {
-                        const subjectId = data.data.subjects.map(
-                            (subject) => subject.id
-                        );
-                        const addressIds = data.data.address.map(
-                            (add) => add.districtsId
-                        );
-                        setSelectedSubjectIds(subjectId);
-                        setSelectedAddresses(addressIds);
-                    }
-                    console.log(data.data.user.id);
-                    const imageUrl = await fetchImageUrl(data.data.user.id);
-                    setImageUrl(imageUrl);
-                } else {
-                    console.error("Failed to fetch profile data");
-                }
-            } catch (error) {
-                console.error("Error fetching profile data:", error);
-            }
-        };
         fetchData();
+        fecthSchedule();
     }, []);
+    const fetchData = async () => {
+        try {
+            const response = await fetch(`${baseURL}/user/get-profile`, {
+                method: "GET",
+                headers: {
+                    "Content-Type": "application/json",
+                    authorization: `Bearer ${token}`,
+                },
+            });
+            if (response.ok) {
+                const data = await response.json();
+                setProfileData(data.data.user);
+                setOldEmail(data.data.user.email);
+                if (role == 1) {
+                    const subjectId = data.data.subjects.map(
+                        (subject) => subject.id
+                    );
+                    const addressIds = data.data.address.map(
+                        (add) => add.districtsId
+                    );
+                    setSelectedSubjectIds(subjectId);
+                    setSelectedAddresses(addressIds);
+                }
 
+                const imageUrl = await fetchImageUrl(data.data.user.id);
+                setImageUrl(imageUrl);
+            } else {
+                console.error("Failed to fetch profile data");
+            }
+        } catch (error) {
+            console.error("Error fetching profile data:", error);
+        }
+    };
     const fetchImageUrl = async (filePath) => {
         const fileRef = ref(storage, `avatar/${filePath}`);
         try {
@@ -181,6 +183,23 @@ export default function Profile() {
         } catch (error) {
             console.error("Cannot fetch URL", error);
             return null;
+        }
+    };
+    const fecthSchedule = async () => {
+        try {
+            const response = await fetch(`${baseURL}/user/get-schedule`, {
+                method: "GET",
+                headers: {
+                    "Content-Type": "application/json",
+                    authorization: `Bearer ${token}`,
+                },
+            });
+            const data = await response.json();
+            if (response.ok) {
+                setSchedule(data.schedule);
+            }
+        } catch (error) {
+            console.log(error);
         }
     };
 
@@ -349,12 +368,12 @@ export default function Profile() {
                                         src={imgURL ?? logo}
                                         alt="Profile"
                                         sx={{
-                                            width: "100%", // Full width on smaller screens
+                                             width: "100%", // Full width on smaller screens
                                             maxWidth: 300, // Maximum width on larger screens
-                                            height: "auto",
+                                             height: "auto",
                                             objectFit: "contain",
                                             mx: "auto", // Center align image
-                                            mb: { xs: 4, md: 0 }, // Margin bottom spacing based on screen size
+                                             mb: { xs: 4, md: 0 }, // Margin bottom spacing based on screen size
                                         }}
                                     />
                                 </Grid>
@@ -554,6 +573,10 @@ export default function Profile() {
                                     </Box>
                                 </Grid>
                             </Grid>
+
+                            {schedule && (
+                                <Schedule data={schedule} role={role} />
+                            )}
                         </Box>
                         <Dialog
                             open={openPasswordDialog}

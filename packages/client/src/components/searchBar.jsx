@@ -42,7 +42,6 @@ const SearchBar = ({
                 boxSizing: "border-box",
                 flexWrap: { xs: "wrap", md: "nowrap" },
                 height: "auto", // Độ cao tự động theo nội dung
-                borderRadius: 16, // Góc tròn
             }}
             onSubmit={performSearch}
         >
@@ -57,7 +56,7 @@ const SearchBar = ({
                         onKeyDown={handleKeyPress}
                     />
                 </Grid>
-                <Grid item xs={12} sm={6} md={2}>
+                <Grid item xs={12} sm={4} md={2}>
                     <FormControl sx={{ width: { xs: "100%", sm: "100%" } }}>
                         <InputLabel id="subject-select-label">
                             Môn học
@@ -91,7 +90,7 @@ const SearchBar = ({
                         </Select>
                     </FormControl>
                 </Grid>
-                <Grid item xs={12} sm={6} md={2}>
+                <Grid item xs={12} sm={4} md={2}>
                     <FormControl sx={{ width: { xs: "100%", sm: "100%" } }}>
                         <InputLabel id="location-select-label">
                             Khu vực
@@ -130,7 +129,7 @@ const SearchBar = ({
                 <Grid
                     item
                     xs={12}
-                    sm={6}
+                    sm={4}
                     md="auto"
                     display="flex"
                     justifyContent="center"

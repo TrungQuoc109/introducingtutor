@@ -5,17 +5,18 @@ import {
     ROLE,
     districts,
     momoConfig,
+    momoUrl,
 } from "../constants/index.js";
 import crypto from "crypto";
 import axios from "axios";
 import { responseMessageInstance } from "../utils/index.js";
 import { Student } from "../model/student.model.js";
-import jwt from "jsonwebtoken";
+
 import { TeachingSubject } from "../model/teachingSubject.model.js";
 import { calculateEndDate, formatDate } from "../utils/validate.js";
 import { Lesson } from "../model/lesson.model.js";
 import { StudentTeachingSubjectMap } from "../model/studentSubjectMap.model.js";
-import { Op, where } from "sequelize";
+import { Op } from "sequelize";
 import { sequelize } from "../datasourse/db.connection.js";
 import nodemailer from "nodemailer";
 import { User } from "../model/user.model.js";
@@ -59,6 +60,7 @@ export class StudentService {
                 where: {
                     teachingSubjectId: courseId,
                     studentId: student.id,
+                    status: PAYMENT_STATUS.PENDING_PAYMENT,
                 },
             });
             if (isCoursePending && isCoursePending.status == 0) {
@@ -96,7 +98,7 @@ export class StudentService {
                         },
                     },
                 });
-
+                console.log("test", registeredCourses.dataValues);
                 const filteredCourses = registeredCourses.filter(
                     (registerCourse) => {
                         const startDateOfregisterCourse =
@@ -232,7 +234,7 @@ export class StudentService {
             });
 
             const options = {
-                url: `https://test-payment.momo.vn/v2/gateway/api/create`,
+                url: `${momoUrl}/create`,
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -252,7 +254,8 @@ export class StudentService {
                 };
 
                 if (!isCoursePending) {
-                    await StudentTeachingSubjectMap.create(data);
+                    const test = await StudentTeachingSubjectMap.create(data);
+                    console.log(test.dataValues);
                 } else isCoursePending.update({ orderId: orderId });
                 return responseMessageInstance.getSuccess(
                     res,
@@ -327,7 +330,7 @@ export class StudentService {
             });
 
             const options = {
-                url: "https://test-payment.momo.vn/v2/gateway/api/query",
+                url: `${momoUrl}/query`,
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -350,20 +353,20 @@ export class StudentService {
                     order.status = 0;
                     order.transId = transId;
                     await order.save();
-                }
-                const transporter = nodemailer.createTransport({
-                    service: "gmail",
-                    auth: {
-                        user: process.env.EMAIL_ADDRESS,
-                        pass: process.env.EMAIL_PASSWORD,
-                    },
-                });
-                const startDate = formatDate(course.startDate);
-                const mailOptions = {
-                    from: process.env.EMAIL_ADDRESS,
-                    to: process.env.EMAIL_ADDRESS, //student.User.email,
-                    subject: `Đăng ký khoá học ${course.name}`,
-                    html: `
+
+                    const transporter = nodemailer.createTransport({
+                        service: "gmail",
+                        auth: {
+                            user: process.env.EMAIL_ADDRESS,
+                            pass: process.env.EMAIL_PASSWORD,
+                        },
+                    });
+                    const startDate = formatDate(course.startDate);
+                    const mailOptions = {
+                        from: process.env.EMAIL_ADDRESS,
+                        to: process.env.EMAIL_ADDRESS, //student.User.email,
+                        subject: `Đăng ký khoá học ${course.name}`,
+                        html: `
     <div>
         <p>Thân gửi ${student.User.name},</p>
         <p>Chúng tôi rất vui mừng thông báo rằng bạn đã đăng ký thành công khóa học ${
@@ -374,10 +377,10 @@ export class StudentService {
             <li>Tên khóa học: ${course.name}.</li>
             <li>Ngày bắt đầu: ${startDate}.</li>
             <li>Địa điểm: ${course.specificAddress}, ${
-                        districts.find(
-                            (district) => district.id == course.location
-                        )?.name
-                    }.</li>
+                            districts.find(
+                                (district) => district.id == course.location
+                            )?.name
+                        }.</li>
         </ul>
         <p>Thông tin liên lạc với gia sư</p>
         <ul>
@@ -393,20 +396,22 @@ export class StudentService {
         }</p>
     </div>
 `,
-                };
-                transporter.sendMail(mailOptions, (error) => {
-                    if (error) {
-                        responseMessageInstance.throwError(
-                            `There was an error while sending the email. ${error}`,
-                            500
-                        );
-                    }
-                });
-                return responseMessageInstance.getSuccess(
-                    res,
-                    200,
-                    result.data.message
-                );
+                    };
+                    transporter.sendMail(mailOptions, (error) => {
+                        if (error) {
+                            responseMessageInstance.throwError(
+                                `There was an error while sending the email. ${error}`,
+                                500
+                            );
+                        }
+                    });
+                    console.log("order:", order.dataValues);
+                    return responseMessageInstance.getSuccess(
+                        res,
+                        200,
+                        result.data.message
+                    );
+                }
             }
             responseMessageInstance.throwError(
                 "Có lỗi trong quá trình xử lý",
@@ -469,6 +474,7 @@ export class StudentService {
                     400
                 );
             }
+            let amount = 0;
             if (order.status == PAYMENT_STATUS.PENDING_PAYMENT) {
                 order.status = PAYMENT_STATUS.REGISTRATION_CANCELLED;
                 await order.save();
@@ -489,7 +495,7 @@ export class StudentService {
                         momoConfig.partnerCode + new Date().getTime();
                     const transId = order.transId;
                     const description = `Huỷ đăng ký khoá học ${course.name}`;
-                    const amount = Math.round(order.amount * refundRate);
+                    amount = Math.round(order.amount * refundRate);
                     const rawSignature =
                         "accessKey=" +
                         momoConfig.accessKey +
@@ -521,7 +527,7 @@ export class StudentService {
                         signature: signature,
                     });
                     const options = {
-                        url: "https://test-payment.momo.vn/v2/gateway/api/refund",
+                        url: `${momoUrl}/refund`,
                         method: "POST",
                         headers: {
                             "Content-Type": "application/json",
@@ -531,6 +537,7 @@ export class StudentService {
                     };
                     const result = await axios(options);
                     if (result.status == 200) {
+                        order.amount = order.amount - amount;
                         order.status = PAYMENT_STATUS.REGISTRATION_CANCELLED;
                         await order.save();
                     }
@@ -539,7 +546,7 @@ export class StudentService {
             return responseMessageInstance.getSuccess(
                 res,
                 200,
-                "Huỷ thành công"
+                `Huỷ thành công, số tiền hoàn lại là ${amount}`
             );
         } catch (error) {
             console.log(error);

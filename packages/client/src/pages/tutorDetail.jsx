@@ -192,7 +192,6 @@ export default function TutorDetail() {
                                     <Typography variant="subtitle1">
                                         :{" "}
                                         {profileData && profileData.experience}{" "}
-                                        năm
                                     </Typography>
                                 </Grid>
 

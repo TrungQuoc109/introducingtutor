@@ -27,4 +27,9 @@ tutorRouter.post(
     middlewareInstance.Authen,
     tutorInstance.UpdateCourse
 );
+tutorRouter.post(
+    "/delete-lesson",
+    middlewareInstance.Authen,
+    tutorInstance.DeleteLesson
+);
 export { tutorRouter };

@@ -116,7 +116,6 @@ export default function MyCourse() {
                     );
                     const data = await response.json();
                     if (response.ok) {
-                        console.log(data);
                         alert(data.message);
                     } else {
                         if (response.status >= 500) {
@@ -154,7 +153,7 @@ export default function MyCourse() {
                 if (response.ok) {
                     const data = await response.json();
                     alert(data.message);
-                    fetchData();
+                    navigate("/my-course");
                 }
             } catch (error) {
                 console.log(error);
@@ -302,166 +301,238 @@ export default function MyCourse() {
                             </Grid>
                         ) : (
                             <List>
-                                {courses.map((course) => (
-                                    <ListItem key={course.id} divider>
-                                        <Grid
-                                            container
-                                            spacing={2}
-                                            alignItems="center"
-                                            style={{ cursor: "pointer" }}
-                                        >
-                                            <Grid
-                                                item
-                                                xs={8}
-                                                onClick={() =>
-                                                    handleListItemClick(
-                                                        course.id
-                                                    )
-                                                }
-                                                sx={{
-                                                    ...(clickedCourseId ===
-                                                        course.id && {
-                                                        bgcolor:
-                                                            "primary.light",
-                                                        color: "white",
-                                                        transition:
-                                                            "all 0.5s ease",
-                                                    }),
-                                                    cursor: "pointer",
-                                                }}
-                                            >
-                                                <ListItemText
-                                                    primary={`${course.name}`}
-                                                    secondary={
-                                                        <CourseDetails
-                                                            course={course}
-                                                            districts={
-                                                                districts
-                                                            }
-                                                            role={role}
-                                                            paymentStatus={
-                                                                paymentStatus
-                                                            }
-                                                            formatDate={
-                                                                formatDate
-                                                            }
-                                                        />
-                                                    }
-                                                />
-                                            </Grid>
-                                            {role == 1 ? (
-                                                <>
-                                                    <Grid item xs={2}>
-                                                        <Select
-                                                            value={
-                                                                selectedStatuses[
-                                                                    course.id
-                                                                ]
-                                                            }
-                                                            onChange={(
-                                                                event
-                                                            ) => {
-                                                                event.stopPropagation();
-                                                                handleStatusChange(
-                                                                    course.id,
-                                                                    event
-                                                                );
-                                                            }}
-                                                            size="small"
-                                                            fullWidth
-                                                        >
-                                                            {statusCourse &&
-                                                                statusCourse.map(
-                                                                    (
-                                                                        status,
-                                                                        index
-                                                                    ) => (
-                                                                        <MenuItem
-                                                                            key={
-                                                                                index
-                                                                            }
-                                                                            value={
-                                                                                index
-                                                                            }
-                                                                        >
-                                                                            {
-                                                                                status
-                                                                            }
-                                                                        </MenuItem>
-                                                                    )
-                                                                )}
-                                                        </Select>
-                                                    </Grid>
+                                {courses.map((course) =>
+                                    course.StudentTeachingSubjectMaps ? (
+                                        course.StudentTeachingSubjectMaps.map(
+                                            (item) => (
+                                                <ListItem
+                                                    key={course.id}
+                                                    divider
+                                                >
                                                     <Grid
-                                                        item
-                                                        xs={2}
+                                                        container
+                                                        spacing={2}
+                                                        alignItems="center"
                                                         style={{
-                                                            textAlign: "right",
+                                                            cursor: "pointer",
                                                         }}
                                                     >
-                                                        <Button
-                                                            variant="outlined"
-                                                            color="primary"
-                                                            onClick={(
-                                                                event
-                                                            ) => {
-                                                                event.stopPropagation();
-                                                                openEditDialog(
-                                                                    course
-                                                                );
+                                                        <Grid
+                                                            item
+                                                            xs={8}
+                                                            onClick={() =>
+                                                                handleListItemClick(
+                                                                    course.id
+                                                                )
+                                                            }
+                                                            sx={{
+                                                                ...(clickedCourseId ===
+                                                                    course.id && {
+                                                                    bgcolor:
+                                                                        "primary.light",
+                                                                    color: "white",
+                                                                    transition:
+                                                                        "all 0.5s ease",
+                                                                }),
+                                                                cursor: "pointer",
                                                             }}
                                                         >
-                                                            Chỉnh sửa
-                                                        </Button>
-                                                    </Grid>{" "}
-                                                </>
-                                            ) : (
+                                                            <ListItemText
+                                                                primary={
+                                                                    <Typography variant="h5">
+                                                                        {
+                                                                            course.name
+                                                                        }
+                                                                    </Typography>
+                                                                }
+                                                                secondary={
+                                                                    <CourseDetails
+                                                                        course={
+                                                                            course
+                                                                        }
+                                                                        districts={
+                                                                            districts
+                                                                        }
+                                                                        role={
+                                                                            role
+                                                                        }
+                                                                        status={
+                                                                            item.status
+                                                                        }
+                                                                        formatDate={
+                                                                            formatDate
+                                                                        }
+                                                                    />
+                                                                }
+                                                            />
+                                                        </Grid>
+
+                                                        <Grid
+                                                            item
+                                                            xs={12}
+                                                            sm={4}
+                                                            style={{
+                                                                display: "flex",
+                                                                flexDirection:
+                                                                    "column",
+                                                                alignItems:
+                                                                    "flex-end",
+                                                            }}
+                                                        >
+                                                            <Typography
+                                                                color="textPrimary"
+                                                                style={{
+                                                                    fontWeight:
+                                                                        "bold",
+                                                                    marginBottom:
+                                                                        "8px",
+                                                                }}
+                                                                onClick={() => {
+                                                                    handleCardClick(
+                                                                        course
+                                                                            .Tutor
+                                                                            .id
+                                                                    );
+                                                                }}
+                                                            >
+                                                                Gia sư:{" "}
+                                                                {
+                                                                    course.Tutor
+                                                                        .User
+                                                                        .name
+                                                                }
+                                                            </Typography>
+                                                            <Button
+                                                                variant="contained"
+                                                                disabled={
+                                                                    item.status ==
+                                                                    2
+                                                                }
+                                                                onClick={(
+                                                                    event
+                                                                ) => {
+                                                                    event.stopPropagation();
+                                                                    openCancelDialog(
+                                                                        course.id
+                                                                    );
+                                                                }}
+                                                            >
+                                                                Hủy đăng ký
+                                                            </Button>
+                                                        </Grid>
+                                                    </Grid>
+                                                </ListItem>
+                                            )
+                                        )
+                                    ) : (
+                                        <ListItem key={course.id} divider>
+                                            <Grid
+                                                container
+                                                spacing={2}
+                                                alignItems="center"
+                                                style={{ cursor: "pointer" }}
+                                            >
                                                 <Grid
                                                     item
-                                                    xs={12}
-                                                    sm={4}
-                                                    style={{
-                                                        display: "flex",
-                                                        flexDirection: "column",
-                                                        alignItems: "flex-end",
+                                                    xs={8}
+                                                    onClick={() =>
+                                                        handleListItemClick(
+                                                            course.id
+                                                        )
+                                                    }
+                                                    sx={{
+                                                        ...(clickedCourseId ==
+                                                            course.id && {
+                                                            bgcolor:
+                                                                "primary.light",
+                                                            color: "white",
+                                                            transition:
+                                                                "all 0.5s ease",
+                                                        }),
+                                                        cursor: "pointer",
                                                     }}
                                                 >
-                                                    <Typography
-                                                        color="textPrimary"
-                                                        style={{
-                                                            fontWeight: "bold",
-                                                            marginBottom: "8px", // Khoảng cách giữa tên và nút
-                                                        }}
-                                                        onClick={() => {
-                                                            handleCardClick(
-                                                                course.Tutor.id
-                                                            );
-                                                        }} // Thêm handler cho sự kiện click
-                                                    >
-                                                        Gia sư:{" "}
-                                                        {course.Tutor.User.name}
-                                                    </Typography>
-                                                    <Button
-                                                        variant="contained"
-                                                        disabled={
-                                                            course
-                                                                .StudentTeachingSubjectMaps[0]
-                                                                ?.status == 2
+                                                    <ListItemText
+                                                        primary={
+                                                            <Typography variant="h5">
+                                                                {course.name}
+                                                            </Typography>
                                                         }
-                                                        onClick={(event) => {
-                                                            event.stopPropagation(); // Ngăn chặn sự kiện lan tỏa
-                                                            openCancelDialog(
+                                                        secondary={
+                                                            <CourseDetails
+                                                                course={course}
+                                                                districts={
+                                                                    districts
+                                                                }
+                                                                role={role}
+                                                                formatDate={
+                                                                    formatDate
+                                                                }
+                                                            />
+                                                        }
+                                                    />
+                                                </Grid>
+                                                <Grid item xs={2}>
+                                                    <Select
+                                                        value={
+                                                            selectedStatuses[
                                                                 course.id
+                                                            ]
+                                                        }
+                                                        onChange={(event) => {
+                                                            event.stopPropagation();
+                                                            handleStatusChange(
+                                                                course.id,
+                                                                event
+                                                            );
+                                                        }}
+                                                        size="small"
+                                                        fullWidth
+                                                    >
+                                                        {statusCourse &&
+                                                            statusCourse.map(
+                                                                (
+                                                                    status,
+                                                                    index
+                                                                ) => (
+                                                                    <MenuItem
+                                                                        key={
+                                                                            index
+                                                                        }
+                                                                        value={
+                                                                            index
+                                                                        }
+                                                                    >
+                                                                        {status}
+                                                                    </MenuItem>
+                                                                )
+                                                            )}
+                                                    </Select>
+                                                </Grid>
+                                                <Grid
+                                                    item
+                                                    xs={2}
+                                                    style={{
+                                                        textAlign: "right",
+                                                    }}
+                                                >
+                                                    <Button
+                                                        variant="outlined"
+                                                        color="primary"
+                                                        onClick={(event) => {
+                                                            event.stopPropagation();
+                                                            openEditDialog(
+                                                                course
                                                             );
                                                         }}
                                                     >
-                                                        Hủy đăng ký
+                                                        Chỉnh sửa
                                                     </Button>
-                                                </Grid>
-                                            )}
-                                        </Grid>
-                                    </ListItem>
-                                ))}
+                                                </Grid>{" "}
+                                            </Grid>
+                                        </ListItem>
+                                    )
+                                )}
                             </List>
                         )}
 

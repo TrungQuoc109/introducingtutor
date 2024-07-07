@@ -36,6 +36,11 @@ userRouter.get("/search-tutor", userInstance.SearchTutor);
 userRouter.get("/search-course", userInstance.SearchCourse);
 userRouter.get("/get-tutor-detail/:tutorId", userInstance.GetTutorDetail);
 userRouter.get("/get-course-detail/:courseId", userInstance.GetCourseDetail);
+userRouter.get(
+    "/get-schedule",
+    middlewareInstance.Authen,
+    userInstance.GetSchedule
+);
 
 // -----------------------------------------------
 export { userRouter };

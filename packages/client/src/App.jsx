@@ -15,6 +15,7 @@ import UserManagement from "./pages/admin/manageUser";
 import CourseManagement from "./pages/admin/manageCourse";
 import SalaryCalculation from "./pages/admin/calculateSalary";
 import AboutUs from "./pages/aboutUs";
+import ForgotPasswordPage from "./pages/forgotPassword";
 
 function App() {
     return (
@@ -30,6 +31,10 @@ function App() {
                 <Route path="/course" element={<CoursePage />} />
                 <Route path="/tutor-detail" element={<TutorDetail />} />
                 <Route path="/about-us" element={<AboutUs />} />
+                <Route
+                    path="/forgot-password"
+                    element={<ForgotPasswordPage />}
+                />
                 <Route
                     path="/course-detail/:courseId"
                     element={<CourseDetail />}

@@ -368,7 +368,7 @@ function UserManagement() {
 
                                     <TableRow>
                                         <TableCell
-                                            colSpan={6}
+                                            colSpan={7}
                                             sx={{ padding: 0 }}
                                         >
                                             <Collapse

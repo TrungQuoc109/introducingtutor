@@ -17,7 +17,7 @@ import CardActionArea from "@mui/material/CardActionArea";
 import SearchIcon from "@mui/icons-material/Search";
 import Header from "../components/header";
 import Footer from "../components/Footer";
-import { baseURL, firebaseConfig } from "../config/config";
+import { baseURL, firebaseConfig, reCaptchaV3Provider } from "../config/config";
 import { initializeApp } from "firebase/app";
 import { getStorage, ref, getDownloadURL } from "firebase/storage";
 import { DataContext } from "../dataprovider/subject";
@@ -32,14 +32,22 @@ function TutorPage() {
     const [error, setError] = useState("");
     const [tutors, setTutors] = useState([]);
     const [page, setPage] = useState(0);
-    const app = initializeApp(firebaseConfig);
-    const storage = getStorage(app);
+
     const subjects = useContext(DataContext);
     const [totalPages, setTotalPages] = useState(0);
     const [searching, setSearching] = useState(false);
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
+    const app = initializeApp(firebaseConfig);
 
+    const storage = getStorage(app);
+    // const appCheck = initializeAppCheck(app, {
+    //     provider: new ReCaptchaV3Provider(reCaptchaV3Provider),
+
+    //     // Optional argument. If true, the SDK automatically refreshes App Check
+    //     // tokens as needed.
+    //     isTokenAutoRefreshEnabled: true,
+    // });
     const performSearch = (event) => {
         if (event) event.preventDefault();
 

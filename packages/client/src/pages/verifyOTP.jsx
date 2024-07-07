@@ -11,7 +11,7 @@ import {
     createTheme,
 } from "@mui/material";
 import Header from "../components/header";
-import Footer from "../components/footer";
+import Footer from "../components/Footer";
 import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
 import { ThemeProvider } from "@emotion/react";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -105,7 +105,7 @@ function VerifyPage() {
                         display: "flex",
                         flexDirection: "column",
                         alignItems: "center",
-                        height: "71.8vh",
+                        height: "82vh",
                         pt: 10,
                     }}
                 >

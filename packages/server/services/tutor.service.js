@@ -6,6 +6,7 @@ import {
     TeachingSubject,
     Tutor,
     TutorSubjectMap,
+    User,
 } from "../model/index.js";
 import { responseMessageInstance } from "../utils/index.js";
 import {
@@ -252,7 +253,7 @@ export class TutorService {
             );
 
             const startTime = data.startTime;
-            if (now > startDate) {
+            if (now > course.startDate) {
                 responseMessageInstance.throwError(
                     "Bạn không thể tạo thêm buổi học khi khoá học đã bắt đầu",
                     400
@@ -507,9 +508,81 @@ export class TutorService {
                     400
                 );
             }
+            if (existedCourse.startDate != course.startDate) {
+                const lesson = await Lesson.findOne({
+                    where: { teachingSubjectId: existedCourse.id },
+                });
+                if (lesson) {
+                    responseMessageInstance.throwError(
+                        "Vui lòng xoá các buổi học trước khi cập nhật ngày bắt đầu!",
+                        400
+                    );
+                }
+            }
             await existedCourse.update(course);
 
-            return responseMessageInstance.getSuccess(res, 200, "ok");
+            return responseMessageInstance.getSuccess(
+                res,
+                200,
+                "Cập nhật khoá học thành công"
+            );
+        } catch (error) {
+            console.log(error);
+            return responseMessageInstance.getError(
+                res,
+                error.code ?? 500,
+                error.message
+            );
+        }
+    }
+    async DeleteLesson(req, res) {
+        try {
+            const userId = req.userId;
+            const role = req.role;
+            const { courseId, lessonId } = req.body ?? {};
+            if (!role || role != ROLE.tutor) {
+                responseMessageInstance.throwError(
+                    "Bạn không có quyền truy cập!",
+                    401
+                );
+            }
+            if (!courseId || !lessonId) {
+                responseMessageInstance("Invalid courseId or lessonId");
+            }
+            const tutor = await Tutor.findOne({ where: { userId: userId } });
+            if (!tutor) {
+                responseMessageInstance.throwError(
+                    "Không tìm thấy gia sư",
+                    404
+                );
+            }
+            const course = await TeachingSubject.findByPk(courseId);
+            if (!course) {
+                responseMessageInstance.throwError(
+                    "Không tìm thấy khoá học",
+                    404
+                );
+            }
+            const lesson = await Lesson.findByPk(lessonId);
+            if (!lesson) {
+                responseMessageInstance.throwError(
+                    "Không tìm thấy buổi học",
+                    404
+                );
+            }
+            const now = new Date();
+            if (course.startDate < now) {
+                responseMessageInstance.throwError(
+                    "Bạn không thể xoá buổi học khi khoá học đã bắt đầu",
+                    400
+                );
+            }
+            await lesson.destroy();
+            return responseMessageInstance.getSuccess(
+                res,
+                200,
+                "Xoá buổi học thành công"
+            );
         } catch (error) {
             console.log(error);
             return responseMessageInstance.getError(
