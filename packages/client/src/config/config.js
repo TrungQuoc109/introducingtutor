@@ -9,7 +9,7 @@ export const firebaseConfig = {
 };
 
 export const reCaptchaV3Provider = "6LeadggqAAAAAMKN-SV4gM8qlFCeTCVpggPeTlf3";
-export const baseURL = 1
+export const baseURL = 0
     ? "http://localhost:5999/v1/api"
     : "https://introducingtutor.onrender.com/v1/api";
 export const statusCourse = [

@@ -9,7 +9,7 @@
         "dev:web": "yarn workspace client dev",
         "dev:server": "yarn workspace server dev",
         "dev:db": "yarn workspace server db",
-          "build": "yarn workspace client build"
+        "build": "yarn workspace client build"
     },
     "workspaces": [
         "packages/*"
