@@ -8,7 +8,8 @@
         "all": "concurrently --kill-others-on-fail \"yarn dev:server\" \"yarn dev:web\"",
         "dev:web": "yarn workspace client dev",
         "dev:server": "yarn workspace server dev",
-        "dev:db": "yarn workspace server db"
+        "dev:db": "yarn workspace server db",
+        "build": "yarn workspace client build"
     },
     "workspaces": [
         "packages/*"

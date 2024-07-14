@@ -245,13 +245,7 @@ export class AdminService {
 
             const { count, rows: courses } =
                 await TeachingSubject.findAndCountAll({
-                    attributes: [
-                        "id",
-                        "name",
-                        "description",
-                        "price",
-                        "status",
-                    ],
+                    attributes: ["id", "name", "price", "status"],
                     include: [
                         includeSubject,
                         {
