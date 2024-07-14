@@ -16,7 +16,7 @@ import { ThemeProvider } from "@emotion/react";
 import { useNavigate } from "react-router-dom";
 import { baseURL } from "../config/config";
 import Header from "../components/header";
-import Footer from "../components/Footer";
+import Footer from "../components/footer";
 
 const defaultTheme = createTheme();
 

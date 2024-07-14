@@ -23,17 +23,22 @@ const CourseDetails = ({ course, districts, role, status, formatDate }) => {
                         </div>
                     </Typography>
                 </Grid>
-                <Grid item xs={12} sm={6} md={2}>
+                <Grid item xs={12} sm={6} md={3}>
                     <Typography
                         component="div"
                         variant="body2"
                         color="textPrimary"
                     >
-                        <div>Lớp: {course.gradeLevel}</div>
-                        <div>Giá: {course.price}</div>
+                        <div>
+                            Giá:{" "}
+                            {!isNaN(course.price)
+                                ? course.price.toLocaleString("vi-VN")
+                                : "N/A"}
+                            {" VND"}
+                        </div>
                     </Typography>
                 </Grid>
-                <Grid item xs={12} md={4}>
+                <Grid item xs={12} md={3}>
                     <Typography
                         component="div"
                         variant="body2"

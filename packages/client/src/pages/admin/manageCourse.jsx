@@ -1,108 +1,449 @@
-import React, { useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import {
     Typography,
-    Button,
     Table,
     TableBody,
     TableCell,
     TableHead,
     TableRow,
-    Dialog,
-    DialogActions,
-    DialogContent,
-    DialogContentText,
-    DialogTitle,
-    TextField,
     Paper,
+    Select,
+    MenuItem,
+    CircularProgress,
+    Box,
+    FormControl,
+    InputLabel,
+    Button,
+    Collapse,
+    TextField,
+    Grid,
 } from "@mui/material";
+import Pagination from "@mui/material/Pagination";
+import {
+    baseURL,
+    districts,
+    renderNames,
+    statusCourse,
+} from "../../config/config";
+import { DataContext } from "../../dataprovider/subject";
 
 function CourseManagement() {
-    const [courses, setCourses] = useState([
-        { id: 1, name: "Math 101", instructor: "John Doe" },
-        { id: 2, name: "Physics 201", instructor: "Jane Smith" },
-    ]);
-    const [open, setOpen] = useState(false);
-    const [newCourse, setNewCourse] = useState({ name: "", instructor: "" });
+    const token = localStorage.getItem("token");
 
-    const handleOpen = () => {
-        setOpen(true);
+    const [loading, setLoading] = useState(true);
+    const [courses, setCourses] = useState([]);
+    const [selectedStatus, setSelectedStatus] = useState("");
+    const [selectedSubject, setSelectedSubject] = useState("");
+    const [selectedDistrict, setSelectedDistrict] = useState("");
+    const [searchText, setSearchText] = useState("");
+    const [expandedCourseId, setExpandedCourseId] = useState(null);
+    const [currentPage, setCurrentPage] = useState(0);
+    const [totalPages, setTotalPages] = useState(0);
+    const subjects = useContext(DataContext);
+    // Function to fetch data based on role, status, subject, district, and page
+    const fetchData = async (status, subject, district, page) => {
+        setLoading(true);
+        try {
+            let url = `${baseURL}/admin/get-list-course?page=${
+                page === 0 ? 0 : page - 1
+            }`;
+
+            if (status) url += `&status=${status}`;
+            if (subject) url += `&subject=${subject}`;
+            if (district) url += `&district=${district}`;
+            if (searchText) url += `&searchText=${searchText}`;
+
+            const response = await fetch(url, {
+                method: "GET",
+                headers: {
+                    "Content-Type": "application/json",
+                    authorization: `Bearer ${token}`,
+                },
+            });
+            const data = await response.json();
+            if (response.ok) {
+                setCourses(data.data.courses);
+                console.log(data.data.courses);
+                setTotalPages(data.data.page);
+            } else {
+                throw new Error(data.message);
+            }
+        } catch (error) {
+            console.error("Error fetching users:", error);
+        } finally {
+            setLoading(false);
+        }
     };
 
-    const handleClose = () => {
-        setOpen(false);
+    // Initial data fetch
+    useEffect(() => {
+        fetchData(
+            selectedStatus,
+            selectedSubject,
+            selectedDistrict,
+            currentPage
+        );
+    }, [currentPage]);
+
+    // Function to handle page change
+    const handlePageChange = (event, newPage) => {
+        setCurrentPage(newPage);
     };
 
-    const handleAddCourse = () => {
-        setCourses([...courses, { id: courses.length + 1, ...newCourse }]);
-        handleClose();
+    // Function to handle filter change
+    const handleFilterChange = () => {
+        setCurrentPage(0);
+        fetchData(selectedStatus, selectedSubject, selectedDistrict, 0);
+    };
+
+    const handleStatusChange = async (courseId, newStatus) => {
+        try {
+            const response = await fetch(
+                `${baseURL}/admin/change-status-user/${courseId}`,
+                {
+                    method: "PUT",
+                    headers: {
+                        "Content-Type": "application/json",
+                        authorization: `Bearer ${token}`,
+                    },
+                    body: JSON.stringify({ newStatus }),
+                }
+            );
+
+            if (response.ok) {
+                setCourses((prevUsers) =>
+                    prevUsers.map((course) =>
+                        course.id === courseId
+                            ? { ...course, status: newStatus }
+                            : course
+                    )
+                );
+            } else {
+                console.error("Failed to update user status");
+            }
+        } catch (error) {
+            console.error("Failed to update user status", error);
+        }
+    };
+    const fetchInforCourse = async (courseId) => {
+        try {
+            const response = await fetch(
+                `${baseURL}/admin/get-profile-user/${courseId}`,
+                {
+                    method: "GET",
+                    headers: {
+                        "Content-Type": "application/json",
+                        authorization: `Bearer ${token}`,
+                    },
+                }
+            );
+            const data = await response.json();
+            if (response.ok) {
+                setProfile(data.user);
+            }
+        } catch (error) {
+            console.log(error);
+        }
+    };
+    const toggleExpand = (courseId) => {
+        setExpandedCourseId((prevCourseId) => {
+            const newCourseId = prevCourseId === courseId ? null : courseId;
+            if (newCourseId !== null) {
+                fetchInforCourse(courseId);
+            }
+
+            return newCourseId;
+        });
     };
 
     return (
         <div>
             <Typography variant="h4" gutterBottom>
-                Manage Courses
+                Quản lý khoá học
             </Typography>
-            <Button variant="contained" color="primary" onClick={handleOpen}>
-                Add Course
-            </Button>
-            <Dialog open={open} onClose={handleClose}>
-                <DialogTitle>Add New Course</DialogTitle>
-                <DialogContent>
-                    <DialogContentText>
-                        Please enter the details of the new course.
-                    </DialogContentText>
-                    <TextField
-                        autoFocus
-                        margin="dense"
-                        label="Course Name"
-                        fullWidth
-                        value={newCourse.name}
-                        onChange={(e) =>
-                            setNewCourse({ ...newCourse, name: e.target.value })
-                        }
-                    />
-                    <TextField
-                        margin="dense"
-                        label="Instructor"
-                        fullWidth
-                        value={newCourse.instructor}
-                        onChange={(e) =>
-                            setNewCourse({
-                                ...newCourse,
-                                instructor: e.target.value,
-                            })
-                        }
-                    />
-                </DialogContent>
-                <DialogActions>
-                    <Button onClick={handleClose} color="primary">
-                        Cancel
-                    </Button>
-                    <Button onClick={handleAddCourse} color="primary">
-                        Add
-                    </Button>
-                </DialogActions>
-            </Dialog>
-            <Paper sx={{ mt: 2 }}>
-                <Table>
-                    <TableHead>
-                        <TableRow>
-                            <TableCell>ID</TableCell>
-                            <TableCell>Course Name</TableCell>
-                            <TableCell>Instructor</TableCell>
-                        </TableRow>
-                    </TableHead>
-                    <TableBody>
-                        {courses.map((course) => (
-                            <TableRow key={course.id}>
-                                <TableCell>{course.id}</TableCell>
-                                <TableCell>{course.name}</TableCell>
-                                <TableCell>{course.instructor}</TableCell>
-                            </TableRow>
+
+            <Box sx={{ display: "flex", gap: 2, mt: 2, flexWrap: "wrap" }}>
+                <TextField
+                    sx={{ minWidth: 400, maxWidth: 300 }}
+                    label="Tìm kiếm"
+                    variant="outlined"
+                    value={searchText}
+                    onChange={(e) => setSearchText(e.target.value)}
+                />
+
+                <FormControl sx={{ minWidth: 186, maxWidth: 300 }}>
+                    <InputLabel>Trạng thái</InputLabel>
+                    <Select
+                        value={selectedStatus}
+                        onChange={(e) => setSelectedStatus(e.target.value)}
+                        label="Trạng thái"
+                    >
+                        <MenuItem value="">
+                            <em>Tất cả</em>
+                        </MenuItem>
+                        {statusCourse.map((statusName, statusValue) => (
+                            <MenuItem key={statusValue} value={statusValue}>
+                                {statusName}
+                            </MenuItem>
                         ))}
-                    </TableBody>
-                </Table>
-            </Paper>
+                    </Select>
+                </FormControl>
+                <FormControl sx={{ minWidth: 186, maxWidth: 300 }}>
+                    <InputLabel>Môn giảng dạy</InputLabel>
+                    <Select
+                        value={selectedSubject}
+                        onChange={(e) => setSelectedSubject(e.target.value)}
+                        label="Môn giảng dạy"
+                        MenuProps={{
+                            PaperProps: {
+                                style: {
+                                    maxHeight: 200,
+                                },
+                            },
+                        }}
+                    >
+                        <MenuItem value="">
+                            <em>Tất cả</em>
+                        </MenuItem>
+                        {subjects &&
+                            subjects.data.map((subject) => (
+                                <MenuItem key={subject.id} value={subject.id}>
+                                    {subject.name}
+                                </MenuItem>
+                            ))}
+                    </Select>
+                </FormControl>
+                <FormControl sx={{ minWidth: 186, maxWidth: 300 }}>
+                    <InputLabel>Khu vực giảng dạy</InputLabel>
+                    <Select
+                        value={selectedDistrict}
+                        onChange={(e) => setSelectedDistrict(e.target.value)}
+                        label="Khu vực giảng dạy"
+                        MenuProps={{
+                            PaperProps: {
+                                style: {
+                                    maxHeight: 200,
+                                },
+                            },
+                        }}
+                    >
+                        <MenuItem value="">
+                            <em>Tất cả</em>
+                        </MenuItem>
+                        {districts.map((district) => (
+                            <MenuItem key={district.id} value={district.id}>
+                                {district.name}
+                            </MenuItem>
+                        ))}
+                    </Select>
+                </FormControl>
+                <Button variant="contained" onClick={handleFilterChange}>
+                    Lọc
+                </Button>
+            </Box>
+
+            {loading ? (
+                <Box
+                    sx={{
+                        display: "flex",
+                        justifyContent: "center",
+                        alignItems: "center",
+                        height: "50vh",
+                    }}
+                >
+                    <CircularProgress />
+                </Box>
+            ) : (
+                <Paper sx={{ mt: 2, overflowX: "auto" }}>
+                    <Table sx={{ minWidth: 600 }}>
+                        <TableHead>
+                            <TableRow>
+                                <TableCell
+                                    align="center"
+                                    sx={{
+                                        width: 24,
+                                        borderRight: "1px solid black",
+                                    }}
+                                >
+                                    STT
+                                </TableCell>
+                                <TableCell
+                                    align="center"
+                                    sx={{
+                                        width: 320,
+                                        borderRight: "1px solid black",
+                                    }}
+                                >
+                                    ID
+                                </TableCell>
+                                <TableCell
+                                    align="center"
+                                    sx={{ borderRight: "1px solid black" }}
+                                >
+                                    Tên khoá học
+                                </TableCell>
+                                <TableCell
+                                    align="center"
+                                    sx={{ borderRight: "1px solid black" }}
+                                >
+                                    Gia sư
+                                </TableCell>
+                                <TableCell
+                                    align="center"
+                                    sx={{ borderRight: "1px solid black" }}
+                                >
+                                    Môn học
+                                </TableCell>
+                                <TableCell
+                                    align="center"
+                                    sx={{ borderRight: "1px solid black" }}
+                                >
+                                    Giá
+                                </TableCell>
+                                <TableCell align="center" sx={{ width: 150 }}>
+                                    Trạng thái
+                                </TableCell>
+                            </TableRow>
+                        </TableHead>
+                        <TableBody>
+                            {courses.map((course, index) => (
+                                <React.Fragment key={course.id}>
+                                    <TableRow
+                                        key={course.id}
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            toggleExpand(course.id);
+                                        }}
+                                        sx={{ cursor: "pointer" }}
+                                    >
+                                        {" "}
+                                        <TableCell
+                                            align="center"
+                                            sx={{
+                                                borderRight: "1px solid black",
+                                            }}
+                                        >
+                                            {index + 1}
+                                        </TableCell>
+                                        <TableCell align="center">
+                                            {course.id}
+                                        </TableCell>
+                                        <TableCell align="center">
+                                            {course.name}
+                                        </TableCell>
+                                        <TableCell align="center">
+                                            {course.Tutor.User.name}
+                                        </TableCell>
+                                        <TableCell align="center">
+                                            {course.Subject.name}
+                                        </TableCell>
+                                        <TableCell align="center">
+                                            {course.price}
+                                        </TableCell>
+                                        <TableCell>
+                                            <Select
+                                                fullWidth
+                                                value={course.status}
+                                                onClick={(e) =>
+                                                    e.stopPropagation()
+                                                }
+                                                onChange={(e) => {
+                                                    handleStatusChange(
+                                                        course.id,
+                                                        e.target.value
+                                                    );
+                                                }}
+                                            >
+                                                {statusCourse.map(
+                                                    (
+                                                        statusName,
+                                                        statusValue
+                                                    ) => (
+                                                        <MenuItem
+                                                            key={statusValue}
+                                                            value={statusValue}
+                                                        >
+                                                            {statusName}
+                                                        </MenuItem>
+                                                    )
+                                                )}
+                                            </Select>
+                                        </TableCell>
+                                    </TableRow>
+                                    {
+                                        <TableRow>
+                                            <TableCell
+                                                colSpan={7}
+                                                sx={{ padding: 0 }}
+                                            >
+                                                <Collapse
+                                                    in={
+                                                        expandedCourseId ===
+                                                        course.id
+                                                    }
+                                                    timeout="auto"
+                                                    unmountOnExit
+                                                >
+                                                    {" "}
+                                                    <Grid container spacing={2}>
+                                                        <Grid item xs={6}>
+                                                            <Box margin={2}>
+                                                                <Typography
+                                                                    variant="body1"
+                                                                    gutterBottom
+                                                                >
+                                                                    Chi tiết:
+                                                                </Typography>
+
+                                                                <Box pl={6}>
+                                                                    <Typography>
+                                                                        Trình
+                                                                        độ:{" "}
+                                                                    </Typography>
+                                                                    <Typography>
+                                                                        Kinh
+                                                                        nghiệm:{" "}
+                                                                    </Typography>
+                                                                    <Typography>
+                                                                        Môn
+                                                                        giảng
+                                                                        dạy:{" "}
+                                                                    </Typography>
+                                                                    <Typography>
+                                                                        Khu vực
+                                                                        giảng
+                                                                        dạy:{" "}
+                                                                    </Typography>
+                                                                </Box>
+                                                            </Box>
+                                                        </Grid>
+                                                    </Grid>
+                                                </Collapse>
+                                            </TableCell>
+                                        </TableRow>
+                                    }
+                                </React.Fragment>
+                            ))}
+                        </TableBody>
+                    </Table>
+                    <Box
+                        sx={{
+                            mt: 2,
+                            display: "flex",
+                            justifyContent: "center",
+                        }}
+                    >
+                        <Pagination
+                            count={totalPages}
+                            page={currentPage}
+                            onChange={handlePageChange}
+                            color="primary"
+                            showFirstButton
+                            showLastButton
+                        />
+                    </Box>
+                </Paper>
+            )}
         </div>
     );
 }

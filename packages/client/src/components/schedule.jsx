@@ -9,15 +9,15 @@ import {
     Paper,
     Typography,
 } from "@mui/material";
+import { getDayOfWeekLabel } from "../config/config";
 
 const Schedule = ({ data, role }) => {
-    console.log(data);
     return (
         <TableContainer component={Paper}>
             <Table>
                 <TableHead>
                     <TableRow>
-                        <TableCell align="center" colSpan={4}>
+                        <TableCell align="center" colSpan={5}>
                             <Typography
                                 variant="h4"
                                 component="div"
@@ -28,19 +28,21 @@ const Schedule = ({ data, role }) => {
                         </TableCell>
                     </TableRow>
                     <TableRow>
-                        <TableCell align="center">Thứ</TableCell>
+                        <TableCell align="center">Số thứ tự</TableCell>
                         <TableCell align="center">Tên khoá học</TableCell>
+                        <TableCell align="center">Thứ</TableCell>
                         <TableCell align="center">Giờ học</TableCell>
                         <TableCell align="center">Thời lượng</TableCell>
                     </TableRow>
                 </TableHead>
                 <TableBody>
-                    {data.map((item) => (
+                    {data.map((item, index) => (
                         <TableRow key={item.id}>
+                            <TableCell align="center">{index + 1}</TableCell>{" "}
+                            <TableCell>{item.TeachingSubject.name}</TableCell>{" "}
                             <TableCell align="center">
-                                {item.dayOfWeek}
+                                {getDayOfWeekLabel(item.dayOfWeek)}
                             </TableCell>
-                            <TableCell>{item.TeachingSubject.name}</TableCell>
                             <TableCell align="center">
                                 {item.startTime}
                             </TableCell>

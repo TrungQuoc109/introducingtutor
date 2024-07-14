@@ -17,6 +17,12 @@ export class AdminController {
     async ChangeStatusUser(req, res) {
         return await adminServiceInstance.ChangeStatusUser(req, res);
     }
+    async GetProfileUser(req, res) {
+        return await adminServiceInstance.GetProfileUser(req, res);
+    }
+    async GetListCourses(req, res) {
+        return await adminServiceInstance.GetListCourses(req, res);
+    }
 }
 //------------------------------------------------
 export const adminInstance = AdminController.getInstance();

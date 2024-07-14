@@ -12,4 +12,15 @@ adminRouter.put(
     middlewareInstance.AdminAuthen,
     adminInstance.ChangeStatusUser
 );
+adminRouter.get(
+    "/get-profile-user/:userId",
+    middlewareInstance.AdminAuthen,
+    adminInstance.GetProfileUser
+);
+adminRouter.get(
+    "/get-list-course",
+    middlewareInstance.AdminAuthen,
+    adminInstance.GetListCourses
+);
+
 export { adminRouter };

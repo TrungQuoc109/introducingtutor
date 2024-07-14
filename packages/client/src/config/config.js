@@ -9,7 +9,9 @@ export const firebaseConfig = {
 };
 
 export const reCaptchaV3Provider = "6LeadggqAAAAAMKN-SV4gM8qlFCeTCVpggPeTlf3";
-export const baseURL = "http://localhost:5999/v1/api";
+export const baseURL = 1
+    ? "http://localhost:5999/v1/api"
+    : "https://introducingtutor.onrender.com/v1/api";
 export const statusCourse = [
     "Vô hiệu hóa",
     "Mở đăng ký",
@@ -45,6 +47,17 @@ export const getDayOfWeekLabel = (dayOfWeek) => {
         8: "Chủ nhật",
     };
     return days[dayOfWeek];
+};
+export const renderNames = (selectedIds, array) => {
+    let itemsArray = Array.isArray(array) ? array : array.data;
+    const sortedSelectedIds = selectedIds.sort((a, b) =>
+        a.toString().localeCompare(b.toString(), undefined, { numeric: true })
+    );
+
+    return sortedSelectedIds
+        .map((id) => itemsArray.find((item) => item.id === id)?.name)
+        .filter((name) => name)
+        .join(", ");
 };
 export const districts = [
     {

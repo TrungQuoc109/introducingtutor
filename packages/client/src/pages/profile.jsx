@@ -11,8 +11,14 @@ import {
     DialogContent,
     DialogTitle,
     Dialog,
+    FormControl,
+    InputLabel,
+    Select,
+    OutlinedInput,
+    Chip,
+    MenuItem,
 } from "@mui/material";
-import Footer from "../components/Footer";
+import Footer from "../components/footer";
 import Header from "../components/header";
 import { baseURL, districts, firebaseConfig } from "../config/config";
 // Firebase imports
@@ -22,6 +28,7 @@ import { DataContext } from "../dataprovider/subject";
 import logo from "../../public/image/Logo_STU.png";
 import { useNavigate } from "react-router-dom";
 import Schedule from "../components/schedule";
+import SubjectSelect from "../components/selected";
 export default function Profile() {
     const token = localStorage.getItem("token");
     const role = localStorage.getItem("role");
@@ -38,6 +45,16 @@ export default function Profile() {
     const [isChange, setIsChange] = useState(false);
     const [oldEmail, setOldEmail] = useState("");
     const navigate = useNavigate();
+
+    const handleSubjectChange = (newSelectedSubjects) => {
+        setIsChange(true);
+        setSelectedSubjectIds(newSelectedSubjects);
+    };
+
+    const handleLocationChange = (newSelectedLocation) => {
+        setIsChange(true);
+        setSelectedAddresses(newSelectedLocation);
+    };
     const [profileData, setProfileData] = useState({
         name: "",
         email: "",
@@ -151,8 +168,8 @@ export default function Profile() {
                     authorization: `Bearer ${token}`,
                 },
             });
+            const data = await response.json();
             if (response.ok) {
-                const data = await response.json();
                 setProfileData(data.data.user);
                 setOldEmail(data.data.user.email);
                 if (role == 1) {
@@ -169,7 +186,7 @@ export default function Profile() {
                 const imageUrl = await fetchImageUrl(data.data.user.id);
                 setImageUrl(imageUrl);
             } else {
-                console.error("Failed to fetch profile data");
+                navigate("/login");
             }
         } catch (error) {
             console.error("Error fetching profile data:", error);
@@ -215,13 +232,6 @@ export default function Profile() {
         validateField(name, value);
     };
 
-    const renderNames = (selectedIds, array) => {
-        let itemsArray = Array.isArray(array) ? array : array.data;
-        return selectedIds
-            .map((id) => itemsArray.find((item) => item.id == id)?.name)
-            .filter((name) => name) // Lọc ra các giá trị undefined hoặc null
-            .join(", ");
-    };
     const handleExtraInfoChange = (event) => {
         const { name, value } = event.target;
         setIsChange(true);
@@ -242,7 +252,6 @@ export default function Profile() {
     };
 
     const handleSave = async () => {
-        console.log(isChange);
         if (!isChange) {
             alert("Không có gì thay đổi ");
             return;
@@ -250,7 +259,9 @@ export default function Profile() {
         const token = localStorage.getItem("token");
         event.preventDefault();
         const hasErrors = Object.values(errors).some((errorMsg) => errorMsg);
-        //  console.log(profileData);
+        profileData.subject = selectedSubjectIds;
+        profileData.location = selectedAddresses;
+        console.log(profileData);
         if (validateForm() && !hasErrors) {
             try {
                 const response = await fetch(`${baseURL}/user/send-otp`, {
@@ -368,12 +379,12 @@ export default function Profile() {
                                         src={imgURL ?? logo}
                                         alt="Profile"
                                         sx={{
-                                             width: "100%", // Full width on smaller screens
+                                            width: "100%", // Full width on smaller screens
                                             maxWidth: 300, // Maximum width on larger screens
-                                             height: "auto",
+                                            height: "auto",
                                             objectFit: "contain",
                                             mx: "auto", // Center align image
-                                             mb: { xs: 4, md: 0 }, // Margin bottom spacing based on screen size
+                                            mb: { xs: 4, md: 0 }, // Margin bottom spacing based on screen size
                                         }}
                                     />
                                 </Grid>
@@ -492,34 +503,22 @@ export default function Profile() {
                                                     mb: 2, // Margin bottom
                                                 }}
                                             />
-                                            {subjects && (
-                                                <Typography
-                                                    variant="body1"
-                                                    sx={{
-                                                        mb: 2, // Margin bottom
-                                                    }}
-                                                >
-                                                    Môn học giảng dạy:{" "}
-                                                    {renderNames(
-                                                        selectedSubjectIds,
-                                                        subjects
-                                                    )}
-                                                </Typography>
-                                            )}
-                                            {selectedAddresses && (
-                                                <Typography
-                                                    variant="body1"
-                                                    sx={{
-                                                        mb: 2, // Margin bottom
-                                                    }}
-                                                >
-                                                    Địa chỉ giảng dạy:{" "}
-                                                    {renderNames(
-                                                        selectedAddresses,
-                                                        districts
-                                                    )}
-                                                </Typography>
-                                            )}
+                                            <SubjectSelect
+                                                allOptions={subjects.data}
+                                                selectedOptions={
+                                                    selectedSubjectIds
+                                                }
+                                                onChange={handleSubjectChange}
+                                                label={"Môn học"}
+                                            />
+                                            <SubjectSelect
+                                                allOptions={districts}
+                                                selectedOptions={
+                                                    selectedAddresses
+                                                }
+                                                onChange={handleLocationChange}
+                                                label={"Khu vực"}
+                                            />
                                         </>
                                     )}
                                     {profileData.role == 2 && (
@@ -625,7 +624,7 @@ export default function Profile() {
                     </Container>
                 </Box>
             </Container>
-            <Footer /> {/* Footer component */}
+            <Footer />
         </React.Fragment>
     );
 }

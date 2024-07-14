@@ -34,7 +34,7 @@ import {
     getDayOfWeekLabel,
 } from "../config/config";
 import Header from "../components/header";
-import Footer from "../components/Footer";
+import Footer from "../components/footer";
 import RegisterButton from "../components/registerButton";
 // Mock data, replace this with your data fetching logic
 
@@ -111,8 +111,8 @@ export default function CourseDetail() {
                     authorization: `Bearer ${token}`,
                 },
                 body: JSON.stringify({
-                    courseId: courseId, // Lấy từ useParams() nếu cần
-                    ...formLesson, // Đảm bảo formLesson đã chứa tất cả dữ liệu cần thiết cho API
+                    courseId: courseId,
+                    ...formLesson,
                 }),
             });
             const data = await response.json();
@@ -128,7 +128,6 @@ export default function CourseDetail() {
         } catch (error) {
             alert(`${error}`);
             console.error("Lỗi khi thêm buổi học:", error);
-            // Xử lý lỗi, thông báo cho người dùng...
         }
     };
     const handleDeleteLesson = async (lessonId) => {
@@ -192,6 +191,16 @@ export default function CourseDetail() {
                                     elevation={3}
                                     sx={{ p: 4, ml: 3.2, width: "100%" }}
                                 >
+                                    {" "}
+                                    <Button
+                                        variant="contained"
+                                        sx={{ mb: 2 }}
+                                        onClick={() => {
+                                            window.history.back();
+                                        }}
+                                    >
+                                        Quay lại
+                                    </Button>
                                     <Grid container spacing={2}>
                                         {/* Tiêu Đề */}
                                         <Grid item xs={12}>
@@ -203,7 +212,6 @@ export default function CourseDetail() {
                                                     courseDetail.name}
                                             </Typography>
                                         </Grid>
-
                                         {/* Cặp Tiêu đề và Nội dung */}
                                         <Grid item xs={12} sm={2}>
                                             <Typography>Mô tả</Typography>
@@ -233,20 +241,6 @@ export default function CourseDetail() {
                                         <Grid item container xs={12} sm={6}>
                                             <Grid item xs={4}>
                                                 <Typography variant="subtitle1">
-                                                    Lớp
-                                                </Typography>
-                                            </Grid>
-                                            <Grid item xs={8}>
-                                                <Typography variant="subtitle1">
-                                                    :{" "}
-                                                    {courseDetail &&
-                                                        courseDetail.gradeLevel}
-                                                </Typography>
-                                            </Grid>
-                                        </Grid>
-                                        <Grid item container xs={12} sm={6}>
-                                            <Grid item xs={4}>
-                                                <Typography variant="subtitle1">
                                                     Số buổi
                                                 </Typography>
                                             </Grid>
@@ -262,26 +256,6 @@ export default function CourseDetail() {
                                         <Grid item container xs={12} sm={6}>
                                             <Grid item xs={4}>
                                                 <Typography variant="subtitle1">
-                                                    Số học viên
-                                                </Typography>
-                                            </Grid>
-                                            <Grid item xs={8}>
-                                                <Typography variant="subtitle1">
-                                                    :{" "}
-                                                    {courseDetail &&
-                                                    typeof registeredStudents !==
-                                                        "undefined" &&
-                                                    typeof courseDetail.studentCount !==
-                                                        "undefined"
-                                                        ? `${registeredStudents}/${courseDetail.studentCount}`
-                                                        : "Thông tin không khả dụng"}
-                                                </Typography>
-                                            </Grid>
-                                        </Grid>
-
-                                        <Grid item container xs={12} sm={6}>
-                                            <Grid item xs={4}>
-                                                <Typography variant="subtitle1">
                                                     Bắt đầu từ:
                                                 </Typography>
                                             </Grid>
@@ -294,15 +268,23 @@ export default function CourseDetail() {
                                                         )}
                                                 </Typography>
                                             </Grid>
-                                        </Grid>
+                                        </Grid>{" "}
                                         <Grid item container xs={12} sm={6}>
                                             <Grid item xs={4}>
-                                                <Typography variant="subtitle1">
+                                                <Typography
+                                                    variant="subtitle1"
+                                                    fontWeight="bold"
+                                                    color="primary"
+                                                >
                                                     Kết thúc dự kiến
                                                 </Typography>
                                             </Grid>
                                             <Grid item xs={8}>
-                                                <Typography variant="subtitle1">
+                                                <Typography
+                                                    variant="subtitle1"
+                                                    fontWeight="bold"
+                                                    color="primary"
+                                                >
                                                     :{" "}
                                                     {courseDetail &&
                                                         formatDate(
@@ -311,39 +293,44 @@ export default function CourseDetail() {
                                                 </Typography>
                                             </Grid>
                                         </Grid>
-                                        <Grid item xs={12} sm={2}>
-                                            <Typography variant="subtitle1">
-                                                Giá
-                                            </Typography>
+                                        <Grid item container xs={12} sm={6}>
+                                            <Grid item xs={4}>
+                                                <Typography variant="subtitle1">
+                                                    Số học viên đã đăng ký
+                                                </Typography>
+                                            </Grid>
+                                            <Grid item xs={8}>
+                                                <Typography variant="subtitle1">
+                                                    :{" "}
+                                                    {courseDetail &&
+                                                    typeof registeredStudents !==
+                                                        "undefined"
+                                                        ? `${registeredStudents}`
+                                                        : "Thông tin không khả dụng"}
+                                                </Typography>
+                                            </Grid>
                                         </Grid>
-                                        <Grid item xs={12} sm={10}>
-                                            <Typography variant="subtitle1">
-                                                :{" "}
-                                                {courseDetail &&
-                                                !isNaN(courseDetail.price)
-                                                    ? courseDetail.price.toLocaleString(
-                                                          "vi-VN"
-                                                      )
-                                                    : "N/A"}{" "}
-                                                VND
-                                            </Typography>
-                                        </Grid>
-                                        <Grid item xs={12} sm={2}>
-                                            <Typography variant="subtitle1">
-                                                Địa chỉ
-                                            </Typography>
-                                        </Grid>
-                                        <Grid item xs={12} sm={10}>
-                                            <Typography variant="subtitle1">
-                                                : {courseDetail.specificAddress}
-                                                ,{" "}
-                                                {courseDetail &&
-                                                    districts.find(
-                                                        (district) =>
-                                                            district.id ==
-                                                            courseDetail.location
-                                                    )?.name}
-                                            </Typography>
+                                        <Grid item container xs={12} sm={6}>
+                                            <Grid item xs={12} sm={2}>
+                                                <Typography variant="subtitle1">
+                                                    Địa chỉ
+                                                </Typography>
+                                            </Grid>
+                                            <Grid item xs={12} sm={10}>
+                                                <Typography variant="subtitle1">
+                                                    :{" "}
+                                                    {
+                                                        courseDetail.specificAddress
+                                                    }
+                                                    ,{" "}
+                                                    {courseDetail &&
+                                                        districts.find(
+                                                            (district) =>
+                                                                district.id ==
+                                                                courseDetail.location
+                                                        )?.name}
+                                                </Typography>
+                                            </Grid>
                                         </Grid>
                                     </Grid>
                                     <Grid
@@ -357,40 +344,25 @@ export default function CourseDetail() {
                                                 Danh sách buổi học
                                             </Typography>
                                         </Grid>
-                                        {fromPage == "mycourse" && role == 1 ? (
-                                            <Grid item xs={2}>
-                                                <Button
-                                                    variant="contained"
-                                                    color="primary"
-                                                    disabled={
-                                                        currentDate >
-                                                        courseStartDate
-                                                    }
-                                                    onClick={(event) => {
-                                                        event.stopPropagation();
-                                                        handleOpenDialog();
-                                                    }}
-                                                >
-                                                    Thêm buổi học
-                                                </Button>
-                                            </Grid>
-                                        ) : (
-                                            role == 2 && (
+                                        {fromPage == "mycourse" &&
+                                            role == 1 && (
                                                 <Grid item xs={2}>
-                                                    <RegisterButton
-                                                        courseId={
-                                                            courseDetail.id
+                                                    <Button
+                                                        variant="contained"
+                                                        color="primary"
+                                                        disabled={
+                                                            currentDate >
+                                                            courseStartDate
                                                         }
-                                                        price={
-                                                            courseDetail.price
-                                                        }
-                                                        status={
-                                                            courseDetail.status
-                                                        }
-                                                    />
+                                                        onClick={(event) => {
+                                                            event.stopPropagation();
+                                                            handleOpenDialog();
+                                                        }}
+                                                    >
+                                                        Thêm buổi học
+                                                    </Button>
                                                 </Grid>
-                                            )
-                                        )}
+                                            )}
                                     </Grid>
                                     <TableContainer
                                         component={Paper}
@@ -472,7 +444,24 @@ export default function CourseDetail() {
                                                 )}
                                             </TableBody>
                                         </Table>
-                                    </TableContainer>
+                                    </TableContainer>{" "}
+                                    {role == 2 && (
+                                        <Grid
+                                            item
+                                            xs={12}
+                                            mt={2}
+                                            style={{
+                                                display: "flex",
+                                                justifyContent: "flex-end",
+                                            }}
+                                        >
+                                            <RegisterButton
+                                                courseId={courseDetail.id}
+                                                price={courseDetail.price}
+                                                status={courseDetail.status}
+                                            />
+                                        </Grid>
+                                    )}{" "}
                                 </Paper>
                             ) : (
                                 <Box
