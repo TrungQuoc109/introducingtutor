@@ -668,6 +668,7 @@ export class UserService {
             const userId = req.userId;
             const userInfo = req.body.data ?? {};
             const verify = req.body.verify ?? "";
+            console.log(req.body);
 
             if (
                 !verify ||
@@ -792,7 +793,7 @@ export class UserService {
             }
 
             if (user.role == ROLE.student && user.Student != null) {
-                if (user.Student.gradeLevel !== userInfo.Student.gradeLevel) {
+                if (user.Student.gradeLevel != userInfo.Student.gradeLevel) {
                     user.Student.gradeLevel = userInfo.Student.gradeLevel;
                     hasChanges = true;
                 }
@@ -805,8 +806,58 @@ export class UserService {
                 ) {
                     user.Tutor.education = userInfo.Tutor.education;
                     user.Tutor.experience = userInfo.Tutor.experience;
-                    hasChanges = true;
                 }
+                const subjects = await TutorSubjectMap.findAll({
+                    attributes: ["subjectId"],
+                    where: { tutorId: user.Tutor.id },
+                    raw: true,
+                });
+                const locations = await Location.findAll({
+                    attributes: ["districtsId"],
+                    where: { tutorId: user.Tutor.id },
+                    raw: true,
+                });
+                console.log(subjects);
+                const setSubject = new Set(
+                    subjects.map((subject) => subject.subjectId)
+                );
+                const setLocations = new Set(
+                    locations.map((location) => location.districtsId)
+                );
+
+                const newSubjects = userInfo.subject.filter(
+                    (subjectId) => !setSubject.has(subjectId)
+                );
+                const newLocations = userInfo.location.filter(
+                    (location) => !setLocations.has(location)
+                );
+                const newDistrictNames = districts
+                    .filter((district) =>
+                        newLocations.includes(parseInt(district.id))
+                    )
+                    .map((district) => ({
+                        name: district.name,
+                        id: district.id,
+                    }));
+                console.log(newLocations);
+                const savePromises = [
+                    ...newSubjects.map((subjectId) =>
+                        TutorSubjectMap.create({
+                            subjectId,
+                            tutorId: user.Tutor.id,
+                        })
+                    ),
+                    ...newDistrictNames.map((location) =>
+                        Location.create({
+                            districtsId: location.id,
+                            name: location.name,
+
+                            tutorId: user.Tutor.id,
+                        })
+                    ),
+                ];
+                Promise.all(savePromises);
+                hasChanges = true;
             }
 
             if (hasChanges) {
@@ -815,7 +866,6 @@ export class UserService {
                     await user.Student.save();
                 }
                 if (user.Tutor) {
-                    console.log(1);
                     await user.Tutor.save();
                 }
                 return responseMessageInstance.getSuccess(
@@ -867,12 +917,12 @@ export class UserService {
                         "name",
 
                         "description",
-                        "gradeLevel",
+
                         "startDate",
                         "numberOfSessions",
                         "location",
                         "price",
-                        "studentCount",
+
                         "status",
                         "specificAddress",
                     ],
@@ -901,7 +951,10 @@ export class UserService {
                         },
                         startDate: { [Op.gte]: new Date() },
                     },
-                    order: [["status", "asc"]],
+                    order: [
+                        ["status", "asc"],
+                        ["startDate", "asc"],
+                    ],
                     limit: limit,
                     offset: page * limit,
                 });
@@ -972,7 +1025,7 @@ export class UserService {
                     "id",
                     "name",
                     "subjectId",
-                    "gradeLevel",
+
                     "startDate",
                     "numberOfSessions",
                     "location",
@@ -1006,7 +1059,7 @@ export class UserService {
                     ],
                 });
             } else if (userRole == 1) {
-                queryOptions.attributes.push("studentCount", "status");
+                queryOptions.attributes.push("status");
 
                 const tutorInclude = queryOptions.include.find(
                     (inc) => inc.model === Tutor
@@ -1155,12 +1208,12 @@ export class UserService {
                             "id",
                             "name",
                             "description",
-                            "gradeLevel",
+
                             "startDate",
                             "numberOfSessions",
                             "location",
                             "price",
-                            "studentCount",
+
                             "status",
                         ],
                         include: [
@@ -1194,10 +1247,10 @@ export class UserService {
                 attributes: [
                     "id",
                     "description",
-                    "gradeLevel",
+
                     "name",
                     "numberOfSessions",
-                    "studentCount",
+
                     "price",
                     "startDate",
                     "specificAddress",
@@ -1293,13 +1346,13 @@ export class UserService {
                     "id",
                     "name",
                     "description",
-                    "gradeLevel",
+
                     "startDate",
                     "numberOfSessions",
                     "specificAddress",
                     "location",
                     "price",
-                    "studentCount",
+
                     "status",
                 ],
                 include: [
@@ -1323,6 +1376,7 @@ export class UserService {
                         ],
                     },
                 },
+                order: [["startDate", "asc"]],
                 limit: limit,
                 offset: page * limit,
             };
@@ -1437,7 +1491,7 @@ export class UserService {
                 // Nếu dayOfWeek giống nhau, sắp xếp theo startTime
                 return a.startTime.localeCompare(b.startTime);
             });
-            console.log(schedule);
+
             return responseMessageInstance.getSuccess(res, 200, "Ok", {
                 schedule,
             });

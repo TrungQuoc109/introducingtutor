@@ -16,13 +16,21 @@ import {
     Button,
     Collapse,
     TextField,
+    Grid,
 } from "@mui/material";
 import Pagination from "@mui/material/Pagination";
-import { baseURL, userRole, userStatus, districts } from "../../config/config";
+import {
+    baseURL,
+    userRole,
+    userStatus,
+    districts,
+    renderNames,
+} from "../../config/config";
 import { DataContext } from "../../dataprovider/subject";
 
 function UserManagement() {
     const token = localStorage.getItem("token");
+    const [profile, setProfile] = useState(null);
     const [users, setUsers] = useState([]);
     const [loading, setLoading] = useState(true);
     const [selectedRole, setSelectedRole] = useState("");
@@ -125,11 +133,35 @@ function UserManagement() {
             console.error("Failed to update user status", error);
         }
     };
-
+    const fetchProfileUser = async (userId) => {
+        try {
+            const response = await fetch(
+                `${baseURL}/admin/get-profile-user/${userId}`,
+                {
+                    method: "GET",
+                    headers: {
+                        "Content-Type": "application/json",
+                        authorization: `Bearer ${token}`,
+                    },
+                }
+            );
+            const data = await response.json();
+            if (response.ok) {
+                setProfile(data.user);
+            }
+        } catch (error) {
+            console.log(error);
+        }
+    };
     const toggleExpand = (userId) => {
-        setExpandedUserId((prevUserId) =>
-            prevUserId === userId ? null : userId
-        );
+        setExpandedUserId((prevUserId) => {
+            const newUserId = prevUserId === userId ? null : userId;
+            if (newUserId !== null) {
+                fetchProfileUser(userId);
+            }
+            console.log(profile);
+            return newUserId;
+        });
     };
 
     return (
@@ -366,40 +398,148 @@ function UserManagement() {
                                         </TableCell>
                                     </TableRow>
 
-                                    <TableRow>
-                                        <TableCell
-                                            colSpan={7}
-                                            sx={{ padding: 0 }}
-                                        >
-                                            <Collapse
-                                                in={expandedUserId === user.id}
-                                                timeout="auto"
-                                                unmountOnExit
+                                    {profile && (
+                                        <TableRow>
+                                            <TableCell
+                                                colSpan={7}
+                                                sx={{ padding: 0 }}
                                             >
-                                                <Box margin={1}>
-                                                    <Typography
-                                                        variant="body1"
-                                                        gutterBottom
-                                                    >
-                                                        Chi tiết:
-                                                    </Typography>
-                                                    <Typography
-                                                        variant="body2"
-                                                        component="div"
-                                                    >
-                                                        <Box p={2}>
-                                                            <Typography>
-                                                                Ví dụ chi tiết
-                                                                thông tin khác
-                                                                của người dùng{" "}
-                                                                {user.id}
-                                                            </Typography>
-                                                        </Box>
-                                                    </Typography>
-                                                </Box>
-                                            </Collapse>
-                                        </TableCell>
-                                    </TableRow>
+                                                <Collapse
+                                                    in={
+                                                        expandedUserId ===
+                                                        user.id
+                                                    }
+                                                    timeout="auto"
+                                                    unmountOnExit
+                                                >
+                                                    {" "}
+                                                    <Grid container spacing={2}>
+                                                        <Grid item xs={6}>
+                                                            <Box margin={2}>
+                                                                <Typography
+                                                                    variant="body1"
+                                                                    gutterBottom
+                                                                >
+                                                                    Chi tiết:
+                                                                </Typography>
+
+                                                                <Box pl={6}>
+                                                                    {profile.role ==
+                                                                    2 ? (
+                                                                        <Typography>
+                                                                            Lớp:{" "}
+                                                                            {
+                                                                                profile
+                                                                                    .Student
+                                                                                    .gradeLevel
+                                                                            }
+                                                                        </Typography>
+                                                                    ) : (
+                                                                        <>
+                                                                            <Typography>
+                                                                                Trình
+                                                                                độ:{" "}
+                                                                                {
+                                                                                    profile
+                                                                                        .Tutor
+                                                                                        .education
+                                                                                }
+                                                                            </Typography>
+                                                                            <Typography>
+                                                                                Kinh
+                                                                                nghiệm:{" "}
+                                                                                {
+                                                                                    profile
+                                                                                        .Tutor
+                                                                                        .experience
+                                                                                }
+                                                                            </Typography>
+                                                                            <Typography>
+                                                                                Môn
+                                                                                giảng
+                                                                                dạy:{" "}
+                                                                                {renderNames(
+                                                                                    profile.subjects.map(
+                                                                                        (
+                                                                                            subject
+                                                                                        ) =>
+                                                                                            subject.subjectId
+                                                                                    ),
+                                                                                    subjects
+                                                                                )}
+                                                                            </Typography>
+                                                                            <Typography>
+                                                                                Khu
+                                                                                vực
+                                                                                giảng
+                                                                                dạy:{" "}
+                                                                                {renderNames(
+                                                                                    profile.locations.map(
+                                                                                        (
+                                                                                            location
+                                                                                        ) =>
+                                                                                            location.districtsId
+                                                                                    ),
+                                                                                    districts
+                                                                                )}
+                                                                            </Typography>
+                                                                        </>
+                                                                    )}
+                                                                </Box>
+                                                            </Box>
+                                                        </Grid>
+                                                        <Grid item xs={6}>
+                                                            <Box margin={2}>
+                                                                <Typography
+                                                                    variant="body1"
+                                                                    gutterBottom
+                                                                >
+                                                                    {profile.role ==
+                                                                    2
+                                                                        ? "Khoá học đăng ký"
+                                                                        : "Khoá học đã mở"}
+                                                                    :
+                                                                </Typography>
+
+                                                                <Box pl={6}>
+                                                                    {profile
+                                                                        .courses
+                                                                        .length ==
+                                                                    0 ? (
+                                                                        <Typography>
+                                                                            Chưa
+                                                                            có
+                                                                            khoá
+                                                                            học
+                                                                            nào.
+                                                                        </Typography>
+                                                                    ) : (
+                                                                        profile.courses.map(
+                                                                            (
+                                                                                course,
+                                                                                index
+                                                                            ) => (
+                                                                                <Typography
+                                                                                    key={
+                                                                                        course.id
+                                                                                    }
+                                                                                >
+                                                                                    {index +
+                                                                                        1 +
+                                                                                        ". " +
+                                                                                        course.name}
+                                                                                </Typography>
+                                                                            )
+                                                                        )
+                                                                    )}
+                                                                </Box>
+                                                            </Box>
+                                                        </Grid>
+                                                    </Grid>
+                                                </Collapse>
+                                            </TableCell>
+                                        </TableRow>
+                                    )}
                                 </React.Fragment>
                             ))}
                         </TableBody>

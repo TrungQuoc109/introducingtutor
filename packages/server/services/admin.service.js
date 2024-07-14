@@ -2,12 +2,15 @@ import dotenv from "dotenv";
 import { responseMessageInstance } from "../utils/index.js";
 import {
     Location,
+    Student,
+    StudentTeachingSubjectMap,
     Subject,
+    TeachingSubject,
     Tutor,
     TutorSubjectMap,
     User,
 } from "../model/index.js";
-import { STATUS } from "../constants/index.js";
+import { ROLE, STATUS } from "../constants/index.js";
 import { Op, literal } from "sequelize";
 dotenv.config();
 export class AdminService {
@@ -123,6 +126,155 @@ export class AdminService {
             );
         } catch (error) {
             console.log(error);
+            return responseMessageInstance.getError(
+                res,
+                error.code ?? 500,
+                error.message
+            );
+        }
+    }
+    async GetProfileUser(req, res) {
+        try {
+            const userId = req.params.userId;
+
+            const user = await User.findByPk(userId, {
+                attributes: [
+                    "name",
+                    "email",
+                    "phoneNumber",
+                    "age",
+                    "role",
+                    "status",
+                ],
+                include: [
+                    {
+                        model: Tutor,
+                        attributes: ["experience", "education", "id"],
+                        required: false,
+                    },
+                    { model: Student, attributes: ["gradeLevel", "id"] },
+                ],
+                raw: true,
+                nest: true,
+            });
+            if (user.role == ROLE.tutor) {
+                const subjects = await TutorSubjectMap.findAll({
+                    attributes: ["subjectId"],
+                    where: { tutorId: user.Tutor.id },
+                });
+                const locations = await Location.findAll({
+                    attributes: ["districtsId", "name"],
+                    where: { tutorId: user.Tutor.id },
+                });
+                const courses = await TeachingSubject.findAll({
+                    attributes: ["name"],
+                    where: { instructorId: user.Tutor.id },
+                });
+
+                user.courses = courses;
+                user.subjects = subjects;
+                user.locations = locations;
+            } else {
+                const registerCourse = await TeachingSubject.findAll({
+                    attributes: ["name"],
+                    include: [
+                        {
+                            model: StudentTeachingSubjectMap,
+                            attributes: [],
+                            where: { studentId: user.Student.id },
+                        },
+                    ],
+                });
+                user.courses = registerCourse;
+            }
+
+            return responseMessageInstance.getSuccess(res, 200, "Succesful", {
+                user,
+            });
+        } catch (error) {
+            console.error("Error in GetListUsers:", error);
+            return responseMessageInstance.getError(
+                res,
+                error.code ?? 500,
+                error.message
+            );
+        }
+    }
+    async GetListCourses(req, res) {
+        try {
+            const {
+                page = 0,
+
+                status,
+                district,
+                subject,
+                searchText,
+            } = req.query;
+            const limit = 20;
+
+            const whereClause = {};
+
+            if (status) {
+                whereClause.status = status;
+            }
+            if (searchText) {
+                whereClause[Op.or] = [
+                    {
+                        name: {
+                            [Op.iLike]: `%${searchText}%`,
+                        },
+                    },
+                    {
+                        description: {
+                            [Op.iLike]: `%${searchText}%`,
+                        },
+                    },
+                ];
+            }
+            const includeSubject = {
+                model: Subject,
+                attributes: ["id", "name"],
+            };
+            if (subject) {
+                includeSubject.where = { id: subject };
+            }
+
+            if (district) {
+                whereClause.location = district;
+            }
+
+            const { count, rows: courses } =
+                await TeachingSubject.findAndCountAll({
+                    attributes: [
+                        "id",
+                        "name",
+                        "description",
+                        "price",
+                        "status",
+                    ],
+                    include: [
+                        includeSubject,
+                        {
+                            model: Tutor,
+                            attributes: ["id"],
+                            include: [{ model: User, attributes: ["name"] }],
+                        },
+                    ],
+                    where: whereClause,
+                    limit: limit,
+                    offset: page * limit,
+                });
+
+            return responseMessageInstance.getSuccess(
+                res,
+                200,
+                "Get profile successful",
+                {
+                    data: { courses, page: Math.ceil(count / limit) },
+                }
+            );
+        } catch (error) {
+            console.error("Error in GetListUsers:", error);
             return responseMessageInstance.getError(
                 res,
                 error.code ?? 500,

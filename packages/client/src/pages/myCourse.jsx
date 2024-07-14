@@ -30,7 +30,7 @@ import {
 import { useNavigate } from "react-router-dom";
 import CreateCourseDialog from "../components/createCourseDialog";
 import CourseDetails from "../components/courseDetail";
-import Footer from "../components/Footer";
+import Footer from "../components/footer";
 export default function MyCourse() {
     const [dialogAction, setDialogAction] = useState(null); // 'edit', 'cancel'
     const [clickedCourseId, setClickedCourseId] = useState(null);

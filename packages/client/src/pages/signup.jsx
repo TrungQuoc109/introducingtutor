@@ -25,7 +25,7 @@ import { createTheme, ThemeProvider } from "@mui/material/styles";
 import { RxAvatar } from "react-icons/rx";
 import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
 import Header from "../components/header";
-import Footer from "../components/Footer";
+import Footer from "../components/footer";
 import { useNavigate } from "react-router-dom";
 import { DataContext } from "../dataprovider/subject.jsx";
 import { baseURL, districts } from "../config/config.js";

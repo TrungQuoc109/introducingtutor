@@ -9,6 +9,7 @@ import {
     ListItem,
     ListItemText,
     CircularProgress,
+    Button,
 } from "@mui/material";
 import { useLocation, useNavigate } from "react-router-dom";
 import { getDownloadURL, getStorage, ref } from "firebase/storage";
@@ -19,9 +20,11 @@ import {
     districts,
     firebaseConfig,
     formatDate,
+    renderNames,
+    statusCourse,
 } from "../config/config";
 import Header from "../components/header";
-import Footer from "../components/Footer";
+import Footer from "../components/footer";
 import logo from "../../public/image/Logo_STU.png";
 import RegisterButton from "../components/registerButton";
 
@@ -92,20 +95,6 @@ export default function TutorDetail() {
         }
     };
 
-    const renderNames = (selectedIds, array) => {
-        let itemsArray = Array.isArray(array) ? array : array.data;
-        const sortedSelectedIds = selectedIds.sort((a, b) =>
-            a
-                .toString()
-                .localeCompare(b.toString(), undefined, { numeric: true })
-        );
-
-        return sortedSelectedIds
-            .map((id) => itemsArray.find((item) => item.id === id)?.name)
-            .filter((name) => name)
-            .join(", ");
-    };
-
     const navigateToCourseDetail = (courseId) => {
         navigate(`/course-detail/${courseId}`);
     };
@@ -139,6 +128,15 @@ export default function TutorDetail() {
                 >
                     <Header />
                     <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
+                        <Button
+                            variant="contained"
+                            sx={{ mb: 2 }}
+                            onClick={() => {
+                                window.history.back();
+                            }}
+                        >
+                            Quay lại
+                        </Button>
                         <Grid container spacing={3}>
                             <Grid item xs={12} md={4}>
                                 <Box
@@ -320,7 +318,9 @@ export default function TutorDetail() {
                                                                                 </Grid>
                                                                                 <Grid
                                                                                     item
-                                                                                    xs
+                                                                                    xs={
+                                                                                        4
+                                                                                    }
                                                                                 >
                                                                                     <Typography
                                                                                         component="span"
@@ -338,25 +338,12 @@ export default function TutorDetail() {
                                                                                         }
                                                                                     </Typography>
                                                                                 </Grid>
+
                                                                                 <Grid
                                                                                     item
-                                                                                    xs
-                                                                                >
-                                                                                    <Typography
-                                                                                        component="span"
-                                                                                        variant="body2"
-                                                                                        color="textPrimary"
-                                                                                    >
-                                                                                        |
-                                                                                        Lớp:{" "}
-                                                                                        {
-                                                                                            course.gradeLevel
-                                                                                        }
-                                                                                    </Typography>
-                                                                                </Grid>
-                                                                                <Grid
-                                                                                    item
-                                                                                    xs
+                                                                                    xs={
+                                                                                        4
+                                                                                    }
                                                                                 >
                                                                                     <Typography
                                                                                         component="span"
@@ -375,7 +362,34 @@ export default function TutorDetail() {
                                                                                 <Grid
                                                                                     item
                                                                                     xs={
-                                                                                        12
+                                                                                        4
+                                                                                    }
+                                                                                >
+                                                                                    <Typography
+                                                                                        component="span"
+                                                                                        variant="body2"
+                                                                                        color="red"
+                                                                                    >
+                                                                                        |
+                                                                                        Giá
+                                                                                        khoá
+                                                                                        học:{" "}
+                                                                                        {!isNaN(
+                                                                                            course.price
+                                                                                        )
+                                                                                            ? course.price.toLocaleString(
+                                                                                                  "vi-VN"
+                                                                                              )
+                                                                                            : "N/A"}{" "}
+                                                                                        {
+                                                                                            " VND"
+                                                                                        }
+                                                                                    </Typography>
+                                                                                </Grid>
+                                                                                <Grid
+                                                                                    item
+                                                                                    xs={
+                                                                                        6
                                                                                     }
                                                                                 >
                                                                                     <Typography
@@ -397,6 +411,28 @@ export default function TutorDetail() {
                                                                                         }{" "}
                                                                                     </Typography>
                                                                                 </Grid>
+                                                                                <Grid
+                                                                                    item
+                                                                                    xs={
+                                                                                        6
+                                                                                    }
+                                                                                >
+                                                                                    {" "}
+                                                                                    <Typography
+                                                                                        component="span"
+                                                                                        variant="body2"
+                                                                                        color="textPrimary"
+                                                                                    >
+                                                                                        Trạng
+                                                                                        thái:{" "}
+                                                                                        {
+                                                                                            statusCourse[
+                                                                                                course
+                                                                                                    .status
+                                                                                            ]
+                                                                                        }
+                                                                                    </Typography>{" "}
+                                                                                </Grid>
                                                                             </Grid>
                                                                         </React.Fragment>
                                                                     }
@@ -415,17 +451,15 @@ export default function TutorDetail() {
                                                                         "flex-end",
                                                                 }}
                                                             >
-                                                                <RegisterButton
-                                                                    courseId={
-                                                                        course.id
+                                                                <Button
+                                                                    onClick={() =>
+                                                                        navigateToCourseDetail(
+                                                                            course.id
+                                                                        )
                                                                     }
-                                                                    price={
-                                                                        course.price
-                                                                    }
-                                                                    status={
-                                                                        course.status
-                                                                    }
-                                                                />
+                                                                >
+                                                                    Xem chi tiết
+                                                                </Button>
                                                             </Grid>
                                                         </Grid>
                                                     </ListItem>

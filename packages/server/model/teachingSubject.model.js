@@ -24,11 +24,7 @@ TeachingSubject.init(
             allowNull: false,
             field: "subject_id",
         },
-        gradeLevel: {
-            type: DataTypes.INTEGER,
-            allowNull: false,
-            field: "grade_level",
-        },
+
         description: {
             type: DataTypes.TEXT,
         },
@@ -57,11 +53,7 @@ TeachingSubject.init(
             type: DataTypes.INTEGER,
             allowNull: false,
         },
-        studentCount: {
-            type: DataTypes.INTEGER,
-            allowNull: false,
-            field: "student_count",
-        },
+
         status: {
             type: DataTypes.INTEGER,
             defaultValue: 2,

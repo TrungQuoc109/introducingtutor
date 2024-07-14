@@ -11,7 +11,7 @@ import {
     createTheme,
 } from "@mui/material";
 import Header from "../components/header";
-import Footer from "../components/Footer";
+import Footer from "../components/footer";
 import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
 import { ThemeProvider } from "@emotion/react";
 import { useLocation, useNavigate } from "react-router-dom";

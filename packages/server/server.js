@@ -5,7 +5,7 @@ import { routes } from "./routes/index.js";
 // -----------------------------------------------
 dotenv.config();
 const app = express();
-const port = process.env.SERVER_PORT ?? 5999; // Default
+const port = process.env.SERVER_PORT ?? 8080; // Default
 // -----------------------------------------------
 app.use(cors());
 app.use(express.json());

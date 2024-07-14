@@ -26,8 +26,8 @@ const formFields = [
     },
     { id: "startDate", label: "Ngày Bắt Đầu", type: "date" },
     { id: "numberOfSessions", label: "Số buổi học:", type: "number" },
-    { id: "gradeLevel", label: "Lớp: ", type: "number" },
-    { id: "studentCount", label: "Số lượng học sinh:", type: "number" },
+    //  { id: "gradeLevel", label: "Lớp: ", type: "number" },
+    // { id: "studentCount", label: "Số lượng học sinh:", type: "number" },
     { id: "price", label: "Giá", type: "number" },
 ];
 function CustomTextField({ id, label, value, onChange, ...other }) {
@@ -70,14 +70,14 @@ function CreateCourseDialog({
     const [formData, setFormData] = useState({
         name: "",
         subjectId: "",
-        gradeLevel: 1,
+        //  gradeLevel: 1,
         description: "",
         startDate: "",
         numberOfSessions: "",
         location: "",
         specificAddress: "",
         price: 0,
-        studentCount: 0,
+        // studentCount: 0,
     });
 
     useEffect(() => {
@@ -88,14 +88,14 @@ function CreateCourseDialog({
             setFormData({
                 name: "",
                 subjectId: "",
-                gradeLevel: 1,
+                // gradeLevel: 1,
                 description: "",
                 startDate: "",
                 numberOfSessions: "",
                 location: "",
                 specificAddress: "",
                 price: 0,
-                studentCount: 0,
+                // studentCount: 0,
             });
         }
     }, [courseInfo, isOpen]);

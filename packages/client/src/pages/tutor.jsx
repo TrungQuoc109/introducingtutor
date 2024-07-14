@@ -16,7 +16,7 @@ import {
 import CardActionArea from "@mui/material/CardActionArea";
 import SearchIcon from "@mui/icons-material/Search";
 import Header from "../components/header";
-import Footer from "../components/Footer";
+import Footer from "../components/footer";
 import { baseURL, firebaseConfig, reCaptchaV3Provider } from "../config/config";
 import { initializeApp } from "firebase/app";
 import { getStorage, ref, getDownloadURL } from "firebase/storage";

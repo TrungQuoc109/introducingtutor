@@ -105,20 +105,11 @@ export const momoConfig = {
 };
 export const validationRules = [
     {
-        field: "studentCount",
-        type: "count",
-        errorMessage: "Số lượng học viên không hợp lệ.",
-    },
-    {
         field: "numberOfSessions",
         type: "count",
         errorMessage: "Số lượng buổi học không hợp lệ.",
     },
-    {
-        field: "gradeLevel",
-        type: "gradelLevel",
-        errorMessage: "Lớp không hợp lệ.",
-    },
+
     {
         field: "startDate",
         type: "date",

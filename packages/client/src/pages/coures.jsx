@@ -10,9 +10,10 @@ import {
     ListItem,
     ListItemText,
     CircularProgress,
+    Button,
 } from "@mui/material";
 import Header from "../components/header";
-import Footer from "../components/Footer";
+import Footer from "../components/footer";
 import { baseURL, districts, formatDate, statusCourse } from "../config/config";
 import { DataContext } from "../dataprovider/subject";
 import SearchBar from "../components/searchBar";
@@ -227,21 +228,7 @@ function CoursePage() {
                                                                             }
                                                                         </Typography>
                                                                     </Grid>
-                                                                    <Grid
-                                                                        item
-                                                                        xs={4}
-                                                                    >
-                                                                        <Typography
-                                                                            component="span"
-                                                                            variant="body2"
-                                                                            color="textPrimary"
-                                                                        >
-                                                                            Lớp:{" "}
-                                                                            {
-                                                                                course.gradeLevel
-                                                                            }
-                                                                        </Typography>
-                                                                    </Grid>
+
                                                                     <Grid
                                                                         item
                                                                         xs={4}
@@ -259,6 +246,31 @@ function CoursePage() {
                                                                             )}
                                                                         </Typography>
                                                                     </Grid>
+
+                                                                    <Grid
+                                                                        item
+                                                                        xs={4}
+                                                                    >
+                                                                        <Typography
+                                                                            component="span"
+                                                                            variant="body2"
+                                                                            color="red"
+                                                                        >
+                                                                            Giá
+                                                                            khoá
+                                                                            học:{" "}
+                                                                            {!isNaN(
+                                                                                course.price
+                                                                            )
+                                                                                ? course.price.toLocaleString(
+                                                                                      "vi-VN"
+                                                                                  )
+                                                                                : "N/A"}
+                                                                            {
+                                                                                " VND"
+                                                                            }
+                                                                        </Typography>
+                                                                    </Grid>
                                                                     <Grid
                                                                         item
                                                                         xs={12}
@@ -273,7 +285,7 @@ function CoursePage() {
                                                                             <Typography
                                                                                 component="span"
                                                                                 variant="body2"
-                                                                                color="textSecondary"
+                                                                                color="black"
                                                                             >
                                                                                 Địa
                                                                                 chỉ:{" "}
@@ -348,11 +360,15 @@ function CoursePage() {
                                                         Gia sư:{" "}
                                                         {course.Tutor.User.name}
                                                     </Typography>
-                                                    <RegisterButton
-                                                        courseId={course.id}
-                                                        price={course.price}
-                                                        status={course.status}
-                                                    />
+                                                    <Button
+                                                        onClick={() =>
+                                                            navigateToCourseDetail(
+                                                                course.id
+                                                            )
+                                                        }
+                                                    >
+                                                        Xem chi tiết
+                                                    </Button>
                                                 </Grid>
                                             </Grid>
                                         </ListItem>

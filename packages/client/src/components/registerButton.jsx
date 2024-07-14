@@ -55,8 +55,9 @@ const RegisterButton = ({ courseId, price, status }) => {
                         window.location.href = data.data.payUrl;
                     }
                 } else {
-                    // Xử lý lỗi từ response
-                    alert(data.error);
+                    response.status == 401
+                        ? localStorage.clear()
+                        : alert(data.error);
                 }
             } catch (error) {
                 console.error("Đã xảy ra lỗi:", error);
@@ -69,13 +70,16 @@ const RegisterButton = ({ courseId, price, status }) => {
             <Button
                 variant="contained"
                 color="primary"
+                fontWeight="bold"
                 onClick={(event) => {
                     event.stopPropagation();
                     handleOpenDialog();
                 }}
                 disabled={status == 2}
             >
-                Giá: {price}
+                Giá:{" "}
+                {price && !isNaN(price) ? price.toLocaleString("vi-VN") : "N/A"}
+                {" VND"}
             </Button>
             <Dialog
                 open={openDialog}
