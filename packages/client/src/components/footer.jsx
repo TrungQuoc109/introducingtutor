@@ -7,6 +7,7 @@ import Button from "@mui/material/Button";
 import { IoLocation } from "react-icons/io5";
 import { FaPhone } from "react-icons/fa";
 import logo from "../../public/image/Logo_STU.png";
+import { useNavigate } from "react-router-dom";
 
 const footerStyle = {
     backgroundColor: "#1976d2",
@@ -33,6 +34,8 @@ const linkStyle = {
 };
 
 const Footer = () => {
+    const navigate = useNavigate();
+
     return (
         <Box component="footer" sx={footerStyle}>
             <Container maxWidth="lg">
@@ -86,24 +89,21 @@ const Footer = () => {
                     <Grid item xs={12} md={2}>
                         <Box display="flex" flexDirection="column">
                             <Button
-                                component="a"
-                                href="/"
+                                onClick={() => navigate("/")}
                                 variant="text"
                                 style={linkStyle}
                             >
                                 Trang chủ
                             </Button>
                             <Button
-                                component="a"
-                                href="/tutor"
+                                onClick={() => navigate("/tutor")}
                                 variant="text"
                                 style={linkStyle}
                             >
                                 Gia sư
                             </Button>
                             <Button
-                                component="a"
-                                href="/course"
+                                onClick={() => navigate("/course")}
                                 variant="text"
                                 style={linkStyle}
                             >
@@ -111,8 +111,7 @@ const Footer = () => {
                             </Button>
 
                             <Button
-                                component="a"
-                                href="/about-us"
+                                onClick={() => navigate("/about-us")}
                                 variant="text"
                                 style={linkStyle}
                             >

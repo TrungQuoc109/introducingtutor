@@ -22,5 +22,10 @@ adminRouter.get(
     middlewareInstance.AdminAuthen,
     adminInstance.GetListCourses
 );
+adminRouter.get(
+    "/get-infor-course/:courseId",
+    middlewareInstance.AdminAuthen,
+    adminInstance.GetInforCourse
+);
 
 export { adminRouter };

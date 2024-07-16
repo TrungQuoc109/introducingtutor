@@ -10,8 +10,9 @@ import {
     TutorSubjectMap,
     User,
 } from "../model/index.js";
-import { ROLE, STATUS } from "../constants/index.js";
+import { PAYMENT_STATUS, ROLE, STATUS } from "../constants/index.js";
 import { Op, literal } from "sequelize";
+
 dotenv.config();
 export class AdminService {
     static instance;
@@ -180,8 +181,10 @@ export class AdminService {
                     include: [
                         {
                             model: StudentTeachingSubjectMap,
-                            attributes: [],
-                            where: { studentId: user.Student.id },
+                            attributes: ["status"],
+                            where: {
+                                studentId: user.Student.id,
+                            },
                         },
                     ],
                 });
@@ -204,14 +207,13 @@ export class AdminService {
         try {
             const {
                 page = 0,
-
                 status,
                 district,
                 subject,
                 searchText,
             } = req.query;
             const limit = 20;
-
+            console.log(status);
             const whereClause = {};
 
             if (status) {
@@ -262,9 +264,47 @@ export class AdminService {
             return responseMessageInstance.getSuccess(
                 res,
                 200,
-                "Get profile successful",
+                "Get list course successful",
                 {
                     data: { courses, page: Math.ceil(count / limit) },
+                }
+            );
+        } catch (error) {
+            console.error("Error in GetListUsers:", error);
+            return responseMessageInstance.getError(
+                res,
+                error.code ?? 500,
+                error.message
+            );
+        }
+    }
+    async GetInforCourse(req, res) {
+        try {
+            const courseId = req.params.courseId;
+            const course = await TeachingSubject.findByPk(courseId, {
+                attributes: [
+                    "description",
+                    "startDate",
+                    "numberOfSessions",
+                    "location",
+                    "specificAddress",
+                ],
+                raw: true,
+                nest: true,
+            });
+            course.countStudent = await StudentTeachingSubjectMap.count({
+                where: {
+                    teachingSubjectId: courseId,
+                    status: PAYMENT_STATUS.REGISTRATION_SUCCESS,
+                },
+            });
+            console.log(course);
+            return responseMessageInstance.getSuccess(
+                res,
+                200,
+                "Get infor course successful",
+                {
+                    course,
                 }
             );
         } catch (error) {

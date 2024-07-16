@@ -405,7 +405,7 @@ export class StudentService {
                             );
                         }
                     });
-                    console.log("order:", order.dataValues);
+
                     return responseMessageInstance.getSuccess(
                         res,
                         200,
