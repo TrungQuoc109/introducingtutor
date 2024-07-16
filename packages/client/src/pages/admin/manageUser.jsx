@@ -25,6 +25,8 @@ import {
     userStatus,
     districts,
     renderNames,
+    statusCourse,
+    paymentStatus,
 } from "../../config/config";
 import { DataContext } from "../../dataprovider/subject";
 
@@ -519,16 +521,55 @@ function UserManagement() {
                                                                                 course,
                                                                                 index
                                                                             ) => (
-                                                                                <Typography
-                                                                                    key={
-                                                                                        course.id
-                                                                                    }
+                                                                                <Grid
+                                                                                    container
                                                                                 >
-                                                                                    {index +
-                                                                                        1 +
-                                                                                        ". " +
-                                                                                        course.name}
-                                                                                </Typography>
+                                                                                    <Grid
+                                                                                        item
+                                                                                        xs={
+                                                                                            6
+                                                                                        }
+                                                                                    >
+                                                                                        <Typography
+                                                                                            key={
+                                                                                                course.id
+                                                                                            }
+                                                                                        >
+                                                                                            {index +
+                                                                                                1 +
+                                                                                                ". " +
+                                                                                                course.name}
+                                                                                        </Typography>
+                                                                                    </Grid>
+                                                                                    <Grid
+                                                                                        item
+                                                                                        xs={
+                                                                                            6
+                                                                                        }
+                                                                                    >
+                                                                                        {profile.role ==
+                                                                                            2 && (
+                                                                                            <Typography
+                                                                                                key={
+                                                                                                    course.id
+                                                                                                }
+                                                                                            >
+                                                                                                {
+                                                                                                    paymentStatus[
+                                                                                                        course
+                                                                                                            .StudentTeachingSubjectMaps[
+                                                                                                            course
+                                                                                                                .StudentTeachingSubjectMaps
+                                                                                                                .length -
+                                                                                                                1
+                                                                                                        ]
+                                                                                                            .status
+                                                                                                    ]
+                                                                                                }
+                                                                                            </Typography>
+                                                                                        )}
+                                                                                    </Grid>
+                                                                                </Grid>
                                                                             )
                                                                         )
                                                                     )}

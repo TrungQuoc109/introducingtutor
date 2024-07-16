@@ -9,13 +9,13 @@ function Sidebar({ mobileOpen, handleDrawerToggle }) {
         <div>
             <List>
                 <ListItem button component={Link} to="/dashboard/users">
-                    <ListItemText primary="Manage Users" />
+                    <ListItemText primary="Quản lý người dùng" />
                 </ListItem>
                 <ListItem button component={Link} to="/dashboard/courses">
-                    <ListItemText primary="Manage Courses" />
+                    <ListItemText primary="Quản lý khoá học" />
                 </ListItem>
                 <ListItem button component={Link} to="/dashboard/salary">
-                    <ListItemText primary="Calculate Salary" />
+                    <ListItemText primary="Thống kê lương" />
                 </ListItem>
             </List>
         </div>

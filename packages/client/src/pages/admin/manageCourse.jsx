@@ -22,6 +22,7 @@ import Pagination from "@mui/material/Pagination";
 import {
     baseURL,
     districts,
+    formatDate,
     renderNames,
     statusCourse,
 } from "../../config/config";
@@ -29,7 +30,7 @@ import { DataContext } from "../../dataprovider/subject";
 
 function CourseManagement() {
     const token = localStorage.getItem("token");
-
+    const [inforCourse, setInforCourse] = useState(null);
     const [loading, setLoading] = useState(true);
     const [courses, setCourses] = useState([]);
     const [selectedStatus, setSelectedStatus] = useState("");
@@ -48,11 +49,11 @@ function CourseManagement() {
                 page === 0 ? 0 : page - 1
             }`;
 
-            if (status) url += `&status=${status}`;
+            if (status != -1) url += `&status=${status}`;
             if (subject) url += `&subject=${subject}`;
             if (district) url += `&district=${district}`;
             if (searchText) url += `&searchText=${searchText}`;
-
+            console.log(url);
             const response = await fetch(url, {
                 method: "GET",
                 headers: {
@@ -63,7 +64,7 @@ function CourseManagement() {
             const data = await response.json();
             if (response.ok) {
                 setCourses(data.data.courses);
-                console.log(data.data.courses);
+
                 setTotalPages(data.data.page);
             } else {
                 throw new Error(data.message);
@@ -94,6 +95,7 @@ function CourseManagement() {
     const handleFilterChange = () => {
         setCurrentPage(0);
         fetchData(selectedStatus, selectedSubject, selectedDistrict, 0);
+        console.log(selectedStatus);
     };
 
     const handleStatusChange = async (courseId, newStatus) => {
@@ -128,7 +130,7 @@ function CourseManagement() {
     const fetchInforCourse = async (courseId) => {
         try {
             const response = await fetch(
-                `${baseURL}/admin/get-profile-user/${courseId}`,
+                `${baseURL}/admin/get-infor-course/${courseId}`,
                 {
                     method: "GET",
                     headers: {
@@ -139,7 +141,7 @@ function CourseManagement() {
             );
             const data = await response.json();
             if (response.ok) {
-                setProfile(data.user);
+                setInforCourse(data.course);
             }
         } catch (error) {
             console.log(error);
@@ -178,7 +180,7 @@ function CourseManagement() {
                         onChange={(e) => setSelectedStatus(e.target.value)}
                         label="Trạng thái"
                     >
-                        <MenuItem value="">
+                        <MenuItem value={-1}>
                             <em>Tất cả</em>
                         </MenuItem>
                         {statusCourse.map((statusName, statusValue) => (
@@ -338,7 +340,12 @@ function CourseManagement() {
                                             {course.Subject.name}
                                         </TableCell>
                                         <TableCell align="center">
-                                            {course.price}
+                                            {!isNaN(course.price)
+                                                ? course.price.toLocaleString(
+                                                      "vi-VN"
+                                                  )
+                                                : "N/A"}
+                                            {" VND"}
                                         </TableCell>
                                         <TableCell>
                                             <Select
@@ -370,7 +377,7 @@ function CourseManagement() {
                                             </Select>
                                         </TableCell>
                                     </TableRow>
-                                    {
+                                    {inforCourse && (
                                         <TableRow>
                                             <TableCell
                                                 colSpan={7}
@@ -397,22 +404,46 @@ function CourseManagement() {
 
                                                                 <Box pl={6}>
                                                                     <Typography>
-                                                                        Trình
-                                                                        độ:{" "}
+                                                                        - Mô tả:{" "}
+                                                                        {
+                                                                            inforCourse.description
+                                                                        }
                                                                     </Typography>
                                                                     <Typography>
-                                                                        Kinh
-                                                                        nghiệm:{" "}
+                                                                        - Ngày
+                                                                        bắt đầu:{" "}
+                                                                        {formatDate(
+                                                                            inforCourse.startDate
+                                                                        )}
                                                                     </Typography>
                                                                     <Typography>
-                                                                        Môn
-                                                                        giảng
-                                                                        dạy:{" "}
+                                                                        - Số
+                                                                        buổi
+                                                                        học:{" "}
+                                                                        {
+                                                                            inforCourse.numberOfSessions
+                                                                        }
                                                                     </Typography>
                                                                     <Typography>
-                                                                        Khu vực
-                                                                        giảng
-                                                                        dạy:{" "}
+                                                                        - Số học
+                                                                        sinh
+                                                                        đăng ký:{" "}
+                                                                        {inforCourse.countStudent ??
+                                                                            0}
+                                                                    </Typography>
+                                                                    <Typography>
+                                                                        - Địa
+                                                                        chỉ:{" "}
+                                                                        {inforCourse.specificAddress +
+                                                                            ", " +
+                                                                            districts.find(
+                                                                                (
+                                                                                    item
+                                                                                ) =>
+                                                                                    item.id ==
+                                                                                    inforCourse.location
+                                                                            )
+                                                                                ?.name}
                                                                     </Typography>
                                                                 </Box>
                                                             </Box>
@@ -421,7 +452,7 @@ function CourseManagement() {
                                                 </Collapse>
                                             </TableCell>
                                         </TableRow>
-                                    }
+                                    )}
                                 </React.Fragment>
                             ))}
                         </TableBody>

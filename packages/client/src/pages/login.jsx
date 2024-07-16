@@ -15,6 +15,7 @@ import Header from "../components/header";
 import Footer from "../components/footer";
 import { useNavigate } from "react-router-dom";
 import logo from "../../public/image/Logo_STU.png";
+import { baseURL } from "../config/config";
 
 // TODO remove, this demo shouldn't need to reset the theme.
 
@@ -71,16 +72,13 @@ export default function SignInSide() {
         event.preventDefault();
         if (validateForm()) {
             try {
-                const response = await fetch(
-                    "http://localhost:5999/v1/api/user/login",
-                    {
-                        method: "POST",
-                        headers: {
-                            "Content-Type": "application/json",
-                        },
-                        body: JSON.stringify(formData),
-                    }
-                );
+                const response = await fetch(`${baseURL}/user/login`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify(formData),
+                });
 
                 if (response.ok) {
                     const data = await response.json();
