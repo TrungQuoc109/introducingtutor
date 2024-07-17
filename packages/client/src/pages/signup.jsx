@@ -106,7 +106,7 @@ export default function SignUp() {
                     value >= 3 &&
                     value <= 65
                         ? ""
-                        : "Tuổi không hợp lệ (Học sinh: 3-18, Gia sư: 18-65)";
+                        : "Tuổi không hợp lệ";
             default:
                 break;
         }
@@ -136,10 +136,9 @@ export default function SignUp() {
             formData.age < 3 ||
             formData.age > 65
         ) {
-            newErrors.age = "Tuổi không hợp lệ (Học sinh: 3-18, Gia sư: 18-65)";
+            newErrors.age = "Tuổi không hợp lệ";
         }
         if (formData.role == 1) {
-            // Kiểm tra các trường trong educationLevel hoặc gradeLevel
             if (!formData.educationLevel.education)
                 newErrors.education = "Trình độ không được để trống";
             if (!formData.educationLevel.experience)
@@ -719,9 +718,14 @@ export default function SignUp() {
                         </Box>
                         <Grid container justifyContent="center">
                             <Grid item>
-                                <Link href="/login" variant="body2">
+                                <Button
+                                    onClick={() => {
+                                        navigate("/login");
+                                    }}
+                                    variant="text"
+                                >
                                     Bạn đã có tài khoản? Đăng nhập
-                                </Link>
+                                </Button>
                             </Grid>
                         </Grid>
                     </Box>

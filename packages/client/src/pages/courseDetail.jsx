@@ -311,26 +311,16 @@ export default function CourseDetail() {
                                             </Grid>
                                         </Grid>
                                         <Grid item container xs={12} sm={6}>
-                                            <Grid item xs={12} sm={2}>
-                                                <Typography variant="subtitle1">
-                                                    Địa chỉ
-                                                </Typography>
-                                            </Grid>
-                                            <Grid item xs={12} sm={10}>
-                                                <Typography variant="subtitle1">
-                                                    :{" "}
-                                                    {
-                                                        courseDetail.specificAddress
-                                                    }
-                                                    ,{" "}
-                                                    {courseDetail &&
-                                                        districts.find(
-                                                            (district) =>
-                                                                district.id ==
-                                                                courseDetail.location
-                                                        )?.name}
-                                                </Typography>
-                                            </Grid>
+                                            <Typography variant="subtitle1">
+                                                Địa chỉ:{" "}
+                                                {courseDetail.specificAddress},{" "}
+                                                {courseDetail &&
+                                                    districts.find(
+                                                        (district) =>
+                                                            district.id ==
+                                                            courseDetail.location
+                                                    )?.name}
+                                            </Typography>
                                         </Grid>
                                     </Grid>
                                     <Grid
@@ -445,7 +435,7 @@ export default function CourseDetail() {
                                             </TableBody>
                                         </Table>
                                     </TableContainer>{" "}
-                                    {role == 2 && (
+                                    {(role == 2 || !token) && (
                                         <Grid
                                             item
                                             xs={12}

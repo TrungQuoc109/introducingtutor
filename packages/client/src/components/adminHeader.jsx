@@ -3,12 +3,13 @@ import { AppBar, Toolbar, Typography, IconButton } from "@mui/material";
 import MenuIcon from "@mui/icons-material/Menu";
 import PowerSettingsNewIcon from "@mui/icons-material/PowerSettingsNew";
 function AdminHeader({ handleDrawerToggle }) {
+    const navigate = useNavigate();
     const handleLogout = () => {
         localStorage.removeItem("token"); // Xóa token
         localStorage.removeItem("token");
         localStorage.removeItem("name");
         localStorage.removeItem("role");
-        window.location.href = "/login";
+        navigate("/login");
     };
     return (
         <AppBar
