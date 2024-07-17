@@ -190,29 +190,47 @@ export default function SignInSide() {
                                     {errorMessage}
                                 </Typography>
                             )}
-                            <Button
-                                type="submit"
-                                fullWidth
-                                variant="contained"
-                                sx={{ mt: 3, mb: 2 }}
+                            <Box
+                                sx={{
+                                    display: "flex",
+                                    flexDirection: "column",
+                                    alignItems: "center",
+                                }}
                             >
-                                Sign In
-                            </Button>
-                            <Grid container>
-                                <Grid item xs>
-                                    <Link
-                                        href="/forgot-password"
-                                        variant="body2"
-                                    >
-                                        Forgot password?
-                                    </Link>
+                                <Button
+                                    type="submit"
+                                    variant="contained"
+                                    sx={{
+                                        mt: 3,
+                                        mb: 2,
+                                        width: 100,
+                                    }}
+                                >
+                                    Sign In
+                                </Button>
+
+                                <Grid container justifyContent="center">
+                                    <Grid item>
+                                        <Button
+                                            onClick={() =>
+                                                navigate("/forgot-password")
+                                            }
+                                            variant="text"
+                                            sx={{ mr: 2 }}
+                                        >
+                                            Forgot password?
+                                        </Button>
+                                    </Grid>
+                                    <Grid item>
+                                        <Button
+                                            onClick={() => navigate("/sign-up")}
+                                            variant="text"
+                                        >
+                                            Don't have an account? Sign Up
+                                        </Button>
+                                    </Grid>
                                 </Grid>
-                                <Grid item>
-                                    <Link href="/sign-up" variant="body2">
-                                        {"Don't have an account? Sign Up"}
-                                    </Link>
-                                </Grid>
-                            </Grid>
+                            </Box>
                         </Box>
                     </Box>
                 </Grid>
