@@ -436,20 +436,46 @@ export default function CourseDetail() {
                                         </Table>
                                     </TableContainer>{" "}
                                     {(role == 2 || !token) && (
-                                        <Grid
-                                            item
-                                            xs={12}
-                                            mt={2}
-                                            style={{
-                                                display: "flex",
-                                                justifyContent: "flex-end",
-                                            }}
-                                        >
-                                            <RegisterButton
-                                                courseId={courseDetail.id}
-                                                price={courseDetail.price}
-                                                status={courseDetail.status}
-                                            />
+                                        <Grid container>
+                                            <Grid
+                                                item
+                                                xs={12}
+                                                mt={2}
+                                                style={{
+                                                    display: "flex",
+                                                    justifyContent: "flex-end",
+                                                }}
+                                            >
+                                                <Typography
+                                                    variant="subtitle1"
+                                                    fontWeight="bold"
+                                                    style={{
+                                                        textDecoration:
+                                                            "underline",
+                                                    }}
+                                                >
+                                                    Giá khoá học:{" "}
+                                                    {courseDetail.price.toLocaleString(
+                                                        "vi-VN"
+                                                    ) + " VND"}
+                                                </Typography>
+                                            </Grid>
+                                            <Grid
+                                                item
+                                                xs={12}
+                                                mt={2}
+                                                style={{
+                                                    display: "flex",
+                                                    justifyContent: "flex-end",
+                                                }}
+                                            >
+                                                {" "}
+                                                <RegisterButton
+                                                    courseId={courseDetail.id}
+                                                    price={courseDetail.price}
+                                                    status={courseDetail.status}
+                                                />
+                                            </Grid>
                                         </Grid>
                                     )}{" "}
                                 </Paper>

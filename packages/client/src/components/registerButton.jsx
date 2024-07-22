@@ -71,15 +71,33 @@ const RegisterButton = ({ courseId, price, status }) => {
                 variant="contained"
                 color="primary"
                 fontWeight="bold"
+                sx={{
+                    mb: 2,
+                    mr: 2,
+                    height: 40,
+                    minWidth: 120, // Kích thước chung
+                }}
+                onClick={() => {
+                    window.history.back();
+                }}
+            >
+                Quay lại
+            </Button>
+            <Button
+                variant="contained"
+                color="primary"
+                fontWeight="bold"
+                sx={{
+                    height: 40,
+                    minWidth: 120, // Kích thước chung
+                }}
                 onClick={(event) => {
                     event.stopPropagation();
                     handleOpenDialog();
                 }}
-                disabled={status == 2}
+                disabled={status === 2}
             >
-                Giá:{" "}
-                {price && !isNaN(price) ? price.toLocaleString("vi-VN") : "N/A"}
-                {" VND"}
+                Đăng ký
             </Button>
             <Dialog
                 open={openDialog}

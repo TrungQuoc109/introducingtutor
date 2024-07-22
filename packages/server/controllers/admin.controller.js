@@ -26,6 +26,9 @@ export class AdminController {
     async GetInforCourse(req, res) {
         return await adminServiceInstance.GetInforCourse(req, res);
     }
+    async GetEarnings(req, res) {
+        return await adminServiceInstance.GetEarnings(req, res);
+    }
 }
 //------------------------------------------------
 export const adminInstance = AdminController.getInstance();
