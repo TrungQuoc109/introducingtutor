@@ -34,6 +34,7 @@ export default function SignInSide() {
         password: "",
     });
 
+    const navigate = useNavigate();
     const validateForm = () => {
         let isValid = true;
         setError({ username: false, password: false });
@@ -58,7 +59,6 @@ export default function SignInSide() {
         }
         return isValid;
     };
-    const navigate = useNavigate();
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;

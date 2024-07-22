@@ -27,5 +27,10 @@ adminRouter.get(
     middlewareInstance.AdminAuthen,
     adminInstance.GetInforCourse
 );
+adminRouter.get(
+    "/get-tutor-earnings",
+    middlewareInstance.AdminAuthen,
+    adminInstance.GetEarnings
+);
 
 export { adminRouter };

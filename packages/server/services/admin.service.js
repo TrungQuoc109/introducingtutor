@@ -11,7 +11,8 @@ import {
     User,
 } from "../model/index.js";
 import { PAYMENT_STATUS, ROLE, STATUS } from "../constants/index.js";
-import { Op, literal } from "sequelize";
+import { Op, Sequelize, col, fn, literal } from "sequelize";
+import { sequelize } from "../datasourse/db.connection.js";
 
 dotenv.config();
 export class AdminService {
@@ -270,7 +271,7 @@ export class AdminService {
                 }
             );
         } catch (error) {
-            console.error("Error in GetListUsers:", error);
+            console.error("Error in GetListcourses:", error);
             return responseMessageInstance.getError(
                 res,
                 error.code ?? 500,
@@ -298,7 +299,7 @@ export class AdminService {
                     status: PAYMENT_STATUS.REGISTRATION_SUCCESS,
                 },
             });
-            console.log(course);
+
             return responseMessageInstance.getSuccess(
                 res,
                 200,
@@ -308,7 +309,43 @@ export class AdminService {
                 }
             );
         } catch (error) {
-            console.error("Error in GetListUsers:", error);
+            console.error("Error in Get infor course:", error);
+            return responseMessageInstance.getError(
+                res,
+                error.code ?? 500,
+                error.message
+            );
+        }
+    }
+    async GetEarnings(req, res) {
+        try {
+            const { month, year, page } = req.query;
+            const limit = 20;
+            const results = await sequelize.query(
+                `SELECT users.id,users.name,sum(amount) as totalEarnings FROM users 
+JOIN tutor on tutor.user_id = users.id 
+JOIN teaching_subject on tutor.id = teaching_subject.instructor_id 
+JOIN student_teaching_subject_map on student_teaching_subject_map.teaching_subject_id = teaching_subject.id 
+WHERE  EXTRACT(MONTH FROM teaching_subject.start_date) = ${month} and  EXTRACT(YEAR FROM teaching_subject.start_date) = ${year} 
+GROUP BY users.id,users.name
+OFFSET ${page * limit} LIMIT ${limit}`,
+                { type: Sequelize.QueryTypes.SELECT }
+            );
+            const count = await User.count({ where: { role: ROLE.tutor } });
+            const earnings = results.map((item) => {
+                const totalEarnings = parseFloat(item.totalearnings);
+
+                item.netEarnings = totalEarnings * 0.9;
+
+                console.log(item.netEarnings, totalEarnings, item);
+
+                return item;
+            });
+            return responseMessageInstance.getSuccess(res, 200, "succesful", {
+                data: { earnings, page: Math.ceil(count / limit) },
+            });
+        } catch (error) {
+            console.error("Error in Get Earnings:", error);
             return responseMessageInstance.getError(
                 res,
                 error.code ?? 500,
