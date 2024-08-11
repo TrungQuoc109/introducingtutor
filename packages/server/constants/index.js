@@ -14,6 +14,7 @@ export const ROLE = {
 export const STATUS = {
     deactive: 0,
     active: 1,
+    pendingApproval: 2,
 };
 export const COURSE_STATUS = {
     disabledCourse: 0,

@@ -81,6 +81,7 @@ export class AdminService {
                 ],
                 include: [tutorInclude],
                 where: whereClause,
+                order: [["status", "desc"]],
                 limit: limit,
                 offset: page * limit,
             });
@@ -103,9 +104,9 @@ export class AdminService {
         }
     }
 
-    async ChangeStatusUser(req, res) {
+    async ChangeStatusCourse(req, res) {
         try {
-            const userId = req.params.userId;
+            const userId = req.params.courseId;
             const status = req.body.newStatus;
             if (!userId) {
                 responseMessageInstance.throwError("Invalid UserId", 400);
@@ -113,14 +114,19 @@ export class AdminService {
             if (status != STATUS.active && status != STATUS.deactive) {
                 responseMessageInstance.throwError("Invalid Status", 400);
             }
-            const user = await User.findOne({ where: { id: userId } });
+            const user = await TeachingSubject.findOne({
+                where: { id: userId },
+            });
             if (!user) {
                 responseMessageInstance.throwError("User not found!", 404);
             }
             if (user.status == status) {
                 responseMessageInstance.throwError("Nothing has changed.", 303);
             }
-            await User.update({ status: status }, { where: { id: userId } });
+            await TeachingSubject.update(
+                { status: status },
+                { where: { id: userId } }
+            );
             return responseMessageInstance.getSuccess(
                 res,
                 200,

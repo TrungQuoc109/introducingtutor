@@ -164,9 +164,24 @@ export default function TutorDetail() {
                                         Tuổi
                                     </Typography>
                                 </Grid>
+
                                 <Grid item xs={10}>
                                     <Typography variant="subtitle1">
                                         : {profileData && profileData.User.age}
+                                    </Typography>
+                                </Grid>
+                                <Grid item xs={2}>
+                                    <Typography variant="subtitle1">
+                                        Giới tính
+                                    </Typography>
+                                </Grid>
+
+                                <Grid item xs={10}>
+                                    <Typography variant="subtitle1">
+                                        :{" "}
+                                        {profileData && profileData.User.gender
+                                            ? "Nữ"
+                                            : "Nam"}
                                     </Typography>
                                 </Grid>
 

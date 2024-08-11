@@ -13,6 +13,7 @@ import {
     COURSE_STATUS,
     CredentialsValidation,
     ROLE,
+    STATUS,
     validationRules,
 } from "../constants/index.js";
 import jwt from "jsonwebtoken";
@@ -113,12 +114,19 @@ export class TutorService {
                 }
             });
             const tutor = await Tutor.findOne({
+                include: [{ model: User, attributes: ["status"] }],
                 where: { userId: userId },
             });
             if (!tutor) {
                 responseMessageInstance.throwError(
                     "Không tìm thấy gia sư!",
                     404
+                );
+            }
+            if (tutor.User.status == STATUS.pendingApproval) {
+                responseMessageInstance.throwError(
+                    "Bạn chưa được duyệt để tạo khoá học",
+                    400
                 );
             }
             data.instructorId = tutor.id;
@@ -402,7 +410,14 @@ export class TutorService {
                     404
                 );
             }
+            if (course.status == COURSE_STATUS.disabledCourse) {
+                responseMessageInstance.throwError(
+                    "Khoá học đã bị vô hiệu hoá",
+                    400
+                );
+            }
             course.status = status;
+
             if (status == 1 && course.Lessons.length == 0) {
                 responseMessageInstance.throwError(
                     "Phải tạo ít nhất 1 buổi học trước khi mở đăng ký!",
@@ -499,6 +514,12 @@ export class TutorService {
                 responseMessageInstance.throwError(
                     "Không tìm thấy khóa học",
                     404
+                );
+            }
+            if (existedCourse.status == COURSE_STATUS.disabledCourse) {
+                responseMessageInstance.throwError(
+                    "Khoá học đã bị vô hiệu hoá",
+                    400
                 );
             }
             const now = new Date();

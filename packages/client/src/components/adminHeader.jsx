@@ -5,11 +5,14 @@ import PowerSettingsNewIcon from "@mui/icons-material/PowerSettingsNew";
 import { useNavigate } from "react-router-dom";
 function AdminHeader({ handleDrawerToggle }) {
     const navigate = useNavigate();
+    const username = sessionStorage.getItem("username");
+    const nameToken = username + "_name";
+    const roleToken = username + "_role";
     const handleLogout = () => {
-        localStorage.removeItem("token"); // Xóa token
-        localStorage.removeItem("token");
-        localStorage.removeItem("name");
-        localStorage.removeItem("role");
+        localStorage.removeItem(username);
+        localStorage.removeItem(nameToken);
+        localStorage.removeItem(roleToken);
+        sessionStorage.removeItem("username");
         navigate("/login");
     };
     return (
@@ -34,7 +37,7 @@ function AdminHeader({ handleDrawerToggle }) {
                     color="inherit"
                     aria-label="logout"
                     onClick={handleLogout}
-                    sx={{ ml: "auto" }} // Đảm bảo nút đăng xuất hiển thị ở phía bên phải của AppBar
+                    sx={{ ml: "auto" }}
                 >
                     <PowerSettingsNewIcon />
                 </IconButton>

@@ -35,6 +35,10 @@ User.init(
             type: DataTypes.TEXT,
             allowNull: false,
         },
+        gender: {
+            type: DataTypes.INTEGER,
+            defaultValue: 1,
+        },
         role: {
             type: DataTypes.INTEGER,
             defaultValue: 2,

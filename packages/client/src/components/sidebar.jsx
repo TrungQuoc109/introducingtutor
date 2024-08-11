@@ -15,7 +15,7 @@ function Sidebar({ mobileOpen, handleDrawerToggle }) {
                     <ListItemText primary="Quản lý khoá học" />
                 </ListItem>
                 <ListItem button component={Link} to="/dashboard/salary">
-                    <ListItemText primary="Thống kê lương" />
+                    <ListItemText primary="Thống kê doanh thu" />
                 </ListItem>
             </List>
         </div>

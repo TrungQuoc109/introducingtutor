@@ -47,7 +47,9 @@ function VerifyPage() {
 
     const handleSubmit = async (event) => {
         event.preventDefault();
-        const token = localStorage.getItem("token");
+        const username = sessionStorage.getItem("username");
+        const token = localStorage.getItem(username);
+
         try {
             const response = await fetch(`${baseURL}/user/${action}`, {
                 method: "POST",

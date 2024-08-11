@@ -22,7 +22,8 @@ import { baseURL, formatDate } from "../../config/config"; // Adjust imports
 import { DataContext } from "../../dataprovider/subject"; // If you still need subjects
 
 function SalaryCalculation() {
-    const token = localStorage.getItem("token");
+    const username = sessionStorage.getItem("username");
+    const token = localStorage.getItem(username);
     const [earningsData, setEarningsData] = useState(null);
     const [loading, setLoading] = useState(true);
     const [selectedMonth, setSelectedMonth] = useState(
@@ -77,7 +78,7 @@ function SalaryCalculation() {
     return (
         <Container maxWidth="false" sx={{ mt: 4, mb: 4 }}>
             <Typography variant="h4" align="center" gutterBottom>
-                Thống kê Lương Gia sư
+                Thống kê Doanh thu
             </Typography>
 
             <Grid
@@ -154,7 +155,7 @@ function SalaryCalculation() {
                                 </TableCell>
 
                                 <TableCell align="center">
-                                    Lương thực nhận (VND)
+                                    Thực nhận (VND)
                                 </TableCell>
                             </TableRow>
                         </TableHead>

@@ -49,8 +49,9 @@ export default function MyCourse() {
     });
 
     const navigate = useNavigate();
-    const token = localStorage.getItem("token");
-    const role = localStorage.getItem("role");
+    const username = sessionStorage.getItem("username");
+    const token = localStorage.getItem(username);
+    const role = localStorage.getItem(username + "_role");
 
     const openEditDialog = (course) => {
         setIsDialogOpen(true);

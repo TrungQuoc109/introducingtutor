@@ -32,24 +32,28 @@ function Header() {
     const [drawerOpen, setDrawerOpen] = useState(false);
     const navigate = useNavigate();
     const popoverHoverProfileRef = useRef(false);
-
+    const username = sessionStorage.getItem("username");
+    const nameToken = username + "_name";
+    const roleToken = username + "_role";
     useEffect(() => {
-        const token = localStorage.getItem("token");
+        const token = localStorage.getItem(username);
         if (token) {
             setIsLoggedIn(true);
-            const fullname = localStorage.getItem("name");
+            const fullname = localStorage.getItem(nameToken);
             const temp = fullname.split(" ").at(-1);
-
+            console.log(temp);
             setName(temp);
 
-            setRole(localStorage.getItem("role"));
+            setRole(localStorage.getItem(roleToken));
         }
     }, [isLoggedIn]);
 
     const handleLogout = () => {
-        localStorage.removeItem("token");
-        localStorage.removeItem("name");
-        localStorage.removeItem("role");
+        localStorage.removeItem(username);
+
+        localStorage.removeItem(nameToken);
+        localStorage.removeItem(roleToken);
+        sessionStorage.removeItem("username");
         setIsLoggedIn(null);
         handleNavigate("");
     };

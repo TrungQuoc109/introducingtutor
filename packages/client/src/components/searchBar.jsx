@@ -11,7 +11,7 @@ import {
     Grid,
 } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
-import { districts } from "../config/config";
+import { districts, genders } from "../config/config.js";
 
 const SearchBar = ({
     searchTerm,
@@ -23,15 +23,20 @@ const SearchBar = ({
     subjects,
     performSearch,
     handleKeyPress,
+    gender,
+    setGender,
 }) => {
     const handleSubjectChange = (event) => {
         setSubject(event.target.value);
     };
 
-    // Handler cập nhật giá trị cho Khu vực
+    const handleGenderChange = (event) => {
+        setGender(event.target.value);
+    };
     const handleLocationChange = (event) => {
         setLocation(event.target.value);
     };
+
     return (
         <Paper
             component="form"
@@ -41,7 +46,7 @@ const SearchBar = ({
                 width: "100%",
                 boxSizing: "border-box",
                 flexWrap: { xs: "wrap", md: "nowrap" },
-                height: "auto", // Độ cao tự động theo nội dung
+                height: "auto",
             }}
             onSubmit={performSearch}
         >
@@ -56,6 +61,41 @@ const SearchBar = ({
                         onKeyDown={handleKeyPress}
                     />
                 </Grid>
+                {gender !== undefined && (
+                    <Grid item xs={12} sm={4} md={2}>
+                        <FormControl sx={{ width: { xs: "100%", sm: "100%" } }}>
+                            <InputLabel id="gender-select-label">
+                                Giới tính
+                            </InputLabel>
+                            <Select
+                                labelId="gender-select-label"
+                                id="gender-select"
+                                value={gender}
+                                onChange={handleGenderChange}
+                                label="Giới tính"
+                                MenuProps={{
+                                    PaperProps: {
+                                        style: {
+                                            maxHeight: 200,
+                                        },
+                                    },
+                                }}
+                            >
+                                {[
+                                    <MenuItem key={-1} value="">
+                                        <em>Tất cả</em>
+                                    </MenuItem>,
+                                ].concat(
+                                    genders.map((sex) => (
+                                        <MenuItem key={sex.id} value={sex.id}>
+                                            {sex.name}
+                                        </MenuItem>
+                                    ))
+                                )}
+                            </Select>
+                        </FormControl>
+                    </Grid>
+                )}
                 <Grid item xs={12} sm={4} md={2}>
                     <FormControl sx={{ width: { xs: "100%", sm: "100%" } }}>
                         <InputLabel id="subject-select-label">
