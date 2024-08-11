@@ -29,7 +29,8 @@ import {
 import { DataContext } from "../../dataprovider/subject";
 
 function CourseManagement() {
-    const token = localStorage.getItem("token");
+    const username = sessionStorage.getItem("username");
+    const token = localStorage.getItem(username);
     const [inforCourse, setInforCourse] = useState(null);
     const [loading, setLoading] = useState(true);
     const [courses, setCourses] = useState([]);
@@ -100,8 +101,9 @@ function CourseManagement() {
 
     const handleStatusChange = async (courseId, newStatus) => {
         try {
+            console.log(courseId, newStatus);
             const response = await fetch(
-                `${baseURL}/admin/change-status-user/${courseId}`,
+                `${baseURL}/admin/change-status-course/${courseId}`,
                 {
                     method: "PUT",
                     headers: {

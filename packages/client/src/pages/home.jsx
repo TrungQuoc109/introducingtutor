@@ -7,188 +7,219 @@ import {
     Paper,
     Typography,
     CssBaseline,
+    List,
+    ListItem,
+    ListItemIcon,
+    ListItemText,
 } from "@mui/material";
-import Header from "../components/header";
+import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline";
 import Footer from "../components/footer";
 import bg from "../../public/image/bg1.jpg";
-import graduate from "../../public/image/graduate.png";
-import book from "../../public/image/book.png";
-import online from "../../public/image/online.png";
 import PlayArrowIcon from "@mui/icons-material/PlayArrow";
 import { useNavigate } from "react-router-dom";
-
+import Header from "../components/header";
 function HomePage() {
-    const WebsiteName = "Introducing Tutor";
     const navigate = useNavigate();
 
-    const divider = [
+    const policies = [
         {
-            img: graduate,
-            text: "Đội ngũ gia sư chất lượng cao",
+            title: "Chính sách dành cho Gia sư",
+            items: [
+                "Gia sư phải cung cấp thông tin chính xác và cập nhật về trình độ, kinh nghiệm, và các chứng chỉ liên quan.",
+                "Website có quyền từ chối hoặc hủy hồ sơ gia sư nếu phát hiện thông tin không chính xác hoặc vi phạm quy định.",
+                "Gia sư chịu trách nhiệm về nội dung, chất lượng và hình thức của khóa học.",
+                "Website có quyền yêu cầu gia sư chỉnh sửa hoặc gỡ bỏ khóa học nếu nội dung không phù hợp, vi phạm bản quyền hoặc gây tranh cãi.",
+                "Gia sư cần cập nhật thông tin khóa học thường xuyên và thông báo cho học sinh về bất kỳ thay đổi nào.",
+                "Gia sư tự quyết định mức học phí cho khóa học của mình.",
+                "Website sẽ thu một phần trăm phí hoa hồng trên mỗi giao dịch thành công.",
+                "Gia sư sẽ nhận được thanh toán sau khi hoàn thành khóa học và học sinh xác nhận.",
+                "Gia sư cần tôn trọng và cư xử chuyên nghiệp với học sinh.",
+                "Nghiêm cấm mọi hành vi quấy rối, lừa đảo hoặc gây hại đến học sinh.",
+                "Gia sư cần tuân thủ các quy định về bảo mật thông tin cá nhân của học sinh.",
+            ],
         },
         {
-            img: book,
-            text: "Tìm gia sư toàn quốc",
-        },
-        {
-            img: online,
-            text: "Hỗ trợ nhiệt tình 24/7",
+            title: "Chính sách dành cho Học sinh",
+            items: [
+                "Học sinh cần cung cấp thông tin cá nhân chính xác để đăng ký tài khoản.",
+                "Website có quyền từ chối hoặc hủy tài khoản học sinh nếu phát hiện thông tin không chính xác hoặc vi phạm quy định.",
+                "Học sinh có thể tìm kiếm và đăng ký các khóa học phù hợp với nhu cầu của mình.",
+                "Học sinh cần thanh toán học phí đầy đủ trước khi bắt đầu khóa học.",
+                "Học sinh có thể hủy đăng ký khóa học trong một khoảng thời gian nhất định trước khi khóa học bắt đầu và được hoàn lại một phần học phí theo quy định.",
+                "Website không chịu trách nhiệm hoàn tiền nếu học sinh hủy khóa học sau thời gian quy định hoặc không tham gia khóa học.",
+                "Học sinh cần tôn trọng và cư xử chuyên nghiệp với gia sư.",
+                "Nghiêm cấm mọi hành vi quấy rối, lừa đảo hoặc gây hại đến gia sư.",
+                "Học sinh cần tuân thủ các quy định về bảo mật thông tin cá nhân của gia sư.",
+            ],
         },
     ];
 
     return (
         <React.Fragment>
             <CssBaseline />
-            <Container maxWidth="false">
-                <Box
-                    sx={{
-                        bgcolor: "#f1f1f1",
-                        minHeight: "100vh",
-                        pt: 10,
-                        pb: 4,
-                    }}
-                >
-                    <Header />
-                    <Grid
-                        container
-                        spacing={2}
-                        justifyContent="center"
-                        alignItems="center"
+            <Header />
+            {/* Hero Section */}
+            <Box
+                sx={{
+                    backgroundImage: `url(${bg})`,
+                    backgroundSize: "cover",
+                    backgroundPosition: "center",
+                    minHeight: "400px",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    color: "white",
+                }}
+            >
+                <Container maxWidth="md">
+                    <Typography variant="h3" align="center" gutterBottom>
+                        Kết nối Gia sư - Học sinh Uy tín
+                    </Typography>
+                    <Typography variant="h6" align="center" gutterBottom>
+                        Nền tảng hàng đầu giúp bạn tìm kiếm gia sư phù hợp và
+                        nâng cao kết quả học tập
+                    </Typography>
+                    <Box
+                        sx={{
+                            display: "flex",
+                            justifyContent: "center",
+                            mt: 2,
+                        }}
                     >
-                        <Grid item xs={12}>
-                            <Paper
-                                sx={{
-                                    minHeight: "60vh",
-                                    position: "relative",
-                                    display: "flex",
-                                    flexDirection: "column",
-                                    alignItems: "center",
-                                    justifyContent: "center",
-                                    margin: 2,
-                                    padding: 4,
-                                    background: `url(${bg}) lightgray no-repeat`,
-                                    backgroundPosition: "center",
-                                    backgroundSize: "cover",
-                                }}
-                            />
-                        </Grid>
-                    </Grid>
-                    <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
-                        <Grid container spacing={4}>
-                            {divider.map((item, index) => (
-                                <Grid
-                                    item
-                                    xs={4}
-                                    key={index}
-                                    container
-                                    direction="row"
-                                    alignItems="center"
-                                    justifyContent="center"
-                                    spacing={2}
-                                >
-                                    <Grid item xs={6} sx={{ marginLeft: 12 }}>
-                                        {" "}
-                                        <img
-                                            style={{
-                                                height: "auto",
-                                                maxWidth: "50%",
-                                            }}
-                                            src={item.img}
-                                            alt={item.altText || ""}
-                                        />
-                                    </Grid>
-                                    <Grid item xs={6}>
-                                        {" "}
-                                        <Typography
-                                            variant="h6"
-                                            component="h2"
-                                            textAlign={"center"}
-                                        >
-                                            {item.text}
-                                        </Typography>
-                                    </Grid>
-                                </Grid>
-                            ))}
-                            <Grid item xs={12}>
-                                <Typography
-                                    variant="h4"
-                                    component="h2"
-                                    gutterBottom
-                                >
-                                    Giới thiệu website gia sư {WebsiteName}
-                                </Typography>
-                                <Typography>
-                                    {WebsiteName} là nền tảng kết nối học sinh
-                                    và gia sư uy tín, giúp việc học tập của các
-                                    em trở nên hiệu quả hơn. Với đội ngũ gia sư
-                                    dày dặn kinh nghiệm và tâm huyết, chúng tôi
-                                    cam kết mang đến cho học sinh những trải
-                                    nghiệm học tập tốt nhất.
-                                </Typography>
-                            </Grid>
+                        <Button
+                            variant="contained"
+                            color="primary"
+                            startIcon={<PlayArrowIcon />}
+                            onClick={() => navigate(`/tutor`)}
+                        >
+                            Tìm Gia sư Ngay
+                        </Button>
+                    </Box>
+                </Container>
+            </Box>
 
-                            <Grid item xs={12}>
-                                <Paper elevation={3} sx={{ p: 3 }}>
-                                    <Typography variant="h5" gutterBottom>
-                                        Dịch vụ của chúng tôi:
-                                    </Typography>
-                                    <Box>
-                                        <Typography>
-                                            • Giới thiệu gia sư: Chúng tôi có
-                                            đội ngũ gia sư đa dạng...
-                                        </Typography>
-                                        <Typography>
-                                            • Tư vấn học tập: Chúng tôi cung cấp
-                                            dịch vụ tư vấn học tập miễn phí...
-                                        </Typography>
-                                        <Typography>
-                                            • Quản lý việc học: Chúng tôi cung
-                                            cấp hệ thống quản lý việc học trực
-                                            tuyến...
-                                        </Typography>
-                                    </Box>
-                                </Paper>
-                            </Grid>
-                            <Grid item xs={12}>
-                                <Paper elevation={3} sx={{ p: 3 }}>
-                                    <Typography variant="h5" gutterBottom>
-                                        Ưu điểm của {WebsiteName}:
-                                    </Typography>
-                                    <Box>
-                                        <Typography>
-                                            • Uy tín: Chúng tôi là website gia
-                                            sư uy tín...
-                                        </Typography>
-                                        <Typography>
-                                            • Chất lượng: Chúng tôi cam kết mang
-                                            đến cho học sinh...
-                                        </Typography>
-                                        <Typography>
-                                            • Đa dạng: Chúng tôi có đội ngũ gia
-                                            sư đa dạng...
-                                        </Typography>
-                                        <Typography>
-                                            • Tiện lợi: Việc tìm kiếm gia sư và
-                                            quản lý việc học tập...
-                                        </Typography>
-                                    </Box>
-                                    <Button
-                                        variant="contained"
-                                        color="primary"
-                                        startIcon={<PlayArrowIcon />}
-                                        onClick={() => {
-                                            navigate(`/tutor`);
-                                        }}
-                                        sx={{ mt: 2 }}
-                                    >
-                                        Tìm kiếm gia sư
-                                    </Button>
-                                </Paper>
-                            </Grid>
+            <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
+                {/* Dịch vụ */}
+                <Grid container spacing={4}>
+                    <Grid item xs={12}>
+                        <Typography
+                            variant="h4"
+                            component="h2"
+                            gutterBottom
+                            align="center"
+                        >
+                            Dịch vụ của chúng tôi
+                        </Typography>
+                    </Grid>
+                    <Grid item xs={12} sm={4}>
+                        <Typography variant="h6" gutterBottom>
+                            Tìm kiếm gia sư dễ dàng
+                        </Typography>
+                        <Typography>
+                            Với hệ thống tìm kiếm thông minh, bạn có thể dễ dàng
+                            tìm thấy gia sư phù hợp với nhu cầu và trình độ của
+                            mình.
+                        </Typography>
+                    </Grid>
+                    <Grid item xs={12} sm={4}>
+                        <Typography variant="h6" gutterBottom>
+                            Đa dạng khóa học
+                        </Typography>
+                        <Typography>
+                            Chúng tôi cung cấp đa dạng các khóa học từ các môn
+                            học phổ thông đến các kỹ năng chuyên biệt.
+                        </Typography>
+                    </Grid>
+                    <Grid item xs={12} sm={4}>
+                        <Typography variant="h6" gutterBottom>
+                            Hỗ trợ 24/7
+                        </Typography>
+                        <Typography>
+                            Đội ngũ hỗ trợ của chúng tôi luôn sẵn sàng giải đáp
+                            mọi thắc mắc của bạn.
+                        </Typography>
+                    </Grid>
+                </Grid>
+
+                {/* Ưu điểm */}
+                <Grid container spacing={4} sx={{ mt: 4 }}>
+                    <Grid item xs={12}>
+                        <Typography
+                            variant="h4"
+                            component="h2"
+                            gutterBottom
+                            align="center"
+                        >
+                            Ưu điểm của Introducing Tutor
+                        </Typography>
+                    </Grid>
+                    <Grid item xs={12} sm={6}>
+                        <Typography variant="h6" gutterBottom>
+                            Uy tín và chất lượng
+                        </Typography>
+                        <Typography>
+                            Chúng tôi là nền tảng kết nối gia sư - học sinh uy
+                            tín, đảm bảo chất lượng giảng dạy.
+                        </Typography>
+                        {/* <Typography variant="h6" gutterBottom sx={{ mt: 2 }}>
+                            Đội ngũ gia sư chuyên nghiệp
+                        </Typography>
+                        <Typography>
+                            Đội ngũ gia sư của chúng tôi đều có kinh nghiệm và
+                            trình độ chuyên môn cao.
+                        </Typography> */}
+                    </Grid>
+                    <Grid item xs={12} sm={6}>
+                        <Typography variant="h6" gutterBottom>
+                            Đa dạng lựa chọn
+                        </Typography>
+                        <Typography>
+                            Bạn có thể lựa chọn từ hàng ngàn gia sư và khóa học
+                            khác nhau.
+                        </Typography>
+                        <Typography variant="h6" gutterBottom sx={{ mt: 2 }}>
+                            Tiện lợi và dễ sử dụng
+                        </Typography>
+                        <Typography>
+                            Nền tảng của chúng tôi dễ sử dụng và hỗ trợ bạn
+                            trong suốt quá trình học tập
+                        </Typography>
+                    </Grid>
+                </Grid>
+
+                {/* Chính sách */}
+                <Grid container spacing={4} sx={{ mt: 4 }}>
+                    <Grid item xs={12}>
+                        <Typography
+                            variant="h4"
+                            component="h2"
+                            gutterBottom
+                            align="center"
+                        >
+                            Chính sách
+                        </Typography>
+                    </Grid>
+
+                    {policies.map((policyGroup, index) => (
+                        <Grid item xs={12} md={6} key={index}>
+                            <Typography variant="h6" gutterBottom>
+                                {policyGroup.title}
+                            </Typography>
+                            <List>
+                                {policyGroup.items.map((policy, itemIndex) => (
+                                    <ListItem key={itemIndex}>
+                                        <ListItemIcon>
+                                            <CheckCircleOutlineIcon />
+                                        </ListItemIcon>
+                                        <ListItemText primary={policy} />
+                                    </ListItem>
+                                ))}
+                            </List>
                         </Grid>
-                    </Container>
-                </Box>
+                    ))}
+                </Grid>
             </Container>
+
             <Footer />
         </React.Fragment>
     );

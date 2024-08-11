@@ -82,10 +82,12 @@ export default function SignInSide() {
 
                 if (response.ok) {
                     const data = await response.json();
+                    const username = data.data.username;
                     setToken(data.data.token);
-                    localStorage.setItem("token", data.data.token);
-                    localStorage.setItem("name", data.data.name);
-                    localStorage.setItem("role", data.data.role);
+                    sessionStorage.setItem("username", username);
+                    localStorage.setItem(username, data.data.token);
+                    localStorage.setItem(`${username}_name`, data.data.name);
+                    localStorage.setItem(`${username}_role`, data.data.role);
                     console.log(data.data);
                     if (data.data.role == 0) {
                         handleNavigate("dashboard/users");

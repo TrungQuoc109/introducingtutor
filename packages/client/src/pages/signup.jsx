@@ -35,6 +35,7 @@ const defaultTheme = createTheme();
 export default function SignUp() {
     const navigate = useNavigate();
     const [value, setValue] = useState(1);
+
     const [errorMessage, setErrorMessage] = useState(null);
     const [formData, setFormData] = useState({
         name: "",
@@ -43,6 +44,7 @@ export default function SignUp() {
         email: "",
         age: "",
         phoneNumber: "",
+        gender: 1,
         role: 1,
         educationLevel: {
             education: "",
@@ -115,7 +117,6 @@ export default function SignUp() {
     const validateForm = () => {
         const newErrors = {};
 
-        // Kiểm tra các trường cơ bản
         if (!formData.name) newErrors.name = "Họ và Tên không được để trống";
         if (!formData.username || !usernameRegex.test(formData.username)) {
             newErrors.username = "Tài khoản dài từ 8 đến 30 ký tự";
@@ -161,7 +162,7 @@ export default function SignUp() {
 
     const handleChange = (event) => {
         const { name, value } = event.target;
-
+        console.log(name, value);
         setFormData((prevData) => {
             if (name in prevData.educationLevel) {
                 return {
@@ -225,7 +226,7 @@ export default function SignUp() {
     const handleImageChange = (event) => {
         if (event.target.files && event.target.files[0]) {
             const imgURL = URL.createObjectURL(event.target.files[0]);
-            console.log("a:", imageUrl);
+
             setImageUrl(imgURL);
             setImage(event.target.files[0]);
         }
@@ -454,6 +455,43 @@ export default function SignUp() {
                                     sx={{ mt: 0.8, mb: 1, minHeight: 60 }}
                                 >
                                     <FormLabel component="legend">
+                                        Giới tính
+                                    </FormLabel>
+                                    <RadioGroup
+                                        aria-label="gender"
+                                        name="gender"
+                                        value={formData.gender}
+                                        onChange={handleChange}
+                                        row
+                                        sx={{ mb: 0.8 }}
+                                    >
+                                        <Grid container>
+                                            <Grid item xs={6}>
+                                                <FormControlLabel
+                                                    value={1}
+                                                    control={<Radio />}
+                                                    label="Nam"
+                                                />
+                                            </Grid>
+                                            <Grid item xs={6}>
+                                                <FormControlLabel
+                                                    value={2}
+                                                    control={<Radio />}
+                                                    label="Nữ"
+                                                />
+                                            </Grid>
+                                        </Grid>
+                                    </RadioGroup>
+                                </FormControl>
+                                <FormControl
+                                    component="fieldset"
+                                    fullWidth
+                                    FormHelperTextProps={{
+                                        className: "helper-text",
+                                    }}
+                                    sx={{ mt: 0.8, mb: 1, minHeight: 60 }}
+                                >
+                                    <FormLabel component="legend">
                                         Vai trò
                                     </FormLabel>
                                     <RadioGroup
@@ -590,7 +628,6 @@ export default function SignUp() {
                                                     {errors.subjects}
                                                 </FormHelperText>
                                             ) : (
-                                                // Khi không có lỗi, vẫn giữ một khoảng không tương tự để tránh thay đổi layout
                                                 <FormHelperText
                                                     sx={{
                                                         visibility: "hidden",

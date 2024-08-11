@@ -54,8 +54,9 @@ export default function CourseDetail() {
     const { courseId } = useParams();
     const dayOfWeek = [2, 3, 4, 5, 6, 7, 8];
     const duration = [90, 120, 150, 180];
-    const token = localStorage.getItem("token");
-    const role = localStorage.getItem("role");
+    const username = sessionStorage.getItem("username");
+    const token = localStorage.getItem(username);
+    const role = localStorage.getItem(username + "_role");
     const fetchData = async () => {
         try {
             const response = await fetch(

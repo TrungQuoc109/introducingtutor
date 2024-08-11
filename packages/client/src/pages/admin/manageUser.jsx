@@ -31,7 +31,8 @@ import {
 import { DataContext } from "../../dataprovider/subject";
 
 function UserManagement() {
-    const token = localStorage.getItem("token");
+    const username = sessionStorage.getItem("username");
+    const token = localStorage.getItem(username);
     const [profile, setProfile] = useState(null);
     const [users, setUsers] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -594,7 +595,7 @@ function UserManagement() {
                     >
                         <Pagination
                             count={totalPages}
-                            page={currentPage}
+                            page={currentPage + 1}
                             onChange={handlePageChange}
                             color="primary"
                             showFirstButton

@@ -29,6 +29,7 @@ function TutorPage() {
     const [searchTerm, setSearchTerm] = useState("");
     const [subject, setSubject] = useState("");
     const [location, setLocation] = useState("");
+    const [gender, setGender] = useState("");
     const [error, setError] = useState("");
     const [tutors, setTutors] = useState([]);
     const [page, setPage] = useState(0);
@@ -41,13 +42,6 @@ function TutorPage() {
     const app = initializeApp(firebaseConfig);
 
     const storage = getStorage(app);
-    // const appCheck = initializeAppCheck(app, {
-    //     provider: new ReCaptchaV3Provider(reCaptchaV3Provider),
-
-    //     // Optional argument. If true, the SDK automatically refreshes App Check
-    //     // tokens as needed.
-    //     isTokenAutoRefreshEnabled: true,
-    // });
     const performSearch = (event) => {
         if (event) event.preventDefault();
 
@@ -60,7 +54,8 @@ function TutorPage() {
         if (searchTerm) searchParams.append("searchTerm", searchTerm);
         if (subject) searchParams.append("subjectId", subject);
         if (location) searchParams.append("location", location);
-
+        if (gender) searchParams.append("gender", gender);
+        console.log(gender);
         const apiUrl = `${baseApiUrl}?${searchParams.toString()}`;
         setLoading(true);
         fetch(apiUrl)
@@ -179,6 +174,8 @@ function TutorPage() {
                             location={location}
                             setLocation={setLocation}
                             subjects={subjects}
+                            gender={gender}
+                            setGender={setGender}
                             performSearch={performSearch}
                             handleKeyPress={handleKeyPress}
                         />

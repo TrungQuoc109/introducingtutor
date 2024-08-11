@@ -14,7 +14,6 @@ import {
 } from "@mui/material";
 import { baseURL, districts } from "../config/config";
 
-// Khai báo các trường form dưới dạng mảng
 const formFields = [
     { id: "name", label: "Tên Khóa Học", type: "text" },
     {
@@ -26,12 +25,10 @@ const formFields = [
     },
     { id: "startDate", label: "Ngày Bắt Đầu", type: "date" },
     { id: "numberOfSessions", label: "Số buổi học:", type: "number" },
-    //  { id: "gradeLevel", label: "Lớp: ", type: "number" },
-    // { id: "studentCount", label: "Số lượng học sinh:", type: "number" },
+
     { id: "price", label: "Giá", type: "number" },
 ];
 function CustomTextField({ id, label, value, onChange, ...other }) {
-    // Tạo một props object để chứa các props có thể thay đổi
     let textFieldProps = {
         fullWidth: true,
         margin: "dense",
@@ -43,15 +40,14 @@ function CustomTextField({ id, label, value, onChange, ...other }) {
         ...other,
     };
 
-    // Nếu id là "startDate", thêm InputLabelProps vào props object
     if (id === "startDate") {
         textFieldProps.InputLabelProps = { shrink: true };
     }
     if (id === "gradeLevel") {
         textFieldProps = {
             ...textFieldProps,
-            type: "number", // Đảm bảo đây là trường kiểu số
-            inputProps: { min: 1, max: 12 }, // Giới hạn giá trị từ 1 đến 12
+            type: "number",
+            inputProps: { min: 1, max: 12 },
         };
     }
 
@@ -61,7 +57,7 @@ function CustomTextField({ id, label, value, onChange, ...other }) {
 function CreateCourseDialog({
     isOpen,
     onClose,
-    //onSave,
+
     courseInfo,
     subjects,
     locations,
@@ -70,14 +66,13 @@ function CreateCourseDialog({
     const [formData, setFormData] = useState({
         name: "",
         subjectId: "",
-        //  gradeLevel: 1,
+
         description: "",
         startDate: "",
         numberOfSessions: "",
         location: "",
         specificAddress: "",
-        price: 0,
-        // studentCount: 0,
+        price: 1000,
     });
 
     useEffect(() => {
@@ -88,14 +83,13 @@ function CreateCourseDialog({
             setFormData({
                 name: "",
                 subjectId: "",
-                // gradeLevel: 1,
+
                 description: "",
                 startDate: "",
                 numberOfSessions: "",
                 location: "",
                 specificAddress: "",
-                price: 0,
-                // studentCount: 0,
+                price: 1000,
             });
         }
     }, [courseInfo, isOpen]);
@@ -103,8 +97,8 @@ function CreateCourseDialog({
         const { name, value } = event.target;
         setFormData((prev) => ({ ...prev, [name]: value }));
     };
-
-    const token = localStorage.getItem("token");
+    const username = sessionStorage.getItem("username");
+    const token = localStorage.getItem(username);
     const handleFormSubmit = async () => {
         if (!isChange) {
             const response = await fetch(`${baseURL}/tutor/teaching-subject`, {
@@ -119,7 +113,6 @@ function CreateCourseDialog({
             if (response.ok) {
                 alert(data.message);
                 onClose();
-                // onSave(formData);
             } else {
                 alert(data.error);
             }

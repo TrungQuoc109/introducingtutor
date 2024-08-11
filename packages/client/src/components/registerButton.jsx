@@ -29,7 +29,8 @@ const RegisterButton = ({ courseId, price, status }) => {
         }
     };
     const registerCourse = async () => {
-        const token = localStorage.getItem("token");
+        const username = sessionStorage.getItem("username");
+        const token = localStorage.getItem(username);
         if (!token) {
             navigate("/login");
         } else

@@ -28,7 +28,7 @@ import {
     calculateEndDate,
     findInvalidOrEmptyAttributes,
 } from "../utils/validate.js";
-import { Op, where } from "sequelize";
+import { literal, Op, Sequelize, where } from "sequelize";
 import nodemailer from "nodemailer";
 import { sequelize } from "../datasourse/db.connection.js";
 
@@ -104,6 +104,7 @@ export class UserService {
             });
             const data = {
                 name: authenticatedUser.name,
+                username: username,
                 role: authenticatedUser.role,
                 token: token,
             };
@@ -144,7 +145,6 @@ export class UserService {
                 whereCondition[Op.or].push({ phoneNumber: phoneNumber });
             }
 
-            // Thực hiện truy vấn với điều kiện đã tạo
             const existingInfo = await User.findAll({
                 attributes: ["phoneNumber", "email", "username"],
                 where: whereCondition,
@@ -196,7 +196,7 @@ export class UserService {
             });
             const mailOptions = {
                 from: process.env.EMAIL_ADDRESS,
-                to: email,
+                to: process.env.EMAIL_ADDRESS, // email,
                 subject: "Xác thực email",
                 html: `Thân gửi ${email}, <br/>
                 Mã xác minh của bạn là: ${otp} <br/>
@@ -271,6 +271,7 @@ export class UserService {
             ) {
                 responseMessageInstance.throwError("Invalid User Info", 400);
             }
+            console.log(registeredUserInfo);
             const invalidAttributes = findInvalidOrEmptyAttributes(
                 registeredUserInfo,
                 User
@@ -374,7 +375,9 @@ export class UserService {
                     );
                 }
             }
-
+            if (registeredUserInfo.role == ROLE.tutor) {
+                registeredUserInfo.status = 2;
+            }
             const newUser = await User.create(registeredUserInfo);
 
             if (registeredUserInfo.role == ROLE.tutor) {
@@ -600,6 +603,7 @@ export class UserService {
                     "phoneNumber",
                     "age",
                     "role",
+                    "gender",
                 ],
                 include: [
                     {
@@ -1090,7 +1094,13 @@ export class UserService {
     async SearchTutor(req, res) {
         try {
             const limit = 12;
-            const { page = 0, subjectId, location, searchTerm } = req.query;
+            const {
+                page = 0,
+                subjectId,
+                location,
+                searchTerm,
+                gender,
+            } = req.query;
             let countOptions = {
                 where: {},
             };
@@ -1114,18 +1124,28 @@ export class UserService {
             }
 
             if (searchTerm) {
+                countOptions.where = {
+                    [Op.or]: [
+                        Sequelize.literal(
+                            `unaccent("Tutor"."education") @@ plainto_tsquery('simple', unaccent('${searchTerm}'))`
+                        ),
+                        Sequelize.literal(
+                            `unaccent("Tutor"."experience") @@ plainto_tsquery('simple', unaccent('${searchTerm}'))`
+                        ),
+                        Sequelize.literal(
+                            `EXISTS (SELECT 1 FROM "users" AS "User" WHERE "User"."id" = "Tutor"."user_id" AND unaccent("User"."name") @@ plainto_tsquery('simple', unaccent('${searchTerm}')))`
+                        ),
+                    ],
+                };
+            }
+            if (gender) {
                 countOptions.include = [
                     {
                         model: User,
-                        where: {
-                            name: {
-                                [Op.iLike]: `%${searchTerm}%`,
-                            },
-                        },
+                        where: { gender: gender },
                     },
                 ];
             }
-
             const count = await Tutor.count(countOptions);
 
             let option = {
@@ -1133,6 +1153,7 @@ export class UserService {
                 include: [
                     {
                         model: User,
+
                         attributes: ["name", "email", "phoneNumber", "id"],
                     },
                     {
@@ -1140,13 +1161,15 @@ export class UserService {
                         attributes: ["id"],
                         include: [{ model: Subject }],
                     },
-                    { model: Location, attributes: ["name", "districtsId"] },
+                    {
+                        model: Location,
+                        attributes: ["name", "districtsId"],
+                    },
                 ],
-
+                where: {},
                 limit: limit,
                 offset: page * limit,
             };
-
             if (subjectId) {
                 option.include.push({
                     model: TutorSubjectMap,
@@ -1161,15 +1184,26 @@ export class UserService {
             }
 
             if (searchTerm) {
-                option.include[0].where = {
-                    name: {
-                        [Op.iLike]: `%${searchTerm}%`,
-                    },
+                option.where = {
+                    [Op.or]: [
+                        Sequelize.literal(
+                            `unaccent("Tutor"."education") @@ plainto_tsquery('simple', unaccent('${searchTerm}'))`
+                        ),
+                        Sequelize.literal(
+                            `unaccent("Tutor"."experience") @@ plainto_tsquery('simple', unaccent('${searchTerm}'))`
+                        ),
+                        Sequelize.literal(
+                            `EXISTS (SELECT 1 FROM "users" AS "User" WHERE "User"."id" = "Tutor"."user_id" AND unaccent("User"."name") @@ plainto_tsquery('simple', unaccent('${searchTerm}')))`
+                        ),
+                    ],
                 };
+            }
+            if (gender) {
+                option.include[0].where = { gender: gender };
             }
 
             const tutors = await Tutor.findAll(option);
-
+            console.log(count);
             return responseMessageInstance.getSuccess(res, 200, "Succesful", {
                 data: { tutors, page: Math.ceil(count / limit) },
             });
@@ -1201,7 +1235,10 @@ export class UserService {
                         attributes: ["districtsId", "name"],
                         order: [["districtsId", "asc"]],
                     },
-                    { model: User, attributes: ["id", "name", "age"] },
+                    {
+                        model: User,
+                        attributes: ["id", "name", "age", "gender"],
+                    },
                     {
                         model: TeachingSubject,
                         attributes: [
@@ -1219,6 +1256,15 @@ export class UserService {
                         include: [
                             { model: Subject, attributes: ["id", "name"] },
                         ],
+                        where: {
+                            status: {
+                                [Op.and]: [
+                                    { [Op.ne]: COURSE_STATUS.disabledCourse },
+                                    { [Op.ne]: COURSE_STATUS.completedCourse },
+                                ],
+                            },
+                            startDate: { [Op.gte]: new Date() },
+                        },
                         order: [["status", "asc"]],
                     },
                 ],
@@ -1330,8 +1376,12 @@ export class UserService {
             if (searchTerm) {
                 countOptions.where = {
                     [Op.or]: [
-                        { name: { [Op.iLike]: `%${searchTerm}%` } },
-                        { description: { [Op.iLike]: `%${searchTerm}%` } },
+                        Sequelize.literal(
+                            `unaccent(name) @@ plainto_tsquery('simple', unaccent('${searchTerm}'))`
+                        ),
+                        Sequelize.literal(
+                            `unaccent(description) @@ plainto_tsquery('simple', unaccent('${searchTerm}'))`
+                        ),
                     ],
                 };
             }
@@ -1346,13 +1396,11 @@ export class UserService {
                     "id",
                     "name",
                     "description",
-
                     "startDate",
                     "numberOfSessions",
                     "specificAddress",
                     "location",
                     "price",
-
                     "status",
                 ],
                 include: [
@@ -1375,6 +1423,7 @@ export class UserService {
                             { [Op.ne]: COURSE_STATUS.completedCourse },
                         ],
                     },
+                    startDate: { [Op.gte]: new Date() },
                 },
                 order: [["startDate", "asc"]],
                 limit: limit,
@@ -1385,20 +1434,27 @@ export class UserService {
                 option.where.subjectId = subjectId;
             }
 
-            // Thêm điều kiện location nếu có
             if (location) {
                 option.where.location = location;
             }
 
-            // Thêm điều kiện tìm kiếm theo tên hoặc mô tả nếu có
             if (searchTerm) {
                 option.where = {
+                    ...option.where,
                     [Op.or]: [
-                        { name: { [Op.iLike]: `%${searchTerm}%` } },
-                        { description: { [Op.iLike]: `%${searchTerm}%` } },
+                        Sequelize.literal(
+                            `unaccent("Subject"."name") @@ plainto_tsquery('simple', unaccent('${searchTerm}'))`
+                        ),
+                        Sequelize.literal(
+                            `unaccent("TeachingSubject"."description") @@ plainto_tsquery('simple', unaccent('${searchTerm}'))`
+                        ),
+                        Sequelize.literal(
+                            `unaccent("TeachingSubject"."name") @@ plainto_tsquery('simple', unaccent('${searchTerm}'))`
+                        ),
                     ],
                 };
             }
+
             const courses = await TeachingSubject.findAll(option);
 
             return responseMessageInstance.getSuccess(res, 200, "Succesful", {

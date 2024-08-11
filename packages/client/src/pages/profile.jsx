@@ -17,6 +17,10 @@ import {
     OutlinedInput,
     Chip,
     MenuItem,
+    FormControlLabel,
+    FormLabel,
+    RadioGroup,
+    Radio,
 } from "@mui/material";
 import Footer from "../components/footer";
 import Header from "../components/header";
@@ -30,8 +34,9 @@ import { useNavigate } from "react-router-dom";
 import Schedule from "../components/schedule";
 import SubjectSelect from "../components/selected";
 export default function Profile() {
-    const token = localStorage.getItem("token");
-    const role = localStorage.getItem("role");
+    const username = sessionStorage.getItem("username");
+    const token = localStorage.getItem(username);
+    const role = localStorage.getItem(username + "_role");
     const subjects = useContext(DataContext);
     const app = initializeApp(firebaseConfig);
     const storage = getStorage(app);
@@ -60,6 +65,7 @@ export default function Profile() {
         email: "",
         phoneNumber: "",
         age: "",
+        gender: "",
         role: null,
         Tutor: { education: "", experience: "" },
         Student: { gradeLevel: "" },
@@ -462,7 +468,43 @@ export default function Profile() {
                                             mb: 2, // Margin bottom
                                         }}
                                     />
-
+                                    <FormControl
+                                        component="fieldset"
+                                        fullWidth
+                                        FormHelperTextProps={{
+                                            className: "helper-text",
+                                        }}
+                                        sx={{ mt: 0.8, mb: 1, minHeight: 60 }}
+                                    >
+                                        <FormLabel component="legend">
+                                            Giới tính
+                                        </FormLabel>
+                                        <RadioGroup
+                                            aria-label="gender"
+                                            name="gender"
+                                            value={profileData.gender}
+                                            onChange={handleChange}
+                                            row
+                                            sx={{ mb: 0.8 }}
+                                        >
+                                            <Grid container>
+                                                <Grid item xs={6}>
+                                                    <FormControlLabel
+                                                        value={0}
+                                                        control={<Radio />}
+                                                        label="Nam"
+                                                    />
+                                                </Grid>
+                                                <Grid item xs={6}>
+                                                    <FormControlLabel
+                                                        value={1}
+                                                        control={<Radio />}
+                                                        label="Nữ"
+                                                    />
+                                                </Grid>
+                                            </Grid>
+                                        </RadioGroup>
+                                    </FormControl>
                                     {profileData.role == 1 && (
                                         <>
                                             <TextField

@@ -6,6 +6,7 @@ export function findInvalidOrEmptyAttributes(object, model) {
         if (key == "educationLevel" || key == "subjects" || key == "address") {
             continue;
         }
+        console.log(value);
         if (!userAttributes.includes(key) || !value) {
             invalidOrEmptyAttributes.push(key);
         }

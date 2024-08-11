@@ -27,6 +27,11 @@ adminRouter.get(
     middlewareInstance.AdminAuthen,
     adminInstance.GetInforCourse
 );
+adminRouter.put(
+    "/change-status-course/:courseId",
+    middlewareInstance.AdminAuthen,
+    adminInstance.ChangeStatusCourse
+);
 adminRouter.get(
     "/get-tutor-earnings",
     middlewareInstance.AdminAuthen,
