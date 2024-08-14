@@ -32,7 +32,9 @@ const RegisterButton = ({ courseId, price, status }) => {
         const username = sessionStorage.getItem("username");
         const token = localStorage.getItem(username);
         if (!token) {
-            navigate("/login");
+            navigate("/login", {
+                state: { url: `course-detail/${courseId}` },
+            });
         } else
             try {
                 const response = await fetch(

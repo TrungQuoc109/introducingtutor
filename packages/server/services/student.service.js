@@ -546,7 +546,7 @@ export class StudentService {
             return responseMessageInstance.getSuccess(
                 res,
                 200,
-                `Huỷ thành công, số tiền hoàn lại là ${amount}`
+                `Huỷ thành công, số tiền ban đầu ${order.amount}, số tiền hoàn lại là ${amount}`
             );
         } catch (error) {
             console.log(error);

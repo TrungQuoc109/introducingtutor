@@ -529,7 +529,8 @@ export class TutorService {
                     400
                 );
             }
-            if (existedCourse.startDate != course.startDate) {
+            const startDate = new Date(existedCourse.startDate);
+            if (startDate.getTime() != course.startDate.getTime()) {
                 const lesson = await Lesson.findOne({
                     where: { teachingSubjectId: existedCourse.id },
                 });

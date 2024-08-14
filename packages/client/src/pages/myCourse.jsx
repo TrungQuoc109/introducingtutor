@@ -263,7 +263,8 @@ export default function MyCourse() {
                         >
                             <Grid item>
                                 <Typography variant="h4" gutterBottom>
-                                    Các Khóa Học Của Tôi
+                                    Danh sách{" "}
+                                    {role == 1 ? "lịch dạy" : "lịch học"}
                                 </Typography>
                             </Grid>
                             {role == 1 ? (
@@ -273,7 +274,7 @@ export default function MyCourse() {
                                         color="primary"
                                         onClick={openCreateDialog}
                                     >
-                                        Tạo Khóa Học
+                                        Tạo lịch dạy
                                     </Button>{" "}
                                     {isDialogOpen && (
                                         <CreateCourseDialog

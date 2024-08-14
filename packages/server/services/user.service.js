@@ -68,7 +68,7 @@ export class UserService {
 
             if (!userCredentials) {
                 responseMessageInstance.throwError(
-                    "Đăng nhập thất bại. Vui lòng kiểm tra lại",
+                    "Đăng nhập thất bại. Vui lòng kiểm tra lại tài khoản và mật khẩu",
                     400
                 );
             }
@@ -78,7 +78,7 @@ export class UserService {
             );
             if (!checkpassword) {
                 responseMessageInstance.throwError(
-                    "Đăng nhập thất bại. Vui lòng kiểm tra lại",
+                    "Đăng nhập thất bại. Vui lòng kiểm tra lại tài khoản và mật khẩu",
                     400
                 );
             }
@@ -1245,17 +1245,16 @@ export class UserService {
                             "id",
                             "name",
                             "description",
-
                             "startDate",
                             "numberOfSessions",
                             "location",
                             "price",
-
                             "status",
                         ],
                         include: [
                             { model: Subject, attributes: ["id", "name"] },
                         ],
+                        required: false,
                         where: {
                             status: {
                                 [Op.and]: [
@@ -1270,7 +1269,8 @@ export class UserService {
                 ],
             });
 
-            if (tutor.length == 0) {
+            if (!tutor) {
+                console.log(tutor, tutorId);
                 responseMessageInstance.throwError("Tutor not found!", 404);
             }
 
