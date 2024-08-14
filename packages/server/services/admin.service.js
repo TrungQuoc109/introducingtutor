@@ -106,15 +106,53 @@ export class AdminService {
 
     async ChangeStatusCourse(req, res) {
         try {
-            const userId = req.params.courseId;
+            const courseId = req.params.courseId;
             const status = req.body.newStatus;
+            if (!courseId) {
+                responseMessageInstance.throwError("Invalid courseId", 400);
+            }
+            if (status != STATUS.active && status != STATUS.deactive) {
+                responseMessageInstance.throwError("Invalid Status", 400);
+            }
+            const course = await TeachingSubject.findOne({
+                where: { id: courseId },
+            });
+            if (!course) {
+                responseMessageInstance.throwError("Course not found!", 404);
+            }
+            if (course.status == status) {
+                responseMessageInstance.throwError("Nothing has changed.", 303);
+            }
+            await TeachingSubject.update(
+                { status: status },
+                { where: { id: courseId } }
+            );
+            return responseMessageInstance.getSuccess(
+                res,
+                200,
+                "Change status course  successfull"
+            );
+        } catch (error) {
+            console.log(error);
+            return responseMessageInstance.getError(
+                res,
+                error.code ?? 500,
+                error.message
+            );
+        }
+    }
+    async ChangeStatusUser(req, res) {
+        try {
+            const userId = req.params.userId;
+            const status = req.body.newStatus;
+            console.log(userId);
             if (!userId) {
                 responseMessageInstance.throwError("Invalid UserId", 400);
             }
             if (status != STATUS.active && status != STATUS.deactive) {
                 responseMessageInstance.throwError("Invalid Status", 400);
             }
-            const user = await TeachingSubject.findOne({
+            const user = await User.findOne({
                 where: { id: userId },
             });
             if (!user) {
@@ -123,10 +161,7 @@ export class AdminService {
             if (user.status == status) {
                 responseMessageInstance.throwError("Nothing has changed.", 303);
             }
-            await TeachingSubject.update(
-                { status: status },
-                { where: { id: userId } }
-            );
+            await User.update({ status: status }, { where: { id: userId } });
             return responseMessageInstance.getSuccess(
                 res,
                 200,

@@ -13,7 +13,7 @@ import Typography from "@mui/material/Typography";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 import Header from "../components/header";
 import Footer from "../components/footer";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import logo from "../../public/image/Logo_STU.png";
 import { baseURL } from "../config/config";
 
@@ -27,6 +27,7 @@ export default function SignInSide() {
         password: "",
     });
     const [token, setToken] = useState(null);
+    const location = useLocation();
     const [errorMessage, setErrorMessage] = useState(null);
     const [error, setError] = useState({ username: false, password: false });
     const [helperText, setHelperText] = useState({
@@ -91,7 +92,11 @@ export default function SignInSide() {
                     console.log(data.data);
                     if (data.data.role == 0) {
                         handleNavigate("dashboard/users");
-                    } else handleNavigate("");
+                    } else {
+                        handleNavigate(
+                            location.state?.url ? `${location.state?.url}` : ""
+                        );
+                    }
                 } else {
                     const errorData = await response.json();
 

@@ -55,7 +55,7 @@ function TutorPage() {
         if (subject) searchParams.append("subjectId", subject);
         if (location) searchParams.append("location", location);
         if (gender) searchParams.append("gender", gender);
-        console.log(gender);
+
         const apiUrl = `${baseApiUrl}?${searchParams.toString()}`;
         setLoading(true);
         fetch(apiUrl)
@@ -68,6 +68,7 @@ function TutorPage() {
             .then((data) => {
                 setTotalPages(data.data.page);
                 setTutors(data.data.tutors);
+                console.log(data.data.tutors.length);
                 setLoading(false);
             })
             .catch((error) => {
@@ -192,7 +193,7 @@ function TutorPage() {
                             </Box>
                         ) : (
                             <Grid container spacing={2} mt={4}>
-                                {tutorCards &&
+                                {tutorCards && tutorCards.length != 0 ? (
                                     tutorCards.map((card) => (
                                         <Grid
                                             item
@@ -289,7 +290,16 @@ function TutorPage() {
                                                 </CardActionArea>
                                             </Card>
                                         </Grid>
-                                    ))}
+                                    ))
+                                ) : (
+                                    <Typography
+                                        color="textSecondary"
+                                        align="center"
+                                        sx={{ width: "100%", mt: 2 }}
+                                    >
+                                        Không có gia sư nào
+                                    </Typography>
+                                )}
                             </Grid>
                         )}
                         <Grid

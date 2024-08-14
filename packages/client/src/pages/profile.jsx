@@ -363,9 +363,9 @@ export default function Profile() {
                         minHeight: "100vh",
                         pt: 12,
                         pb: 4,
-                        display: "flex", // Center children vertically
-                        flexDirection: "column", // Align children in a column
-                        alignItems: "center", // Center children horizontally
+                        display: "flex",
+                        flexDirection: "column",
+                        alignItems: "center",
                     }}
                 >
                     <Header /> {/* Header component */}
@@ -374,8 +374,8 @@ export default function Profile() {
                             sx={{
                                 bgcolor: "white",
                                 p: 4,
-                                width: "100%", // Ensure content fills the container width
-                                maxWidth: "100%", // Ensure content doesn't exceed container width
+                                width: "100%",
+                                maxWidth: "100%",
                             }}
                         >
                             <Grid container spacing={4}>
@@ -385,12 +385,12 @@ export default function Profile() {
                                         src={imgURL ?? logo}
                                         alt="Profile"
                                         sx={{
-                                            width: "100%", // Full width on smaller screens
-                                            maxWidth: 300, // Maximum width on larger screens
+                                            width: "100%",
+                                            maxWidth: 300,
                                             height: "auto",
                                             objectFit: "contain",
-                                            mx: "auto", // Center align image
-                                            mb: { xs: 4, md: 0 }, // Margin bottom spacing based on screen size
+                                            mx: "auto",
+                                            mb: { xs: 4, md: 0 },
                                         }}
                                     />
                                 </Grid>
@@ -411,7 +411,7 @@ export default function Profile() {
                                             className: "helper-text",
                                         }}
                                         sx={{
-                                            mb: 2, // Margin bottom
+                                            mb: 2,
                                         }}
                                     />
                                     <TextField
@@ -430,7 +430,7 @@ export default function Profile() {
                                             className: "helper-text",
                                         }}
                                         sx={{
-                                            mb: 2, // Margin bottom
+                                            mb: 2,
                                         }}
                                     />
                                     <TextField
@@ -447,7 +447,7 @@ export default function Profile() {
                                             className: "helper-text",
                                         }}
                                         sx={{
-                                            mb: 2, // Margin bottom
+                                            mb: 2,
                                         }}
                                     />
                                     <TextField
@@ -465,7 +465,7 @@ export default function Profile() {
                                             className: "helper-text",
                                         }}
                                         sx={{
-                                            mb: 2, // Margin bottom
+                                            mb: 2,
                                         }}
                                     />
                                     <FormControl
@@ -490,14 +490,14 @@ export default function Profile() {
                                             <Grid container>
                                                 <Grid item xs={6}>
                                                     <FormControlLabel
-                                                        value={0}
+                                                        value={1}
                                                         control={<Radio />}
                                                         label="Nam"
                                                     />
                                                 </Grid>
                                                 <Grid item xs={6}>
                                                     <FormControlLabel
-                                                        value={1}
+                                                        value={2}
                                                         control={<Radio />}
                                                         label="Nữ"
                                                     />
@@ -523,7 +523,7 @@ export default function Profile() {
                                                     className: "helper-text",
                                                 }}
                                                 sx={{
-                                                    mb: 2, // Margin bottom
+                                                    mb: 2,
                                                 }}
                                             />
                                             <TextField
@@ -542,7 +542,7 @@ export default function Profile() {
                                                     className: "helper-text",
                                                 }}
                                                 sx={{
-                                                    mb: 2, // Margin bottom
+                                                    mb: 2,
                                                 }}
                                             />
                                             <SubjectSelect
@@ -580,7 +580,7 @@ export default function Profile() {
                                                 className: "helper-text",
                                             }}
                                             sx={{
-                                                mb: 2, // Margin bottom
+                                                mb: 2,
                                             }}
                                         />
                                     )}

@@ -224,6 +224,17 @@ export default function CourseDetail() {
                                                     courseDetail.description}
                                             </Typography>
                                         </Grid>
+                                        <Grid item xs={12} sm={2}>
+                                            <Typography>Gia sư</Typography>
+                                        </Grid>
+                                        <Grid item xs={12} sm={10}>
+                                            <Typography>
+                                                :{" "}
+                                                {courseDetail &&
+                                                    courseDetail.Tutor.User
+                                                        .name}
+                                            </Typography>
+                                        </Grid>
                                         <Grid item container xs={12} sm={6}>
                                             <Grid item xs={4}>
                                                 <Typography variant="subtitle1">

@@ -155,7 +155,7 @@ function SalaryCalculation() {
                                 </TableCell>
 
                                 <TableCell align="center">
-                                    Thực nhận (VND)
+                                    Thực nhận (VND) <br /> 90%
                                 </TableCell>
                             </TableRow>
                         </TableHead>
@@ -179,9 +179,9 @@ function SalaryCalculation() {
                                             {tutor.name}
                                         </TableCell>
                                         <TableCell align="center">
-                                            {tutor.totalearnings.toLocaleString(
-                                                "vi-VN"
-                                            )}
+                                            {parseFloat(
+                                                tutor.totalearnings
+                                            ).toLocaleString("vi-VN")}
                                         </TableCell>
                                         <TableCell align="center">
                                             {tutor.netEarnings.toLocaleString(
